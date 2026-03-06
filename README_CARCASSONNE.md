@@ -259,7 +259,7 @@ La partie s’arrête lorsque la dernière tuile est posée, ou plus tôt si une
 
 ### Extensions & Mini-extensions
 
-#### 1. Les Extensions Principales (Grandes boîtes)
+#### 1. Les Extensions Principales (Grandes boîtes) [https://wikicarpedia.com/car/Main_Page/fr#Extensions_majeures]
 
 Ces boîtes contiennent généralement une douzaine de tuiles, de nouveaux meeples et des mécaniques qui changent la dynamique du jeu.
 
@@ -283,7 +283,7 @@ Ces boîtes contiennent généralement une douzaine de tuiles, de nouveaux meepl
 
 * Miss Pique et le Cirque (Ext. 10) : Un chapiteau de cirque qui donne des points aux meeples alentour.
 
-#### 2. Les Mini-Extensions
+#### 2. Les Mini-Extensions [https://wikicarpedia.com/car/Main_Page/fr#Extensions_mineures]
 
 Elles sont souvent vendues en petits sachets ou incluses dans des éditions spéciales (comme la Big Box).
 
