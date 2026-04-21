@@ -1,12 +1,11 @@
-#include "city.h"
-
 
 #ifndef BUILDING
 #define BUILDING
 
 typedef struct _Building {
     char type;
-    City* city_in;
+    int x;
+    int y;
 } Building;
 
 typedef struct _BuildList { 
@@ -14,6 +13,9 @@ typedef struct _BuildList {
     struct _BuildList* next;
 } BuildList;
 
-void get_bonus_building(Building* build); 
+void get_building_type(Building* build);
+void get_building_x(Building* build);
+void get_building_y(Building* build);
+void get_building_city(Building* build);
 
 #endif
