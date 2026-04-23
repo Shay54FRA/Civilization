@@ -1,13 +1,13 @@
 #ifndef CITY
 #define CITY
 
-#include "unit.h"
-#include "building.h"
+typedef struct _Position Position;
+typedef struct _BuildList BuildList;
+typedef struct _Position Position;
 
 typedef struct _Project {
     char type; //Minuscule pour unité, Majuscule pour batiment
-    int x; //Egal à l'emplacement de la caserne si unité
-    int y;
+    Position* pos;//Egal à l'emplacement de la caserne si unité
     int production_cost;
 } Project;
 
@@ -34,8 +34,7 @@ Project* get_project(City* city); //Récupère le projet en cours de la ville
 BuildList* get_buildings_list(City* city); //Liste chaînée des bâtiments de la ville
 
 char* get_project_type(Project* project); //Récupère le char d'identification
-int get_project_x(Project* project);
-int get_project_y(Project* project);
+int get_project_pos(Project* project);
 int get_production_cost(Project* project); //Coût de prod restant du projet
 
 City* get_city(CityList* lst);

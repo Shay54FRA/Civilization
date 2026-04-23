@@ -1,12 +1,16 @@
 #ifndef MAP
 #define MAP
 
-#include "unit.h"
-#include "city.h"
+typedef struct _City City;
+typedef struct _Unit Unit;
 
-typedef struct _Tile {
+typedef struct _Position {
     int x;
     int y;
+} Position;
+
+typedef struct _Tile {
+    struct _Position* pos;
     char biome;
     City* city_on;
     Unit* unit;
@@ -20,6 +24,7 @@ typedef struct _Map {
 
 Map* create_map(void); //Paramètres à revoir
 void destroy_map(Map* map);
+int get_distance(Position pos1, Position pos2);
 
 Tile* get_tile(Map* map, int x, int y);
 

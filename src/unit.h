@@ -1,6 +1,8 @@
 #ifndef UNIT
 #define UNIT
 
+typedef struct _Position Position;
+
 typedef struct _Unit {
     char type;
     int atk;
@@ -8,6 +10,7 @@ typedef struct _Unit {
     int cost_per_turn; //Nom trop long
     int pv;
     int pm;
+    Position* pos;
 } Unit;
 
 typedef struct _UnitList { //Liste chaîné pour regrouper toutes les unités de la partie
@@ -21,6 +24,7 @@ int get_def(Unit* unit);
 int get_pm(Unit* unit);
 int get_cost_per_turn(Unit* unit);
 char get_unit_type(Unit* unit);
+Position get_unit_pos(Unit* unit);
 
 Unit* get_unit(UnitList* lst);
 UnitList* get_unit_next(UnitList* lst); //Prbl de logique, restructuration des lst chaînées ?
