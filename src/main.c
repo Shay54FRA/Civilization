@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 
     // VALEURS PAR DEFAUT
     int w = 50;
-    int h_defaut = 30;
+    int h = 30;
     unsigned int s= (unsigned int)time(NULL);
     int is_sdl = 0; //CLI par défaut (mode texte)
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
     // CONFIGURATION
     Configuration config;
-    initialiser_configuration(&config, w, h, s, is_sdl);
+    initialiser_configuration(&config, w, h, s, is_sdl); //&config pour aller à l'adresse de la config
 
     printf("Civ lance - Graine: %u | Taille: %dx%d | Mode: %s\n", 
             config.s, config.w, config.h, config.is_sdl ? "SDL" : "CLI");
