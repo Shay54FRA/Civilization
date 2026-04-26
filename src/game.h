@@ -35,7 +35,9 @@ CityList* get_citylist(Game* game);
 BarbarianList* get_barblist(Game* game);
 CampList* get_camplist(Game* game);
 
-
+char* get_name(char type); //donner le nom du batiment ou de l'unité portant ce type
+int get_cost(char type); //donner le coût en production de l'unité ou du batiment portant ce type 
+int get_entretien_cost(char type); //coût d'entretien en or du batiment ou de l'unité
 void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au choix Unit ou City
 /* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
 void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer

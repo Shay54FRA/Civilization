@@ -10,23 +10,17 @@
 #include <string.h>
 
 int main(void) {
-    /* TEST BUILDING.H */
+    /*------TEST BUILDING------*/
     Position pos = {0,0};   
     Building* build1 = create_building('C', pos);
     assert(build1 != NULL);
     assert(get_building_type(build1) == 'C');
-    assert(strcmp(get_building_name(build1), "Caserne") == 0);
     assert(get_building_pos(build1).x == 0);
     assert(get_building_pos(build1).y == 0);
-    assert(get_building_entretien_cost(build1) == 2);
     printf("Etat de build1 -> ");
     print_building(build1);
 
     Building* build2 = create_building('G', pos);
-    assert(get_building_entretien_cost(build2) == 1);
-
-    Building* build_fake = create_building('Z', pos);
-    assert(get_building_entretien_cost(build_fake) == -2);
 
     BuildList* liste = create_buildlist(build2);
     assert(liste != NULL);
@@ -39,6 +33,29 @@ int main(void) {
     print_buildlist(liste);
 
     destroy_buildlist(liste);
-    destroy_building(build_fake);
+
+    /*--------TEST CITY--------*/
+
+    Position pos2 = {0,1};
+    City* city1 = create_city(pos);
+    assert(get_production(city1) == 0);
+    assert(get_population(city1) == 1);
+    assert(get_food(city1) == 0);
+    assert(get_project(city1) == NULL);
+    assert(get_city_pv(city1) == 10);
+    assert(start_project(city1, pos, 'G'));
+    print_buildlist(city1->buildings);
+
+    /*--------TEST GAME--------*/
+
+    assert(strcmp(get_name('C'), "Caserne") == 0);
+    assert(get_cost('C') == 60);
+    assert(get_entretien_cost('C') == 2);
+    assert(get_entretien_cost('G') == 1);
+    assert(get_entretien_cost('Z') == -1);
+
+    /*--------TEST UNIT--------*/
+    /*--------TEST MAP---------*/
+    /*-----TEST BARBARIAN------*/
     return 0;
 }

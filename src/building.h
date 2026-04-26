@@ -26,10 +26,8 @@ typedef struct _BuildList {
 Building* create_building(char type, Position pos);
 void destroy_building(Building* build);
 char get_building_type(Building* build);
-char* get_building_name(Building* build); // Renvoie le nom complet du batiment
 Position get_building_pos(Building* build);
 void print_building(Building* build); 
-int get_building_entretien_cost(Building* build); // Renvoie le coût d'entretien du batîment
 
 BuildList* create_buildlist(Building* build);
 void destroy_buildlist(BuildList* lst);
