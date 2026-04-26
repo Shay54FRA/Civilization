@@ -13,18 +13,22 @@ LDFLAGS += -fsanitize=address
 # Voir SDL2 CM2 
 
 # Fichiers
-TARGET = main                
+TARGET = main
+TEST = main_test               
 SRCS = $(wildcard src/*.c) # /!\ ne prend pas les sous-dossiers de src
-OBJS = $(SRCS:.c=.o)
+OBJS = $(filter-out src/main.o src/main_test.o, $(SRCS:.c=.o)) #On ne comprends pas les 2 exec pour éviter la répétition de main
 
 # Par défaut
-all: $(TARGET)
+all: $(TARGET) $(TEST)
 
-$(TARGET): $(OBJS)
+$(TARGET): src/main.o $(OBJS)
+	$(CC) $^ $(LDFLAGS) -o $@
+
+$(TEST): src/main_test.o $(OBJS)
 	$(CC) $^ $(LDFLAGS) -o $@
 
 %.o : %.c  #On ne s'embête pas avec les dépendances en .h qui pose peu problèmes
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) $(TEST) src/main.o src/main_test.o
