@@ -1,0 +1,156 @@
+#include "city.h"
+#include "../building/building.h"
+#include "../map/map.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "../game/game.h"
+#include <stdbool.h>
+#include <math.h>
+
+
+#define CROISSANCE_NEED ((int) ceil((20 + 10*city->population)/pow(1.5, city->basements_number)))
+#define CITY_STRENGTH 20 + 10*(city->walls_number > 0)
+#define MAX_HP (10*city->population*pow(2,city->walls_number))
+
+City* create_city(Position pos) {
+    Building* build = create_building('G', pos);
+    City* city = malloc(sizeof(City));
+    city->food = 0;
+    city->population = 1;
+    city->production = 0;
+    city->strength = 20;
+    city->basements_number = 1;
+    city->walls_number = 0;
+    city->damage = 0; //Au lieu de stocker les pv actuels on stocks les dégâts reçus
+    city->project = NULL;
+    city->buildings = create_buildlist(build);
+    return city;
+}
+
+int get_population(City* city){
+    if (city != NULL) {
+        return city->population;
+    }
+    return -1;
+}
+
+int get_city_pv(City* city){
+    if (city != NULL) {
+        return (MAX_HP - city->damage);
+    }
+    return -1;
+}
+
+int get_food(City* city){
+    if (city != NULL) {
+        return city->food;
+    }
+    return -1;
+}
+
+int get_production(City* city){
+    if (city != NULL) {
+        return city->production;
+    }
+    return -1;
+}
+
+Project* get_project(City* city){
+    if (city != NULL) {
+        return city->project;
+    }
+    return NULL;
+}
+
+BuildList* get_buildings_list(City* city){
+    if (city != NULL) {
+        return city->buildings;
+    }
+    return NULL;
+}
+
+bool croissance_check(City* city) {
+    if (CROISSANCE_NEED <= get_food(city)) {
+        city->population += 1;
+        city->food = 0;
+        return true;
+    }
+    return false;
+}
+Tile** get_exploitation_range(City* city); //Renvoie le tableau de Tile* correspondant à la range
+
+bool start_project(City* city, Position pos, char type) {
+    if (city->project == NULL) {
+        Project* project = malloc(sizeof(Project));
+        project->pos = pos;
+        project->type = type;
+        project->production_cost = get_cost(type);
+        city->project = project;
+        return true;
+    }
+    return false;
+}
+
+bool end_project(City* city) {
+    if (city != NULL) {
+        if (city->project != NULL) {
+            city->project->production_cost -= get_production(city);
+            if (city->project->production_cost <= 0) {
+                /* A COMPLETER PLUS TARD */
+
+
+                destroy_project(city);
+            }
+        }
+    }
+    return false;
+}
+
+void destroy_project(City* city) {
+    if (city != NULL) {
+        if (city->project != NULL) free(get_project(city));
+    }
+}
+
+char get_project_type(City* city) {
+    if (city != NULL ) {
+        if (get_project(city) != NULL) {
+            return city->project->type;
+        }
+    }
+    return '\0';
+}
+
+char* get_project_name(City* city){
+    if (city != NULL) {
+        if (get_project(city) != NULL) {
+            return (get_name(city->project->type));
+        }
+    }
+    return NULL;
+}
+
+Position get_project_pos(City* city){
+    if (city != NULL) {
+        if (get_project(city) != NULL) return get_project(city)->pos;
+    }
+    Position pos_error = {-1,-1};
+    return pos_error;
+}
+
+int get_production_left(City* city) {
+    if (city != NULL) {
+        if (get_project(city) != NULL) return get_project(city)->production_cost;
+    }
+    return -1;
+}
+
+City* get_city(CityList* lst){
+    if (lst != NULL) return lst->city;
+    return NULL;
+}
+
+CityList* get_next_city(CityList* lst){
+    if (lst != NULL) return lst->next;
+    return NULL;
+}

@@ -1,8 +1,8 @@
 #ifndef BARBARIAN
 #define BARBARIAN
 
-#include "map.h"
-#include "stdbool.h"
+#include "../map/map.h"
+#include <stdbool.h>
 
 typedef struct _Barbarian {
     int pv;

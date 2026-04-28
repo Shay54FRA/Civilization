@@ -1,5 +1,6 @@
-#include "map.h"
+#include "../map/map.h"
 #include "building.h"
+#include "../game/game.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -30,41 +31,13 @@ Position get_building_pos(Building* build) {
     return error_pos;
 }
 
-char* get_building_name(Building* build) { //2 options, faire un dico ou bien des if pas très beaux
-    if (build == NULL) {
-        return NULL;
-    }
-    char test = get_building_type(build);
-    if (test == 'G') return "Grenier";
-    if (test == 'M') return "Marché";
-    if (test == 'A') return "Atelier";
-    if (test == 'B') return "Bibliothèque";
-    if (test == 'C') return "Caserne";
-    if (test == 'R') return "Muraille";
-    return NULL;
-}
-
 void print_building(Building* build) {
     if (build == NULL) {
         printf("NULL");
     }
     else {
-        printf("%s : x = %d | y = %d\n", get_building_name(build), build->pos.x, build->pos.y);
+        printf("%s : x = %d | y = %d\n", get_name(get_building_type(build)), build->pos.x, build->pos.y);
     }
-}
-
-int get_building_entretien_cost(Building* build) {
-    if (build == NULL) {
-        return -1; //A traiter plus tard dans les bonus 
-    }
-    char type = get_building_type(build);
-    if (type == 'G' || type == 'M' || type == 'A' || type == 'B') {
-        return 1;
-    }
-    if (type == 'C' || type == 'R') {
-        return 2;
-    }
-    return -2; // erreur idem -1
 }
 
 BuildList* create_buildlist(Building* build) { //Une ville commence tjrs avec un grenier 
