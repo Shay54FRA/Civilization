@@ -1,6 +1,6 @@
-#include "map.h"
+#include "../map/map.h"
 #include "building.h"
-#include "game.h"
+#include "../game/game.h"
 #include <stdlib.h>
 #include <stdio.h>
 

@@ -1,4 +1,4 @@
-#include "game.h"
+#include "../game/game.h"
 #include <stdio.h>
 
 char* get_name(char type){

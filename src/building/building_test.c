@@ -1,16 +1,10 @@
-#include "building/building.h"
-#include "game/game.h"
-#include "city/city.h"
-#include "unit/unit.h"
-#include "map/map.h"
-#include "barbarian/barbarian.h"
-#include <stdlib.h>
+#include "building.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
-#include <string.h>
+
 
 int main(void) {
-    /*------TEST BUILDING------*/
     Position pos = {0,0};   
     Building* build1 = create_building('C', pos);
     assert(build1 != NULL);
@@ -33,16 +27,4 @@ int main(void) {
     print_buildlist(liste);
 
     destroy_buildlist(liste);
-
-    /*--------TEST CITY--------*/
-
-    
-
-    /*--------TEST GAME--------*/
-
-    
-    /*--------TEST UNIT--------*/
-    /*--------TEST MAP---------*/
-    /*-----TEST BARBARIAN------*/
-    return 0;
 }

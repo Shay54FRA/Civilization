@@ -1,9 +1,9 @@
 #include "city.h"
-#include "building.h"
-#include "map.h"
-#include "stdlib.h"
-#include "stdio.h"
-#include "game.h"
+#include "../building/building.h"
+#include "../map/map.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "../game/game.h"
 #include <stdbool.h>
 #include <math.h>
 

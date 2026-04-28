@@ -1,3 +1,4 @@
+#include "../map/map.h" //Le typedef ne suffit pas car on appelle Position et non Position*
 
 #ifndef BUILDING
 #define BUILDING
@@ -10,8 +11,6 @@ M : Marché           = +3 gold/tour                          ||      1      || 
 C : Caserne          = Produire des unités                   ||      2      ||    60    ||     -
 R : Rempart/Muraille = Double PV ville                       ||      2      ||    80    || Maçonnerie
 */
-
-#include "map.h" //Le typedef ne suffit pas car on appelle Position et non Position*
 
 typedef struct _Building {
     char type;
