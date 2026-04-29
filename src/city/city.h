@@ -4,6 +4,8 @@
 #ifndef CITY
 #define CITY
 
+#define EXPLOITATION_RANGE ((city->population > 25) + (city->population > 9) + 1)
+
 typedef struct _BuildList BuildList;
 
 typedef struct _Project {
@@ -20,6 +22,7 @@ typedef struct _City {
     int strength;
     int basements_number;
     int walls_number;
+    bool can_produce_unit;
     Project* project;
     BuildList* buildings;
 } City;
@@ -36,7 +39,6 @@ int get_food(City* city); //Stockage de nourriture de la ville
 int get_production(City* city); //Qté de points de productions pour le projet
 Project* get_project(City* city); //Récupère le projet en cours de la ville
 BuildList* get_buildings_list(City* city); //Liste chaînée des bâtiments de la ville
-Tile** get_exploitation_range(City* city); //Renvoie le tableau de Tile* correspondant à la range
 
 bool start_project(City* city, Position pos, char type); //Renvoie si un projet a été créé ou non (si un projet était déjà actif)
 void destroy_project(City* city);

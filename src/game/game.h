@@ -42,7 +42,9 @@ void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au 
 /* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
 void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
 
-void give_bonus_building(City* city, Building* building); //Donner le bonus lié au batiment
+void give_bonus_building(Game* game, City* city, Building* building); //Donner le bonus lié au batiment
+Tile** get_exploited_tiles(Game* game, City* city); //Renvoie le tableau de Tile* correspondant à la range
+
 void give_bonus_city(City* city); //Donner le bonus de tous les batiments de la ville + terres exploités
 void give_all_bonuses(Game* game); //Faire les bonus de toutes les villes
 

@@ -1,4 +1,6 @@
-#include "../game/game.h"
+#include "game.h"
+#include "../building/building.h"
+#include "../city/city.h"
 #include <stdio.h>
 
 char* get_name(char type){
@@ -36,4 +38,15 @@ int get_entretien_cost(char type) {
         return 2;
     }
     return -1; 
+}
+
+void give_bonus_building(Game* game, City* city, Building* building) {
+    switch (building->type) {
+        case 'G': city->food += 3; break;
+        case 'A': city->production += 3; break;
+        case 'B': game->science += 4; break;
+        case 'M': game->gold += 3; break;
+        case 'C': city->can_produce_unit = true; break;
+        case 'R': city->walls_number += 1; break;
+    }
 }

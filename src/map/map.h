@@ -1,6 +1,24 @@
 #ifndef MAP
 #define MAP
 
+/*
+La map apparaîtra sur l'interface graphique avec des hexagones,
+Mais comment représenter ça en machine hmmmmm...
+Il faut voir ça comme des carrés décalés
+    _____________________________
+   |__|__|__|__|__|__|__|__|__|__|
+    |__|__|__|__|__|__|__|__|__|__|
+   |__|__|__|()|__|__|__|__|__|__|   
+    |__|__|__|__|__|__|__|__|__|__|
+   |__|__|__|__|__|__|__|__|__|__|
+    |__|__|__|__|__|__|__|__|__|__|
+   |__|__|__|__|__|__|__|__|__|__|   <- y = 0
+    ^x = 0
+Case (x,y) a accès à (s'ils existent): (x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+(-1)^(y+1),y+1), (x+(-1)^(y+1),y-1)
+On supposera toujours qu'on construit la carte en partant d'en pas à droite avec une ligne non décalée
+Ex : (3,4) a accès à {(2,4), (4,4), (3,3), (3,5), (2,5), (2,3)} 
+*/
+
 typedef struct _City City;
 typedef struct _Unit Unit;
 

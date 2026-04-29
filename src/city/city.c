@@ -24,6 +24,7 @@ City* create_city(Position pos) {
     city->damage = 0; //Au lieu de stocker les pv actuels on stocks les dégâts reçus
     city->project = NULL;
     city->buildings = create_buildlist(build);
+    city->can_produce_unit = false;
     return city;
 }
 
