@@ -1,6 +1,8 @@
 #include "game.h"
 #include "../building/building.h"
+#include "../map/map.h"
 #include "../city/city.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 char* get_name(char type){
@@ -50,3 +52,29 @@ void give_bonus_building(Game* game, City* city, Building* building) {
         case 'R': city->walls_number += 1; break;
     }
 }
+
+
+
+void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au choix Unit ou City
+/* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
+void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
+
+void give_bonus_building(Game* game, City* city, Building* building); //Donner le bonus lié au batiment
+TileList* get_exploitation_range(Game* game, City* city, int range) {
+    if (city != NULL) {
+        if (city->buildings != NULL) {
+            TileList* rep = malloc(sizeof(TileList));
+            if (rep != NULL) {
+                BuildList* to_check = city->buildings;
+                Building* build = to_check->data;
+                Position pos = build->pos;
+
+                Tile* tuile = get_tile(game->map, pos);
+                
+            }
+
+        }
+    }
+} 
+void give_bonus_city(City* city); //Donner le bonus de tous les batiments de la ville + terres exploités
+void give_all_bonuses(Game* game); //Faire les bonus de toutes les villes

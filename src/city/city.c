@@ -78,7 +78,6 @@ bool croissance_check(City* city) {
     }
     return false;
 }
-Tile** get_exploitation_range(City* city); //Renvoie le tableau de Tile* correspondant à la range
 
 bool start_project(City* city, Position pos, char type) {
     if (city->project == NULL) {

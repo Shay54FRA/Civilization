@@ -10,6 +10,14 @@ typedef struct _CampList CampList;
 typedef struct _Barbarian Barbarian;
 typedef struct _City City;
 typedef struct _Building Building;
+typedef struct _TileList TileList;
+
+typedef struct _Turn { //Structure pour connaître toutes les nouvelles ressources et pouvoir appliquer les bonus de l'arbre par dessus
+    int gold;
+    int science;
+    int* new_foods; //Tableau pour l'attribuer à chacun des villes
+    int* new_prods; //idem
+} Turn;
 
 typedef struct _Game {
     int gold; //Ressource globale partagé entre toutes les villes
@@ -43,8 +51,7 @@ void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au 
 void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
 
 void give_bonus_building(Game* game, City* city, Building* building); //Donner le bonus lié au batiment
-Tile** get_exploited_tiles(Game* game, City* city); //Renvoie le tableau de Tile* correspondant à la range
-
+TileList* get_exploitation_range(Game* game, City* city, int range); //Renvoie le tableau de Tile* correspondant à la range
 void give_bonus_city(City* city); //Donner le bonus de tous les batiments de la ville + terres exploités
 void give_all_bonuses(Game* game); //Faire les bonus de toutes les villes
 
