@@ -4,4 +4,4 @@
 
 *.o
 main
-main_test
+*_test
