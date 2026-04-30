@@ -24,6 +24,7 @@ City* create_city(Position pos) {
     city->damage = 0; //Au lieu de stocker les pv actuels on stocks les dégâts reçus
     city->project = NULL;
     city->buildings = create_buildlist(build);
+    city->can_produce_unit = false;
     return city;
 }
 
@@ -77,7 +78,6 @@ bool croissance_check(City* city) {
     }
     return false;
 }
-Tile** get_exploitation_range(City* city); //Renvoie le tableau de Tile* correspondant à la range
 
 bool start_project(City* city, Position pos, char type) {
     if (city->project == NULL) {
