@@ -1,4 +1,5 @@
 #include "map.h"
+#include "../tile/tile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

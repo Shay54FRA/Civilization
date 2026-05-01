@@ -171,3 +171,46 @@ void print_map(Map* m, Position cursor) {
     }
     printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
+
+TileList* get_neighbors(Map* map, Tile* tuile, bool for_exploitation) {
+    Position pos = tuile->pos;
+    if (map != NULL) {
+        TileList* rep = create_tilelist(tuile);
+        for (int x = pos.x-1; x<pos.x+2; x++) {
+            for (int y = pos.y-1; y<pos.y+2; y++) {
+                if (x >= 0 && x < map->length && y >= 0 && y < map->height && (x != pos.x || y != pos.y)) {
+                    Tile* new_tile = map->map[y][x];
+                    if (x == pos.x || y == pos.y){ //On règle les positions basiques autour
+                        if (for_exploitation && !(new_tile->exploited)) {
+                            new_tile->exploited = true;
+                            append_tilelist(rep, new_tile);
+                        }
+                        else if (!for_exploitation) {
+                            append_tilelist(rep, new_tile);
+                        }
+                    }
+                    else if (pos.y % 2 == 0 && x == pos.x-1) {
+                        if (for_exploitation && !(new_tile->exploited)) {
+                            new_tile->exploited = true;
+                            append_tilelist(rep, new_tile);
+                        }
+                        else if (!for_exploitation) {
+                            append_tilelist(rep, new_tile);
+                        }
+                    }
+                    else if (pos.y % 2 == 1 && x == pos.x+1) {
+                        if (for_exploitation && !(new_tile->exploited)) {
+                            new_tile->exploited = true;
+                            append_tilelist(rep, new_tile);
+                        }
+                        else if (!for_exploitation) {
+                            append_tilelist(rep, new_tile);
+                        }
+                    }
+                }
+            }
+        }
+        return rep;
+    }
+    return NULL;
+}

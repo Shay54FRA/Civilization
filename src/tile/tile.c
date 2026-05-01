@@ -6,7 +6,7 @@
 Tile* create_tile(Position pos, char biome) {
     Tile* new_tile = malloc(sizeof(Tile));
     new_tile->pos = pos;
-    new_tile->city_on = NULL;
+    new_tile->exploited = false;
     new_tile->unit = NULL;
     new_tile->biome = biome;
     return new_tile;
@@ -23,7 +23,7 @@ Tile* get_tile(Map* map, Position pos) {
 void print_tile(Tile* tile) {
     if (tile != NULL) {
         print_pos(tile->pos);
-        printf(", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->city_on != NULL, tile->biome);
+        printf(", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->exploited != NULL, tile->biome);
     }
 }
 
@@ -64,32 +64,4 @@ void print_tilelist(TileList* tilelist){
             to_check = to_check->next;
         }
     }
-}
-
-TileList* get_neighbors(Map* map, Tile* tuile, bool for_exploitation) {
-    Position pos = tuile->pos;
-    if (map != NULL) {
-        TileList* rep = create_tilelist(tuile);
-        for (int x = pos.x-1; x<pos.x+2; x++) {
-            for (int y = pos.y-1; y<pos.y+2; y++) {
-                if (x >= 0 && x < map->length && y >= 0 && y < map->height && (x != pos.x || y != pos.y)) {
-                    Tile* new_tile = map->map[y][x];
-                    if (x == pos.x || y == pos.y){ //On règle les positions basiques autour
-                        if (for_exploitation && !(new_tile->exploited)) {
-                            new_tile->
-                            append_tilelist(rep, new_tile);
-                        }
-                    }
-                    else if (pos.y % 2 == 0 && x == pos.x-1) {
-                        append_tilelist(rep, new_tile);
-                    }
-                    else if (pos.y % 2 == 1 && x == pos.x+1) {
-                        append_tilelist(rep, new_tile);
-                    }
-                }
-            }
-        }
-        return rep;
-    }
-    return NULL;
 }

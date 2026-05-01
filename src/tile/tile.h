@@ -24,4 +24,3 @@ TileList* create_tilelist(Tile* tile);
 void destroy_tilelist(TileList* tilelist);
 void append_tilelist(TileList* tilelist, Tile* tile);
 void print_tilelist(TileList* tilelist);
-TileList* get_neighbors(Map* map, Tile* tuile, bool for_exploitation); //Booléen en plus pour déterminer s'il faut marquer les tuiles en plus

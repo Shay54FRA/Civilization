@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #ifndef MAP
 #define MAP
 
@@ -22,6 +24,7 @@ Ex : (3,4) a accès à {(2,4), (4,4), (3,3), (3,5), (2,5), (2,3)}
 typedef struct _City City;
 typedef struct _Unit Unit;
 typedef struct _Tile Tile;
+typedef struct _TileList TileList;
 
 typedef struct _Position {
     int x;
@@ -54,7 +57,9 @@ void print_tile(Tile* tile);
 void print_map(Map* m, Position cursor);
 
 int get_distance(Position pos1, Position pos2);
-void reset_exploitation(Map* map) // Remet toute les tuiles à false pour l'exploitation
+void reset_exploitation(Map* map); // Remet toute les tuiles à false pour l'exploitation
+TileList* get_neighbors(Map* map, Tile* tuile, bool for_exploitation); //Booléen en plus pour déterminer s'il faut marquer les tuiles en plus
+
 
 
 #endif
