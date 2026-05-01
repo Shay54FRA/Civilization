@@ -21,23 +21,12 @@ Ex : (3,4) a accès à {(2,4), (4,4), (3,3), (3,5), (2,5), (2,3)}
 
 typedef struct _City City;
 typedef struct _Unit Unit;
+typedef struct _Tile Tile;
 
 typedef struct _Position {
     int x;
     int y;
 } Position;
-
-typedef struct _Tile {
-    struct _Position pos;
-    char biome; // Plaine, Foret, Montagne, Eau, Desert, Toundra
-    City* city_on; // Utilisé pour l'exploitation
-    Unit* unit;
-} Tile;
-
-typedef struct _TileList {
-    Tile* data;
-    struct _TileList* next;
-} TileList;
 
 typedef struct _Map {
     Tile*** map; // Triple pointeur : un tableau de tableaux de pointeurs
@@ -45,7 +34,6 @@ typedef struct _Map {
     int length;
 } Map;
 
-Tile* create_tile(Position pos, char biome);
 Map* create_map(int width, int height, int seed);
 void destroy_map(Map* map);
 void print_pos(Position pos);
@@ -66,12 +54,7 @@ void print_tile(Tile* tile);
 void print_map(Map* m, Position cursor);
 
 int get_distance(Position pos1, Position pos2);
-Tile* get_tile(Map* map, Position pos);
+void reset_exploitation(Map* map) // Remet toute les tuiles à false pour l'exploitation
 
-TileList* create_tilelist(Tile* tile);
-void destroy_tilelist(TileList* tilelist);
-void append_tilelist(TileList* tilelist, Tile* tile);
-void print_tilelist(TileList* tilelist);
-TileList* get_neighbors(Map* map, Tile* tuile);
 
 #endif

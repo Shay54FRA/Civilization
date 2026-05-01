@@ -1,19 +1,7 @@
 #include "map.h"
+#include "../tile/tile.h"
 #include <stdlib.h>
 #include <stdio.h>
-
-Tile* create_tile(Position pos, char biome) {
-    Tile* new_tile = malloc(sizeof(Tile));
-    new_tile->pos = pos;
-    new_tile->city_on = NULL;
-    new_tile->unit = NULL;
-    new_tile->biome = biome;
-    return new_tile;
-}
-
-Tile* get_tile(Map* map, Position pos) {
-    return map->map[pos.y][pos.x];
-}
 
 Map* create_map(int width, int height, int seed){
 
@@ -182,67 +170,4 @@ void print_map(Map* m, Position cursor) {
         printf("\n"); // On ajoute un espace vertical entre chaque rangée de cases
     }
     printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
-}
-
-TileList* create_tilelist(Tile* tuile) {
-    TileList* tilelist = malloc(sizeof(TileList));
-    if (tilelist != NULL) {
-        tilelist->data = tuile;
-        tilelist->next = NULL;
-    }
-    return tilelist;
-}
-
-void destroy_tilelist(TileList* tilelist) { //Ne pas free les tile !!
-    if (tilelist != NULL) {
-        destroy_tilelist(tilelist->next);
-        free(tilelist);
-    }
-}
-
-void append_tilelist(TileList* tilelist, Tile* tile) {
-    if (tile != NULL && tilelist != NULL) {
-        TileList* new_tilelist = create_tilelist(tile);
-        TileList* to_check = tilelist;
-        while (to_check->next != NULL) {
-            to_check = to_check->next;
-        }
-        to_check->next = new_tilelist;
-    }
-}
-
-void print_tilelist(TileList* tilelist){
-    TileList* to_check = tilelist;
-    if (to_check != NULL) {
-        printf("Liste de tuiles : \n");
-        while (to_check != NULL) {
-            print_tile(to_check->data);
-            to_check = to_check->next;
-        }
-    }
-}
-
-TileList* get_neighbors(Map* map, Tile* tuile) {
-    Position pos = tuile->pos;
-    if (map != NULL) {
-        TileList* rep = create_tilelist(tuile);
-        for (int x = pos.x-1; x<pos.x+2; x++) {
-            for (int y = pos.y-1; y<pos.y+2; y++) {
-                if (x >= 0 && x < map->length && y >= 0 && y < map->height && (x != pos.x || y != pos.y)) {
-                    Tile* new_tile = map->map[y][x];
-                    if (x == pos.x || y == pos.y){ //On règle les positions basiques autour
-                        append_tilelist(rep, new_tile);
-                    }
-                    else if (pos.y % 2 == 0 && x == pos.x-1) {
-                        append_tilelist(rep, new_tile);
-                    }
-                    else if (pos.y % 2 == 1 && x == pos.x+1) {
-                        append_tilelist(rep, new_tile);
-                    }
-                }
-            }
-        }
-        return rep;
-    }
-    return NULL;
 }
