@@ -1,21 +1,39 @@
 #include "map.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 int main(void) {
-    Map* ma_carte = create_map(30, 15, 42); //Width = 30, Height = 15, Seed = 42
+    Map* ma_carte = create_map(20, 15, 42); 
     
-    print_map(ma_carte);
+    Position curseur = {0, 0}; // On commence en haut à gauche
+    char input = ' ';
 
-    Position pos = {1,1};
+    // La boucle de jeu
+    while (input != 'p') { // 'p' pour quitter la map
+        
+        print_map(ma_carte, curseur);
+        
+        printf("LÉGENDE : ");
+        printf("%s EAU %s ", BG_EAU, COLOR_RESET);
+        printf("%s PLAINE %s ", BG_PLAINE, COLOR_RESET);
+        printf("%s FORÊT %s ", BG_FORET, COLOR_RESET);
+        printf("%s MONTAGNE %s ", BG_MONTAGNE, COLOR_RESET);
+        printf("%s DÉSERT %s ", BG_DESERT, COLOR_RESET);
+        printf("%s TOUNDRA %s\n", BG_TOUNDRA, COLOR_RESET);
+        printf("Navigation : z (Haut), s (Bas), q (Gauche), d (Droite), p (Quitter)\n");
+        printf("Action :");
+        
+        scanf("%c", &input); 
 
-    Tile* ma_tuile = get_tile(ma_carte, pos);
-    print_tile(ma_tuile);
-    TileList* tuiles_voisines = get_neighbors(ma_carte, ma_tuile);
-    print_tilelist(tuiles_voisines);
+        // Mise à jour du curseur (en faisant attention à ne pas sortir de la map)
+        if (input == 'z' && curseur.y > 0) curseur.y--;
+        if (input == 's' && curseur.y < ma_carte->height - 1) curseur.y++;
+        if (input == 'q' && curseur.x > 0) curseur.x--;
+        if (input == 'd' && curseur.x < ma_carte->length - 1) curseur.x++;
 
-    destroy_tilelist(tuiles_voisines);
+        printf("\n"); // Si on retourne pas à la ligne, on a un bug graphique sur la 1ère ligne de cases
+    }
+
     destroy_map(ma_carte);
     return 0;
 }

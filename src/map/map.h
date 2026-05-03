@@ -50,7 +50,20 @@ Map* create_map(int width, int height, int seed);
 void destroy_map(Map* map);
 void print_pos(Position pos);
 void print_tile(Tile* tile);
-void print_map(Map* map);
+
+// Définition des couleurs ANSI
+#define COLOR_RESET   "\x1b[0m"
+#define BG_EAU        "\x1b[48;5;33m\x1b[30m"   // Fond Bleu
+#define BG_PLAINE     "\x1b[48;5;114m\x1b[30m"  // Fond Vert clair
+#define BG_FORET      "\x1b[48;5;22m\x1b[37m"   // Fond Vert foncé
+#define BG_MONTAGNE   "\x1b[48;5;244m\x1b[30m"  // Fond Gris
+#define BG_DESERT     "\x1b[48;5;220m\x1b[30m"  // Fond Jaune
+#define BG_TOUNDRA    "\x1b[48;5;159m\x1b[30m"  // Fond bleu givré
+
+#define COLOR_VILLE   "\x1b[45;1;37m" // Fond Magenta
+#define COLOR_UNITE   "\x1b[41;1;37m" // Fond Rouge
+
+void print_map(Map* m, Position cursor);
 
 int get_distance(Position pos1, Position pos2);
 Tile* get_tile(Map* map, Position pos);
