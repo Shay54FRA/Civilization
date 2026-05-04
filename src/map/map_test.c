@@ -5,7 +5,7 @@
 
 // --- INTERRUPTEUR POUR TES TESTS ---
 // Mets 1 pour activer le menu avec 't' (technologies), ou 0 pour désactiver !
-#define ACTIVER_TEST_TECH 0 
+#define ACTIVER_TEST_TECH 1 
 
 #if ACTIVER_TEST_TECH
 #include "../game/game.h"

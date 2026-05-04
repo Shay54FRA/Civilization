@@ -11,6 +11,7 @@ typedef struct _Barbarian Barbarian;
 typedef struct _City City;
 typedef struct _Building Building;
 typedef struct _TileList TileList;
+typedef struct _TechTree TechTree;
 
 typedef struct _Turn { //Structure pour connaître toutes les nouvelles ressources et pouvoir appliquer les bonus de l'arbre par dessus
     int gold;
@@ -31,6 +32,7 @@ typedef struct _Game {
     int barbarian_camps_nbr;
     BarbarianList* barbarianList;
     CampList* campList;
+    TechTree* tech_tree;
 } Game;
 
 Game* create_game(void);
