@@ -39,6 +39,7 @@ int get_food(City* city); //Stockage de nourriture de la ville
 int get_production(City* city); //Qté de points de productions pour le projet
 Project* get_project(City* city); //Récupère le projet en cours de la ville
 BuildList* get_buildings_list(City* city); //Liste chaînée des bâtiments de la ville
+int get_distance_to_city(City* city, Position pos);
 
 bool start_project(City* city, Position pos, char type); //Renvoie si un projet a été créé ou non (si un projet était déjà actif)
 void destroy_project(City* city);

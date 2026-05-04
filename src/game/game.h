@@ -49,6 +49,7 @@ int get_entretien_cost(char type); //coût d'entretien en or du batiment ou de l
 void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au choix Unit ou City
 /* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
 void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
+void colonize(Game* game, Unit* colon); //Vérifier la condition de distance, créer la ville et l'ajouter à game
 
 void give_bonus_building(Game* game, City* city, Building* building); //Donner le bonus lié au batiment
 TileList* get_exploitation_range(Game* game, City* city, int range); //Renvoie le tableau de Tile* correspondant à la range

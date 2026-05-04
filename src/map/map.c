@@ -2,6 +2,7 @@
 #include "../tile/tile.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 Map* create_map(int width, int height, int seed){
 
@@ -65,17 +66,20 @@ void print_pos(Position pos) {
     printf("Position : (%d, %d)", pos.x, pos.y);
 }
 
-void print_tile(Tile* tile) {
-    if (tile != NULL) {
-        print_pos(tile->pos);
-        printf(", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->city_on != NULL, tile->biome);
-    }
+int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
+    //On convertit les points dans un système de coordonnées approprié
+    int q1 = pos1.x - (pos1.y + (pos1.y & 1)) / 2;
+    int r1 = pos1.y;
+    int s1 = -(q1 + r1);
+
+    int q2 = pos2.x - (pos2.y + (pos2.y & 1)) / 2;
+    int r2 = pos2.y;
+    int s2 = -(q2 + r2);
+
+    return (abs(q1 - q2) + abs(r1 - r2) + abs(s1 - s2)) / 2;
 }
 
-// Le champ de vision de la carte
-#define VIEW_RADIUS 6 
-
-void print_map(Map* m, Position cursor) {
+void print_map(Map* m) {
     if (m == NULL || m->map == NULL) return;
     system("clear"); //permet de clear le terminal
 
@@ -178,27 +182,10 @@ TileList* get_neighbors(Map* map, Tile* tuile, bool for_exploitation) {
         TileList* rep = create_tilelist(tuile);
         for (int x = pos.x-1; x<pos.x+2; x++) {
             for (int y = pos.y-1; y<pos.y+2; y++) {
-                if (x >= 0 && x < map->length && y >= 0 && y < map->height && (x != pos.x || y != pos.y)) {
+                if (x >= 0 && x < map->length && y >= 0 && y < map->height) {
                     Tile* new_tile = map->map[y][x];
-                    if (x == pos.x || y == pos.y){ //On règle les positions basiques autour
-                        if (for_exploitation && !(new_tile->exploited)) {
-                            new_tile->exploited = true;
-                            append_tilelist(rep, new_tile);
-                        }
-                        else if (!for_exploitation) {
-                            append_tilelist(rep, new_tile);
-                        }
-                    }
-                    else if (pos.y % 2 == 0 && x == pos.x-1) {
-                        if (for_exploitation && !(new_tile->exploited)) {
-                            new_tile->exploited = true;
-                            append_tilelist(rep, new_tile);
-                        }
-                        else if (!for_exploitation) {
-                            append_tilelist(rep, new_tile);
-                        }
-                    }
-                    else if (pos.y % 2 == 1 && x == pos.x+1) {
+                    Position new_pos = {x,y};
+                    if (get_distance(pos, new_pos) == 1) {
                         if (for_exploitation && !(new_tile->exploited)) {
                             new_tile->exploited = true;
                             append_tilelist(rep, new_tile);
