@@ -7,6 +7,7 @@ typedef struct _Unit Unit;
 typedef struct _Tile {
     struct _Position pos;
     char biome; // Plaine, Foret, Montagne, Eau, Desert, Toundra
+    bool city_on;
     bool exploited; // Utilisé pour l'exploitation
     Unit* unit;
 } Tile;

@@ -8,6 +8,7 @@ Tile* create_tile(Position pos, char biome) {
     Tile* new_tile = malloc(sizeof(Tile));
     new_tile->pos = pos;
     new_tile->exploited = false;
+    new_tile->city_on = false;
     new_tile->unit = NULL;
     new_tile->biome = biome;
     return new_tile;

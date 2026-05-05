@@ -79,7 +79,11 @@ int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
     return (abs(q1 - q2) + abs(r1 - r2) + abs(s1 - s2)) / 2;
 }
 
-void print_map(Map* m) {
+// Le champ de vision de la carte
+#define VIEW_RADIUS 6 
+
+
+void print_map(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
     system("clear"); //permet de clear le terminal
 
