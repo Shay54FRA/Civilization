@@ -44,6 +44,11 @@ int main(void) {
     // destroy_tilelist(tuiles_voisines);
 
 
+    Position pos = {1,1};
+    TileList* zone_exploitation = get_exploited_tiles(ma_carte, get_tile(ma_carte,pos), 1);
+    print_tilelist(zone_exploitation);
+
+    destroy_tilelist(zone_exploitation);
     destroy_map(ma_carte);
     return 0;
 }

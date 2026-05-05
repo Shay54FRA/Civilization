@@ -2,6 +2,7 @@
 #define GAME
 
 typedef struct _Position Position;
+typedef struct _Unit Unit;
 typedef struct _UnitList UnitList;
 typedef struct _Map Map;
 typedef struct _CityList CityList;
@@ -12,17 +13,20 @@ typedef struct _City City;
 typedef struct _Building Building;
 typedef struct _TileList TileList;
 
-typedef struct _Turn { //Structure pour connaître toutes les nouvelles ressources et pouvoir appliquer les bonus de l'arbre par dessus
-    int gold;
-    int science;
-    int* new_foods; //Tableau pour l'attribuer à chacun des villes
-    int* new_prods; //idem
-} Turn;
+typedef struct _TupleRessources { //Structure pour connaître toutes les nouvelles ressources et pouvoir appliquer les bonus de l'arbre par dessus
+    int ressource1;
+    int ressource2;
+} TupleRessources;
 
 typedef struct _Game {
     int gold; //Ressource globale partagé entre toutes les villes
     int science; //idem, pour l'arbre de technologie
     int active_turn; //Tour en cours
+    int food_multiplier;
+    int gold_multiplier;        // Attribuer un multiplicateur (1 par défaut) qui sera modifié pour compter les bonus comme 
+    int science_multiplier;
+    int prod_multiplier;
+    TupleRessources* new_ressources;
     int max_turn; //Tour maximum, défaite si dépassé
     Position* starting_point; //Utile pour placer les camps
     Map* map; //Carte de la partie

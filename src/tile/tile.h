@@ -17,10 +17,12 @@ typedef struct _TileList {
 } TileList;
 
 Tile* create_tile(Position pos, char biome);
+void destroy_tile(Tile* tile);
 Tile* get_tile(Map* map, Position pos);
 void print_tile(Tile* tile);
 
 TileList* create_tilelist(Tile* tile);
 void destroy_tilelist(TileList* tilelist);
 void append_tilelist(TileList* tilelist, Tile* tile);
+void merge_and_destroy_tilelists(TileList* kept_tilelist, TileList* tilelist_to_free);
 void print_tilelist(TileList* tilelist);

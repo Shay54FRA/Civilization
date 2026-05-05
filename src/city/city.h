@@ -1,4 +1,5 @@
 #include "../map/map.h"
+#include "../game/game.h"
 #include <stdbool.h>
 
 #ifndef CITY
@@ -22,6 +23,7 @@ typedef struct _City {
     int strength;
     int basements_number;
     int walls_number;
+    TupleRessources* new_ressources;
     bool can_produce_unit;
     Project* project;
     BuildList* buildings;

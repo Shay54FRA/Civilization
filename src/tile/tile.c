@@ -1,5 +1,6 @@
 #include "tile.h"
 #include "../map/map.h"
+#include "../unit/unit.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,7 +14,12 @@ Tile* create_tile(Position pos, char biome) {
 }
 
 void destroy_tile(Tile* tile) {
-    free(tile);
+    if (tile != NULL) { //Detruire l'unité dessus
+        if (tile->unit != NULL) {
+            destroy_unit(tile->unit);
+        }
+        free(tile);
+    }
 }
 
 Tile* get_tile(Map* map, Position pos) {
@@ -23,7 +29,7 @@ Tile* get_tile(Map* map, Position pos) {
 void print_tile(Tile* tile) {
     if (tile != NULL) {
         print_pos(tile->pos);
-        printf(", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->exploited != NULL, tile->biome);
+        printf(", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->exploited != false, tile->biome);
     }
 }
 
@@ -45,15 +51,31 @@ void destroy_tilelist(TileList* tilelist) { //Ne pas free les tile !!
 
 void append_tilelist(TileList* tilelist, Tile* tile) {
     if (tile != NULL && tilelist != NULL) {
-        TileList* new_tilelist = create_tilelist(tile);
-        TileList* to_check = tilelist;
-        while (to_check->next != NULL) {
-            to_check = to_check->next;
+        if (tilelist->data == NULL) {
+            tilelist->data = tile;
         }
-        to_check->next = new_tilelist;
+        else {
+            TileList* new_tilelist = create_tilelist(tile);
+            TileList* to_check = tilelist;
+            while (to_check->next != NULL) {
+                to_check = to_check->next;
+            }
+            to_check->next = new_tilelist;
+        }
     }
 }
 
+void merge_and_destroy_tilelists(TileList* kept_tilelist, TileList* tilelist_to_free) {
+    TileList* to_check = tilelist_to_free;
+    while (to_check != NULL) {
+        if (to_check->data != NULL) {
+            append_tilelist(kept_tilelist, to_check->data);
+            to_check = to_check->next;
+        }
+
+    }
+    destroy_tilelist(tilelist_to_free);
+}
 
 void print_tilelist(TileList* tilelist){
     TileList* to_check = tilelist;

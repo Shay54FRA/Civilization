@@ -176,23 +176,18 @@ void print_map(Map* m) {
     printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
 
-TileList* get_neighbors(Map* map, Tile* tuile, bool for_exploitation) {
+TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
     Position pos = tuile->pos;
     if (map != NULL) {
-        TileList* rep = create_tilelist(tuile);
-        for (int x = pos.x-1; x<pos.x+2; x++) {
-            for (int y = pos.y-1; y<pos.y+2; y++) {
+        TileList* rep = create_tilelist(NULL);
+        for (int x = pos.x-range; x<=pos.x+range; x++) {
+            for (int y = pos.y-range; y<=pos.y+range; y++) {
                 if (x >= 0 && x < map->length && y >= 0 && y < map->height) {
                     Tile* new_tile = map->map[y][x];
                     Position new_pos = {x,y};
-                    if (get_distance(pos, new_pos) == 1) {
-                        if (for_exploitation && !(new_tile->exploited)) {
-                            new_tile->exploited = true;
-                            append_tilelist(rep, new_tile);
-                        }
-                        else if (!for_exploitation) {
-                            append_tilelist(rep, new_tile);
-                        }
+                    if (get_distance(pos, new_pos) == range && !(new_tile->exploited)) {
+                        new_tile->exploited = true;
+                        append_tilelist(rep, new_tile);
                     }
                 }
             }
