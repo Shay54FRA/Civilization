@@ -21,6 +21,7 @@ int main(void) {
 #if ACTIVER_TEST_TECH
     Game dummy_game;
     dummy_game.science = 100; // Un peu de science pour tester les achats
+    dummy_game.active_research_id = -1; // Aucun projet au début
     dummy_game.tech_tree = create_tech_tree(); 
 #endif
 
@@ -52,6 +53,9 @@ int main(void) {
         if (input == 'd' && curseur.x < ma_carte->length - 1) curseur.x++;
 
 #if ACTIVER_TEST_TECH
+        // --- On simule la fin du tour à chaque action ---
+        update_research(&dummy_game);
+        
         if (input == 't') {
             show_technology_menu(&dummy_game);
         }

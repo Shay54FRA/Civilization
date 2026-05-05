@@ -33,6 +33,7 @@ typedef struct _Game {
     BarbarianList* barbarianList;
     CampList* campList;
     TechTree* tech_tree;
+    int active_research_id;   // Le post-it pour retenir le projet en cours
 } Game;
 
 Game* create_game(void);

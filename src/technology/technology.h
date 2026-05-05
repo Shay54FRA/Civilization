@@ -8,30 +8,38 @@ typedef struct _Game Game;
  * 1. La "plus petite structure" pour gérer les bonus.
  */
 typedef struct {
-    int unlocked_units_count;
-    char* unlocked_units;       // Ex: ['A', 'C'] pour débloquer Archer et Cavalier
-    
+    // Les déblocages
+    char unlocked_buildings[5];
     int unlocked_buildings_count;
-    char* unlocked_buildings;   // Ex: ['G', 'M'] pour Grenier et Muraille
-    
-    // On pourra ajouter d'autres bonus plus tard
+    char unlocked_units[5];
+    int unlocked_units_count;
+
+    // --- CE QUI EST IMPOSÉ PAR LE CDC ---
+    // Bonus passifs globaux (pourcentages)
+    int bonus_food_percent;       // ex: 10 pour l'Agriculture (+10%)
+    int bonus_production_percent; // ex: 10 pour l'Artisanat (+10%)
+    int bonus_science_percent;    // ex: 10 pour l'Écriture (+10%)
+    int bonus_gold_percent;       // ex: 10 pour le Commerce (+10%)
+
+    // Bonus passifs spécifiques
+    int bonus_food_forest;        // ex: 1 pour la Chasse (+1 Nourriture sur Forêt)
+    int bonus_pm_units;           // ex: 1 pour l'Équitation (+1 Point de Mouvement)
 } TechBonus;
 
 /*
  * 2. Le noeud principal : la Technologie
  */
-typedef struct _Technology {
-    int id;                     // Identifiant unique (ex: 1)
-    char name[64];              // Nom (ex: "Poterie")
-    char description[256];      // Petite description du lore ou de l'effet
+typedef struct {
+    int id;
+    char name[50];
+    int science_cost;
     
-    int science_cost;           // Le coût à payer en Game->science
-    int is_unlocked;            // 0 = non possédée, 1 = possédée
+    // --- CE QUI EST IMPOSÉ PAR LE CDC : Prérequis multiples ---
+    int prerequisites[3];        // Tableau des IDs requis (3 maximum pour commencer au pire on peut modifier)
+    int num_prerequisites;       // Combien de prérequis cette techno demande
     
-    int num_prerequisites;
-    int* prerequisite_ids;      // Tableau des IDs des technos requises pour la débloquer
-    
-    TechBonus bonus;            // Ce qu'elle débloque
+    int is_unlocked;
+    TechBonus bonus;
 } Technology;
 
 /*
@@ -49,8 +57,9 @@ TechTree* create_tech_tree(void);
 void destroy_tech_tree(TechTree* tree);
 
 // Fonctions de logique de jeu
-int can_unlock_tech(Game* game, TechTree* tree, int tech_id); // Vérifie la science ET les prérequis
-void unlock_tech(Game* game, TechTree* tree, int tech_id);    // Paie la science et passe is_unlocked à 1
+int can_research_tech(Game* game, TechTree* tree, int tech_id);
+void set_active_research(Game* game, int tech_id);
+void update_research(Game* game);
 
 // Afficher le menu interactif
 void show_technology_menu(Game* game);
