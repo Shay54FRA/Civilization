@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     int h = 30;
     unsigned int s= (unsigned int)time(NULL);
     int t = 200; //nbr tours
-    int b = 3; //nbr barbares
+    int b = 3; //nbr camps barbares
     int is_sdl = 0; //CLI par défaut (mode texte)
 
     // PARSING
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     // CONFIGURATION
     Configuration* config = create_configuration(w, h, s,t,b, is_sdl);
 
-    printf("Civ lance - Graine: %u | Taille: %dx%d | Mode: %s\n | Nbr tours : %d | Nbr barbares : %d", 
+    printf("Civ lance - Graine: %u | Taille: %dx%d | Mode: %s\n | Nbr tours : %d | Nbr camps barbares : %d", 
             config->s, config->w, config->h, config->is_sdl ? "SDL" : "CLI",config->t,config->b);
 
     destroy_configuration(config);

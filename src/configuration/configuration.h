@@ -11,7 +11,14 @@ typedef struct {
 } Configuration;
 
 // fonction permettant d'initialiser la configuration du jeu
-Configuration * create_configuration(int width, int height, unsigned int seed,int nbr_tours,int nbr_barabares, int sdl_mode);
+Configuration * create_configuration(int width, int height, unsigned int seed,int nbr_tours,int nbr_camps_barabares, int sdl_mode);
+void destroy_configuration(Configuration * config);
+int get_width(Configuration * config);
+int get_height(Configuration * config);
+unsigned int get_seed(Configuration * config);
+int get_nbr_tours(Configuration * config);
+int get_nbr_camps_barbares(Configuration * config);
+int get_mode(Configuration * config);
 void destroy_configuration(Configuration * config);
 
 #endif
