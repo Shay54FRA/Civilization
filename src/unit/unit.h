@@ -18,6 +18,9 @@ typedef struct _UnitList { //Liste chaîné pour regrouper toutes les unités de
     struct _UnitList* next;
 } UnitList;
 
+Unit* create_unit(void);
+void destroy_unit(Unit* unit);
+
 int get_atk(Unit* unit);
 int get_pv(Unit* unit);
 int get_def(Unit* unit);

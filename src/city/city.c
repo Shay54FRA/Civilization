@@ -79,6 +79,28 @@ bool croissance_check(City* city) {
     return false;
 }
 
+int get_distance_to_city(City* city, Position pos) {
+    if (city != NULL) {
+        if (city->buildings != NULL) {
+            if (city->buildings->data != NULL) {
+                int min = get_distance(city->buildings->data->pos, pos); // Par rapport au premier batîment
+                int dist;
+                BuildList* to_check = get_buildlist_next(city->buildings);
+                while (to_check != NULL) {
+                    Building* bat = get_buildlist_data(to_check);
+                    dist = get_distance(bat->pos, pos);
+                    if (min > dist) {
+                        min = dist;
+                    }
+                    to_check = to_check->next;
+                }
+                return min;
+            }
+        }
+    }
+    return -1;
+}
+
 bool start_project(City* city, Position pos, char type) {
     if (city->project == NULL) {
         Project* project = malloc(sizeof(Project));
