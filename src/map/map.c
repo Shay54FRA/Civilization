@@ -1,19 +1,8 @@
 #include "map.h"
+#include "../tile/tile.h"
 #include <stdlib.h>
 #include <stdio.h>
-
-Tile* create_tile(Position pos, char biome) {
-    Tile* new_tile = malloc(sizeof(Tile));
-    new_tile->pos = pos;
-    new_tile->city_on = NULL;
-    new_tile->unit = NULL;
-    new_tile->biome = biome;
-    return new_tile;
-}
-
-Tile* get_tile(Map* map, Position pos) {
-    return map->map[pos.y][pos.x];
-}
+#include <math.h>
 
 Map* create_map(int width, int height, int seed){
 
@@ -71,104 +60,137 @@ void destroy_map(Map* m) {
 }
 
 
-// Définition des couleurs ANSI
-#define COLOR_RESET    "\x1b[0m"
-#define COLOR_EAU      "\x1b[38;5;33m"   // Bleu plus clair/océan
-#define COLOR_PLAINE   "\x1b[38;5;114m"  // Vert tendre
-#define COLOR_FORET    "\x1b[38;5;22m"   // Vert sapin très sombre
-#define COLOR_MONTAGNE "\x1b[38;5;244m"  // Gris roche
-#define COLOR_DESERT   "\x1b[38;5;220m"  // Jaune sable
-#define COLOR_TOUNDRA  "\x1b[38;5;159m"  // Bleu givré glacé
+
 
 void print_pos(Position pos) {
     printf("Position : (%d, %d)", pos.x, pos.y);
 }
 
-void print_tile(Tile* tile) {
-    if (tile != NULL) {
-        print_pos(tile->pos);
-        printf(", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->city_on != NULL, tile->biome);
-    }
+int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
+    //On convertit les points dans un système de coordonnées approprié
+    int q1 = pos1.x - (pos1.y + (pos1.y & 1)) / 2;
+    int r1 = pos1.y;
+    int s1 = -(q1 + r1);
+
+    int q2 = pos2.x - (pos2.y + (pos2.y & 1)) / 2;
+    int r2 = pos2.y;
+    int s2 = -(q2 + r2);
+
+    return (abs(q1 - q2) + abs(r1 - r2) + abs(s1 - s2)) / 2;
 }
 
-void print_map(Map* m) {
+// Le champ de vision de la carte
+#define VIEW_RADIUS 6 
+
+
+void print_map(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
+    system("clear"); //permet de clear le terminal
 
-    for (int i = 0; i < m->height; i++) {
+    int start_y = cursor.y - VIEW_RADIUS;
+    int end_y = cursor.y + VIEW_RADIUS;
+    int start_x = cursor.x - VIEW_RADIUS;
+    int end_x = cursor.x + VIEW_RADIUS;
+
+    for (int y = start_y; y <= end_y; y++) {
         
-        for (int j = 0; j < m->length; j++) {
+        // Pour faire de grosses cases, on dessine sur 3 lignes
+        for (int line = 0; line < 3; line++) {
             
-            Tile* current_tile = m->map[i][j];
-
-
-            switch(current_tile->biome) {
-                case 'E': printf("%s ~ %s", COLOR_EAU, COLOR_RESET); break;
-                case 'P': printf("%s . %s", COLOR_PLAINE, COLOR_RESET); break;
-                case 'F': printf("%s # %s", COLOR_FORET, COLOR_RESET); break;
-                case 'M': printf("%s ^ %s", COLOR_MONTAGNE, COLOR_RESET); break;
-                case 'D': printf("%s x %s", COLOR_DESERT, COLOR_RESET); break;
-                case 'T': printf("%s * %s", COLOR_TOUNDRA, COLOR_RESET); break;
-                default:  printf(" ? "); break; // Sécurité si un biome inconnu s'est glissé
+            // Pour faire un effet hexagone, on décale les lignes impaires
+            if (y % 2 != 0) {
+                printf("     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
             }
 
+            for (int x = start_x; x <= end_x; x++) {
+                
+                // Si la caméra regarde dans le vide (hors carte)
+                if (x < 0 || x >= m->length || y < 0 || y >= m->height) {
+                    printf("     "); // 5 espaces
+                    continue;
+                }
+
+                Tile* tuile = m->map[y][x];
+                
+                // 1. Choix du symbole à afficher sur la case
+                char symbol = ' ';
+                // symbol = tuile->biome; //J'ai enlevé la lettre du biome
+                if (tuile->city_on) symbol = 'V';
+                else if (tuile->unit) symbol = 'U';
+
+                // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
+
+                    // '\x1b['   : début commande de style (couleur, police...)
+                    // '31'      : texte en rouge
+                    // ';1'      : texte en gras
+                    // 'm'       : fin ordre de style
+                    // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité ( COLOR RESET = "\x1b[30m" )
+
+                const char* bg = ""; // Background color
+                const char* fg = "\x1b[30m"; // Couleur du texte par défaut = noir
+                
+                if (tuile->city_on){
+                    bg = COLOR_VILLE;
+                    fg = "\x1b[31;1m"; // Texte en rouge et gras
+                }
+                else if (tuile->unit){
+                    bg = COLOR_UNITE;
+                    fg = "\x1b[31;1m"; // Texte en rouge et gras
+                }
+                else {
+                    switch(tuile->biome) {
+                        case 'E': bg = BG_EAU; break;
+                        case 'P': bg = BG_PLAINE; break;
+                        case 'F': bg = BG_FORET; break;
+                        case 'M': bg = BG_MONTAGNE; break;
+                        case 'D': bg = BG_DESERT; break;
+                        case 'T': bg = BG_TOUNDRA; break;
+                    }
+                }
+
+                // 3. DESSIN D'UNE CASE (j'ai dessiné les cases sur une hauteur de 3 lignes et une largeur de 9 caractères)
+
+                if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case---
+
+                    if (cursor.x == x && cursor.y == y) { //Case actuelle encadrée en rouge
+                        printf("%s\x1b[31;1m+-------+%s ", bg,COLOR_RESET);
+                    }
+
+                    else {
+                        // Bloc de couleur uni
+                        printf("%s         %s ", bg,COLOR_RESET);
+                    }
+                }
+                
+                
+                
+                else if (line == 1) { // --- Ligne du MILIEU (avec la lettre) ---
+                    if (cursor.x == x && cursor.y == y) { 
+                        printf("%s\x1b[31;1m|%s   %c   \x1b[31;1m|%s ", bg, fg, symbol,COLOR_RESET); // Bordure rouge '|' et lettre au centre
+                    }
+                    else {
+                        printf("%s%s    %c    %s ", bg, fg, symbol,COLOR_RESET); // Affichage case sur 9 de large
+                    }
+                }
+            }
+            printf("\n"); // On passe à la ligne suivante du terminal
         }
-        printf("\n");
+        printf("\n"); // On ajoute un espace vertical entre chaque rangée de cases
     }
+    printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
 
-TileList* create_tilelist(Tile* tuile) {
-    TileList* tilelist = malloc(sizeof(TileList));
-    if (tilelist != NULL) {
-        tilelist->data = tuile;
-        tilelist->next = NULL;
-    }
-    return tilelist;
-}
-
-void destroy_tilelist(TileList* tilelist) { //Ne pas free les tile !!
-    if (tilelist != NULL) {
-        destroy_tilelist(tilelist->next);
-        free(tilelist);
-    }
-}
-
-void append_tilelist(TileList* tilelist, Tile* tile) {
-    if (tile != NULL && tilelist != NULL) {
-        TileList* new_tilelist = create_tilelist(tile);
-        TileList* to_check = tilelist;
-        while (to_check->next != NULL) {
-            to_check = to_check->next;
-        }
-        to_check->next = new_tilelist;
-    }
-}
-
-void print_tilelist(TileList* tilelist){
-    TileList* to_check = tilelist;
-    if (to_check != NULL) {
-        printf("Liste de tuiles : \n");
-        while (to_check != NULL) {
-            print_tile(to_check->data);
-            to_check = to_check->next;
-        }
-    }
-}
-
-TileList* get_neighbors(Map* map, Tile* tuile) {
+TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
     Position pos = tuile->pos;
     if (map != NULL) {
-        TileList* rep = create_tilelist(tuile);
-        for (int x = pos.x-1; x<pos.x+2; x++) {
-            for (int y = pos.y-1; y<pos.y+2; y++) {
-                if (x >= 0 && x < map->length && y >= 0 && y < map->height && (x != pos.x || y != pos.y)) {
+        TileList* rep = create_tilelist(NULL);
+        for (int x = pos.x-range; x<=pos.x+range; x++) {
+            for (int y = pos.y-range; y<=pos.y+range; y++) {
+                if (x >= 0 && x < map->length && y >= 0 && y < map->height) {
                     Tile* new_tile = map->map[y][x];
-                    if (x == pos.x || y == pos.y){ //On règle les positions basiques autour
-                        append_tilelist(rep, new_tile);
-                    }
-                    else if (pos.y % 2 == 0 && x == pos.x-1) {
-                        append_tilelist(rep, new_tile);
-                    }
-                    else if (pos.y % 2 == 1 && x == pos.x+1) {
+                    Position new_pos = {x,y};
+                    if (get_distance(pos, new_pos) == range && !(new_tile->exploited)) {
+                        new_tile->exploited = true;
                         append_tilelist(rep, new_tile);
                     }
                 }

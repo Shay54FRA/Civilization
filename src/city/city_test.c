@@ -6,7 +6,6 @@
 
 int main(void) {
     Position pos = {0,0};
-    Position pos2 = {0,1};
     City* city1 = create_city(pos);
     assert(get_production(city1) == 0);
     assert(get_population(city1) == 1);
