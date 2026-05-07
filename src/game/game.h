@@ -12,6 +12,7 @@ typedef struct _Barbarian Barbarian;
 typedef struct _City City;
 typedef struct _Building Building;
 typedef struct _TileList TileList;
+typedef struct _Configuration Configuration;
 typedef struct _TechTree TechTree;
 
 typedef struct _TupleRessources { //Structure pour connaître toutes les nouvelles ressources et pouvoir appliquer les bonus de l'arbre par dessus
@@ -33,7 +34,7 @@ typedef struct _Game {
     Map* map; //Carte de la partie
     UnitList* unitList; //Liste des unités du joueur
     CityList* cityList; // Liste des villes du joueur
-    int barbarian_camps_nbr;
+    Configuration * configuration; // Configuration de la partie (nbr de camps barabares, taille map,...)
     BarbarianList* barbarianList;
     CampList* campList;
     TechTree* tech_tree;
