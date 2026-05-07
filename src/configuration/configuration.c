@@ -3,7 +3,7 @@
 
 #include "configuration.h"
 
-Configuration * create_configuration(int width, int height, unsigned int seed,int nbr_tours, int nbr__camps_barbares, int sdl_mode) {
+Configuration * create_configuration(int width, int height, unsigned int seed,int nbr_tours, int nbr_camps_barbares, int sdl_mode) {
 
     Configuration * config = malloc(sizeof(Configuration));
 
