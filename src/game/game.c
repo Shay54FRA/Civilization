@@ -8,6 +8,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+Game* create_game(Configuration* config) {
+    if (config != NULL) {
+        Game* game = malloc(sizeof(Game));
+        game->science = 0;
+        game->gold = 0;
+        game->active_research_id = -1;
+        game->active_turn = 1;
+        Map* map = create_map(config->w, config->h, config->s);
+        game->barbarianList = NULL; //Pas encore créé
+        game->campList = NULL; //Pas encore créé
+        game->starting_point = NULL;
+        game->tech_tree = create_tech_tree();
+        game->new_ressources = malloc(sizeof(TupleRessources));
+        game->
+    }
+}
 
 char* get_name(char type){
     if (type == 'G') return "Grenier";
