@@ -11,6 +11,7 @@ typedef struct _CampList CampList;
 typedef struct _Barbarian Barbarian;
 typedef struct _City City;
 typedef struct _Building Building;
+typedef struct _Tile Tile;
 typedef struct _TileList TileList;
 typedef struct _Configuration Configuration;
 typedef struct _TechTree TechTree;
@@ -24,10 +25,6 @@ typedef struct _Game {
     int gold; //Ressource globale partagé entre toutes les villes
     int science; //idem, pour l'arbre de technologie
     int active_turn; //Tour en cours
-    int food_multiplier;
-    int gold_multiplier;        // Attribuer un multiplicateur (1 par défaut) qui sera modifié pour compter les bonus comme 
-    int science_multiplier;
-    int prod_multiplier;
     TupleRessources* new_ressources;
     int max_turn; //Tour maximum, défaite si dépassé
     Position* starting_point; //Utile pour placer les camps
@@ -59,10 +56,26 @@ void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au 
 void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
 void colonize(Game* game, Unit* colon); //Vérifier la condition de distance, créer la ville et l'ajouter à game
 
-void give_bonus_building(Game* game, City* city, Building* building); //Donner le bonus lié au batiment
-TileList* get_exploitation_range(Game* game, City* city, int range); //Renvoie le tableau de Tile* correspondant à la range
-void give_bonus_city(City* city); //Donner le bonus de tous les batiments de la ville + terres exploités
-void give_all_bonuses(Game* game); //Faire les bonus de toutes les villes
+//Donner le bonus lié au batiment
+void give_bonus_building(Game* game, City* city, Building* building);
+
+//Donner le bonus du biome de la tuile
+void give_bonus_tile(Game* game, City* city, Tile* tile); 
+
+//Donner tous les bonus de batiments de la ville
+void give_bonus_city_buildings(Game* game, City* city);
+
+//Donner tous les bonus d'exploitation de la ville
+void give_bonus_city_exploited_tiles(Game* game, City* city, TileList* exploitList);
+
+//Renvoie le tableau de Tile* correspondant à la range
+TileList* get_exploitation_range(Game* game, City* city, int range);
+
+//Renvoie le tableau de TileList* pour avoir la liste des tuiles exploités par chacune des villes
+TileList** get_all_exploited_tiles(Game* game);
+
+//Faire les bonus de toutes les villes : utilise toutes les fonctions au dessus
+void give_all_bonuses(Game* game); 
 
 
 

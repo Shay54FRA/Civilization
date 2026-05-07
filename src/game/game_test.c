@@ -1,4 +1,6 @@
 #include "game.h"
+#include "../map/map.h"
+#include "../tile/tile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

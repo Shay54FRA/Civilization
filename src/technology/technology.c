@@ -111,6 +111,16 @@ void update_research(Game* game) {
         tech->is_unlocked = 1;           // Technologie débloquée !
         game->science = 0;               // La cagnotte est remise à 0 (surplus perdu)
         game->active_research_id = -1;   // Le projet est terminé
+
+        // Mise à jour des bonus globaux
+        game->tech_tree->bonus_food_percent += tech->bonus.bonus_food_percent;
+        game->tech_tree->bonus_prod_percent += tech->bonus.bonus_production_percent;
+        game->tech_tree->bonus_gold_percent += tech->bonus.bonus_gold_percent;
+        game->tech_tree->bonus_science_percent += tech->bonus.bonus_science_percent;
+
+        game->tech_tree->bonus_food_forest += tech->bonus.bonus_food_forest;
+        game->tech_tree->bonus_pm_units += tech->bonus.bonus_pm_units;
+        
         printf("\n*** DECOUVERTE : Vous avez decouvert '%s' ! ***\n", tech->name);
     }
 }

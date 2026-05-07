@@ -7,14 +7,13 @@ typedef struct _Game Game;
 /* 
  * 1. La "plus petite structure" pour gérer les bonus.
  */
-typedef struct {
+typedef struct _TechBonus{
     // Les déblocages
     char unlocked_buildings[5];
     int unlocked_buildings_count;
     char unlocked_units[5];
     int unlocked_units_count;
 
-    // --- CE QUI EST IMPOSÉ PAR LE CDC ---
     // Bonus passifs globaux (pourcentages)
     int bonus_food_percent;       // ex: 10 pour l'Agriculture (+10%)
     int bonus_production_percent; // ex: 10 pour l'Artisanat (+10%)
@@ -29,7 +28,7 @@ typedef struct {
 /*
  * 2. Le noeud principal : la Technologie
  */
-typedef struct {
+typedef struct _Technology{
     int id;
     char name[50];
     int science_cost;
@@ -48,6 +47,15 @@ typedef struct {
 typedef struct _TechTree {
     int num_technologies;
     Technology* technologies;   // Tableau dynamique contenant toutes les technos du jeu
+
+    /* Résumé de tous les bonus acquis */
+    int bonus_food_percent;
+    int bonus_prod_percent;
+    int bonus_gold_percent;
+    int bonus_science_percent;
+    
+    int bonus_food_forest;
+    int bonus_pm_units;
 } TechTree;
 
 // --- Fonctions principales ---
