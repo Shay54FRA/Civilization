@@ -1,6 +1,8 @@
 #include "game.h"
 #include "../map/map.h"
 #include "../tile/tile.h"
+#include "../configuration/configuration.h"
+#include "../city/city.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -12,5 +14,23 @@ int main(void){
     assert(get_entretien_cost('C') == 2);
     assert(get_entretien_cost('G') == 1);
     assert(get_entretien_cost('Z') == -1);
+
+    Configuration* config = create_configuration(20, 30, 1000, 100, 3, 0);
+    Game* game = create_game(config);
+
+    City* city = create_city(game->starting_point);
+    CityList* liste_villes = malloc(sizeof(CityList));
+    liste_villes->city = city;
+    liste_villes->next = NULL;
+    game->cityList = liste_villes;
+    
+    give_all_bonuses(game);
+    printf("Gold : %d\n", game->gold);
+    printf("Science : %d\n", game->science);
+    printf("Food : %d\n", city->food);
+    printf("Prod : %d\n", city->production);
+
+    destroy_game(game);
+
     return 0;
 }

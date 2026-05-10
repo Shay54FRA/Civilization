@@ -56,24 +56,30 @@ void append_tilelist(TileList* tilelist, Tile* tile) {
             tilelist->data = tile;
         }
         else {
-            TileList* new_tilelist = create_tilelist(tile);
             TileList* to_check = tilelist;
             while (to_check->next != NULL) {
                 to_check = to_check->next;
             }
-            to_check->next = new_tilelist;
+            to_check->next = create_tilelist(tile);
         }
     }
 }
 
 void merge_and_destroy_tilelists(TileList* kept_tilelist, TileList* tilelist_to_free) {
+    if (kept_tilelist == NULL) {
+        destroy_tilelist(tilelist_to_free);
+        return;
+    }
+    if (tilelist_to_free == NULL) {
+        return;
+    }
+
     TileList* to_check = tilelist_to_free;
     while (to_check != NULL) {
         if (to_check->data != NULL) {
             append_tilelist(kept_tilelist, to_check->data);
-            to_check = to_check->next;
         }
-
+        to_check = to_check->next;
     }
     destroy_tilelist(tilelist_to_free);
 }

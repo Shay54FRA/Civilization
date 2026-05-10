@@ -1,7 +1,8 @@
+#include "../map/map.h"
+
 #ifndef GAME
 #define GAME
 
-typedef struct _Position Position;
 typedef struct _Unit Unit;
 typedef struct _UnitList UnitList;
 typedef struct _Map Map;
@@ -27,18 +28,21 @@ typedef struct _Game {
     int active_turn; //Tour en cours
     TupleRessources* new_ressources;
     int max_turn; //Tour maximum, défaite si dépassé
-    Position* starting_point; //Utile pour placer les camps
+    Position starting_point; //Utile pour placer les camps
     Map* map; //Carte de la partie
     UnitList* unitList; //Liste des unités du joueur
     CityList* cityList; // Liste des villes du joueur
-    Configuration * configuration; // Configuration de la partie (nbr de camps barabares, taille map,...)
+    Configuration* configuration; // Configuration de la partie (nbr de camps barabares, taille map,...)
     BarbarianList* barbarianList;
     CampList* campList;
     TechTree* tech_tree;
     int active_research_id;   // Le post-it pour retenir le projet en cours
 } Game;
 
-Game* create_game(void);
+TupleRessources* create_tuple_ressources(void);
+void destroy_tuple_ressources(TupleRessources* structure);
+
+Game* create_game(Configuration* config);
 void destroy_game(Game* game);
 
 int get_turn(Game* game);
@@ -76,7 +80,5 @@ TileList** get_all_exploited_tiles(Game* game);
 
 //Faire les bonus de toutes les villes : utilise toutes les fonctions au dessus
 void give_all_bonuses(Game* game); 
-
-
 
 #endif
