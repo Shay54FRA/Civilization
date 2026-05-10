@@ -11,6 +11,12 @@ TechTree* create_tech_tree(void) {
 
     tree->num_technologies = 2; // On laisse 2 pour l'instant 
     tree->technologies = malloc(tree->num_technologies * sizeof(Technology));
+    tree->bonus_food_forest = 0;
+    tree->bonus_food_percent = 0;
+    tree->bonus_gold_percent = 0;
+    tree->bonus_prod_percent = 0;
+    tree->bonus_science_percent = 0;
+    tree->bonus_pm_units = 0;
 
     // Technologie 0 : L'Agriculture
     tree->technologies[0].id = 0;

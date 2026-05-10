@@ -23,6 +23,8 @@ int main(void){
     liste_villes->city = city;
     liste_villes->next = NULL;
     game->cityList = liste_villes;
+
+    print_map(game->map, game->starting_point);
     
     give_all_bonuses(game);
     printf("Gold : %d\n", game->gold);

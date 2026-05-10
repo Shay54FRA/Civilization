@@ -246,9 +246,7 @@ void give_bonus_exploitations(Game* game, TileList** tab) {
 void give_all_bonuses(Game* game) {
     if (game != NULL) {
         //Partie 1 : Donner les bonus d'exploitation
-        printf("Récupérer toutes les tuiles exploités\n");
         TileList** all_exploited_tiles = get_all_exploited_tiles(game);
-        printf("Donner les bonus à chacune des villes\n");
         give_bonus_exploitations(game, all_exploited_tiles);
         int length = get_city_number(game);
         destroy_all_tilelists(all_exploited_tiles, length);
@@ -266,10 +264,10 @@ void give_all_bonuses(Game* game) {
         to_check = game->cityList;
         while (to_check != NULL) {
             city = to_check->city;
-            city->food += (int) (1 + game->tech_tree->bonus_food_percent/100) * city->new_ressources->ressource1;
+            city->food += (int) ((1 + game->tech_tree->bonus_food_percent/100) * city->new_ressources->ressource1);
 
             //Juste un = car on perd la prod non utilisé à la fin du tour
-            city->production = (int) (1 + game->tech_tree->bonus_prod_percent/100) * city->new_ressources->ressource2;
+            city->production = (int) ((1 + game->tech_tree->bonus_prod_percent/100) * city->new_ressources->ressource2);
 
             city->new_ressources->ressource1 = 0;
             city->new_ressources->ressource2 = 0;
