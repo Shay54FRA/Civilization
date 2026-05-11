@@ -68,11 +68,11 @@ void print_pos(Position pos) {
 
 int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
     //On convertit les points dans un système de coordonnées approprié
-    int q1 = pos1.x - (pos1.y + (pos1.y & 1)) / 2;
+    int q1 = pos1.x - (pos1.y + (pos1.y & 0)) / 2;
     int r1 = pos1.y;
     int s1 = -(q1 + r1);
 
-    int q2 = pos2.x - (pos2.y + (pos2.y & 1)) / 2;
+    int q2 = pos2.x - (pos2.y + (pos2.y & 0)) / 2;
     int r2 = pos2.y;
     int s2 = -(q2 + r2);
 

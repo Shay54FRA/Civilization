@@ -23,6 +23,7 @@ City* create_city(Position pos) {
     city->walls_number = 0;
     city->damage = 0; //Au lieu de stocker les pv actuels on stocks les dégâts reçus
     city->project = NULL;
+    city->new_ressources = create_tuple_ressources();
     city->buildings = create_buildlist(build);
     city->can_produce_unit = false;
     return city;

@@ -1,7 +1,7 @@
-#ifndef configuration
+#ifndef CONFIGURATION
+#define CONFIGURATION
 
-#define configuration
-typedef struct {
+typedef struct _Configuration {
     int w;          //largeur
     int h;          // hauteur
     unsigned int s; // graine (entier forcément positif)

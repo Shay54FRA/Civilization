@@ -14,6 +14,7 @@
 #endif
 
 int main(void) {
+    
     Map* ma_carte = create_map(20, 15, 42); 
     
     Position curseur = {0, 0}; // On commence en haut à gauche
@@ -82,5 +83,6 @@ int main(void) {
 
     destroy_tilelist(zone_exploitation);
     destroy_map(ma_carte);
+
     return 0;
 }
