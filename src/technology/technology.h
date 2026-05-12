@@ -47,6 +47,10 @@ typedef struct _Technology{
 typedef struct _TechTree {
     int num_technologies;
     Technology* technologies;   // Tableau dynamique contenant toutes les technos du jeu
+    
+    // --- Tableaux booléens pour informer et stocker dans le jeu une technologie découverte ---
+    int unlocked_buildings_global[256];
+    int unlocked_units_global[256];
 
     /* Résumé de tous les bonus acquis */
     int bonus_food_percent;

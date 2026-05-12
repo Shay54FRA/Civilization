@@ -9,7 +9,7 @@ TechTree* create_tech_tree(void) {
     TechTree* tree = malloc(sizeof(TechTree));
     if (tree == NULL) return NULL;
 
-    tree->num_technologies = 2; // On laisse 2 pour l'instant 
+    tree->num_technologies = 9; // Le noeud Départ + Les 8 technologies du CDC
     tree->technologies = malloc(tree->num_technologies * sizeof(Technology));
     tree->bonus_food_forest = 0;
     tree->bonus_food_percent = 0;
@@ -18,44 +18,110 @@ TechTree* create_tech_tree(void) {
     tree->bonus_science_percent = 0;
     tree->bonus_pm_units = 0;
 
-    // Technologie 0 : L'Agriculture
+    // Initialisation des tableaux de technologies à 0 (rien n'est débloqué au début)
+    for(int i = 0; i < 256; i++) {
+        tree->unlocked_buildings_global[i] = 0;
+        tree->unlocked_units_global[i] = 0;
+    }
+
+    // Remise à zéro de tous les bonus pour éviter les bugs mémoire
+    for(int i = 0; i < tree->num_technologies; i++) {
+        tree->technologies[i].bonus.unlocked_buildings_count = 0;
+        tree->technologies[i].bonus.unlocked_units_count = 0;
+        tree->technologies[i].bonus.bonus_food_percent = 0;
+        tree->technologies[i].bonus.bonus_production_percent = 0;
+        tree->technologies[i].bonus.bonus_science_percent = 0;
+        tree->technologies[i].bonus.bonus_gold_percent = 0;
+        tree->technologies[i].bonus.bonus_food_forest = 0;
+        tree->technologies[i].bonus.bonus_pm_units = 0;
+    }
+
+    // Technologie 0 : DÉPART (Déjà débloqué, sert de racine)
     tree->technologies[0].id = 0;
-    strcpy(tree->technologies[0].name, "Agriculture");
-    tree->technologies[0].science_cost = 60; // Prix 
-    tree->technologies[0].is_unlocked = 0;
-    tree->technologies[0].num_prerequisites = 0; // Pas de prérequis
-    
-    // Initialisation des bonus à 0 par défaut
-    tree->technologies[0].bonus.unlocked_buildings_count = 0;
-    tree->technologies[0].bonus.unlocked_units_count = 0;
-    tree->technologies[0].bonus.bonus_food_percent = 10; // +10% Nourriture
-    tree->technologies[0].bonus.bonus_production_percent = 0;
-    tree->technologies[0].bonus.bonus_science_percent = 0;
-    tree->technologies[0].bonus.bonus_gold_percent = 0;
-    tree->technologies[0].bonus.bonus_food_forest = 0;
-    tree->technologies[0].bonus.bonus_pm_units = 0;
+    strcpy(tree->technologies[0].name, "Depart");
+    tree->technologies[0].science_cost = 0;
+    tree->technologies[0].is_unlocked = 1; 
+    tree->technologies[0].num_prerequisites = 0;
 
-
-    // Technologie 1 : L'Élevage (Nécessite l'Agriculture)
+    // Technologie 1 : CHASSE
     tree->technologies[1].id = 1;
-    strcpy(tree->technologies[1].name, "Elevage");
-    tree->technologies[1].science_cost = 20;
+    strcpy(tree->technologies[1].name, "Chasse");
+    tree->technologies[1].science_cost = 50;
     tree->technologies[1].is_unlocked = 0;
-    
-    // Utilisation du tableau de prérequis
     tree->technologies[1].num_prerequisites = 1;
-    tree->technologies[1].prerequisites[0] = 0; // ID de l'Agriculture
-    
-    // Bonus de l'Élevage
-    tree->technologies[1].bonus.unlocked_buildings_count = 0;
-    tree->technologies[1].bonus.unlocked_units_count = 1;
-    tree->technologies[1].bonus.unlocked_units[0] = 'C'; // Cavalier
-    tree->technologies[1].bonus.bonus_food_percent = 0;
-    tree->technologies[1].bonus.bonus_production_percent = 0;
-    tree->technologies[1].bonus.bonus_science_percent = 0;
-    tree->technologies[1].bonus.bonus_gold_percent = 0;
-    tree->technologies[1].bonus.bonus_food_forest = 0;
-    tree->technologies[1].bonus.bonus_pm_units = 0;
+    tree->technologies[1].prerequisites[0] = 0; // Départ
+    tree->technologies[1].bonus.bonus_food_forest = 1;
+
+    // Technologie 2 : AGRICULTURE
+    tree->technologies[2].id = 2;
+    strcpy(tree->technologies[2].name, "Agriculture");
+    tree->technologies[2].science_cost = 60;
+    tree->technologies[2].is_unlocked = 0;
+    tree->technologies[2].num_prerequisites = 1;
+    tree->technologies[2].prerequisites[0] = 0; // Départ
+    tree->technologies[2].bonus.bonus_food_percent = 10;
+
+    // Technologie 3 : ARTISANAT
+    tree->technologies[3].id = 3;
+    strcpy(tree->technologies[3].name, "Artisanat");
+    tree->technologies[3].science_cost = 70;
+    tree->technologies[3].is_unlocked = 0;
+    tree->technologies[3].num_prerequisites = 1;
+    tree->technologies[3].prerequisites[0] = 0; // Départ
+    tree->technologies[3].bonus.bonus_production_percent = 10;
+    tree->technologies[3].bonus.unlocked_units[0] = 'g'; // Débloque Guerrier
+    tree->technologies[3].bonus.unlocked_units_count = 1;
+
+    // Technologie 4 : ÉCRITURE
+    tree->technologies[4].id = 4;
+    strcpy(tree->technologies[4].name, "Ecriture");
+    tree->technologies[4].science_cost = 80;
+    tree->technologies[4].is_unlocked = 0;
+    tree->technologies[4].num_prerequisites = 1;
+    tree->technologies[4].prerequisites[0] = 0; // Départ
+    tree->technologies[4].bonus.bonus_science_percent = 10;
+    tree->technologies[4].bonus.unlocked_buildings[0] = 'B'; // Débloque Bibliothèque
+    tree->technologies[4].bonus.unlocked_buildings_count = 1;
+
+    // Technologie 5 : ÉQUITATION
+    tree->technologies[5].id = 5;
+    strcpy(tree->technologies[5].name, "Equitation");
+    tree->technologies[5].science_cost = 100;
+    tree->technologies[5].is_unlocked = 0;
+    tree->technologies[5].num_prerequisites = 1;
+    tree->technologies[5].prerequisites[0] = 0; // Départ
+    tree->technologies[5].bonus.bonus_pm_units = 1;
+
+    // Technologie 6 : IRRIGATION
+    tree->technologies[6].id = 6;
+    strcpy(tree->technologies[6].name, "Irrigation");
+    tree->technologies[6].science_cost = 90;
+    tree->technologies[6].is_unlocked = 0;
+    tree->technologies[6].num_prerequisites = 1;
+    tree->technologies[6].prerequisites[0] = 2; // Nécessite Agriculture
+    tree->technologies[6].bonus.bonus_food_percent = 20;
+
+    // Technologie 7 : MAÇONNERIE
+    tree->technologies[7].id = 7;
+    strcpy(tree->technologies[7].name, "Maconnerie");
+    tree->technologies[7].science_cost = 100;
+    tree->technologies[7].is_unlocked = 0;
+    tree->technologies[7].num_prerequisites = 1;
+    tree->technologies[7].prerequisites[0] = 3; // Nécessite Artisanat
+    tree->technologies[7].bonus.unlocked_buildings[0] = 'M'; // Débloque Muraille
+    tree->technologies[7].bonus.unlocked_buildings_count = 1;
+
+    // Technologie 8 : COMMERCE
+    tree->technologies[8].id = 8;
+    strcpy(tree->technologies[8].name, "Commerce");
+    tree->technologies[8].science_cost = 90;
+    tree->technologies[8].is_unlocked = 0;
+    tree->technologies[8].num_prerequisites = 2;
+    tree->technologies[8].prerequisites[0] = 3; // Nécessite Artisanat
+    tree->technologies[8].prerequisites[1] = 4; // ET Écriture
+    tree->technologies[8].bonus.bonus_gold_percent = 10;
+    tree->technologies[8].bonus.unlocked_buildings[0] = 'C'; // Débloque Marché
+    tree->technologies[8].bonus.unlocked_buildings_count = 1;
 
     return tree;
 }
@@ -128,6 +194,16 @@ void update_research(Game* game) {
         game->tech_tree->bonus_pm_units += tech->bonus.bonus_pm_units;
         
         printf("\n*** DECOUVERTE : Vous avez decouvert '%s' ! ***\n", tech->name);
+
+        // --- MISE A JOUR DES TABLEAUX DE TECHNOLOGIES ---
+        for (int i = 0; i < tech->bonus.unlocked_buildings_count; i++) {
+            char b = tech->bonus.unlocked_buildings[i];
+            game->tech_tree->unlocked_buildings_global[(unsigned char)b] = 1;
+        }
+        for (int i = 0; i < tech->bonus.unlocked_units_count; i++) {
+            char u = tech->bonus.unlocked_units[i];
+            game->tech_tree->unlocked_units_global[(unsigned char)u] = 1;
+        }
     }
 }
 
@@ -148,8 +224,8 @@ void show_technology_menu(Game* game) {
         }
         printf("=========================================\n");
 
-        // Liste des technos
-        for(int i = 0; i < game->tech_tree->num_technologies; i++) {
+        // Liste des technos (on commence à 1 pour cacher le noeud "Depart")
+        for(int i = 1; i < game->tech_tree->num_technologies; i++) {
             Technology t = game->tech_tree->technologies[i];
             
             char status[30];
@@ -177,24 +253,10 @@ void show_technology_menu(Game* game) {
 // --- 6. Fonctions utilitaires ---
 int is_building_unlocked(TechTree* tree, char building_type) {
     if (tree == NULL) return 0;
-    for (int i = 0; i < tree->num_technologies; i++) {
-        if (tree->technologies[i].is_unlocked) {
-            for (int j = 0; j < tree->technologies[i].bonus.unlocked_buildings_count; j++) {
-                if (tree->technologies[i].bonus.unlocked_buildings[j] == building_type) return 1;
-            }
-        }
-    }
-    return 0;
+    return tree->unlocked_buildings_global[(unsigned char)building_type];
 }
 
 int is_unit_unlocked(TechTree* tree, char unit_type) {
     if (tree == NULL) return 0;
-    for (int i = 0; i < tree->num_technologies; i++) {
-        if (tree->technologies[i].is_unlocked) {
-            for (int j = 0; j < tree->technologies[i].bonus.unlocked_units_count; j++) {
-                if (tree->technologies[i].bonus.unlocked_units[j] == unit_type) return 1;
-            }
-        }
-    }
-    return 0;
+    return tree->unlocked_units_global[(unsigned char)unit_type];
 }
