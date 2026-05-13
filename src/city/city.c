@@ -81,6 +81,17 @@ bool croissance_check(City* city) {
     return false;
 }
 
+int get_new_food(City* city) {
+    if (city == NULL) return -1;
+    if (city->new_ressources == NULL) return -1;
+    return city->new_ressources->ressource1;
+}
+int get_new_prod(City* city) {
+    if (city == NULL) return -1;
+    if (city->new_ressources == NULL) return -1;
+    return city->new_ressources->ressource2;
+}
+
 int get_distance_to_city(City* city, Position pos) {
     if (city != NULL) {
         if (city->buildings != NULL) {

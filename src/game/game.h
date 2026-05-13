@@ -80,7 +80,10 @@ int get_entretien_cost(char type); //coût d'entretien en or du batiment ou de l
 
 //######## GAMEPLAY ########//
 
-//Fin du tour: attribuer les bonus, déplacer les barbares, faire les combats si besoins, générer des barbares, soigner les villes
+//Incrémenter tour, attribuer les bonus
+void start_turn(Game* game);
+
+//Fin du tour: déplacer les barbares, faire les combats si besoins, générer des barbares, soigner les villes
 void end_turn(Game* game);
 
 //########## BONUS ##########//

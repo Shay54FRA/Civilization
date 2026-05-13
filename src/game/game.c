@@ -161,6 +161,17 @@ void colonize(Game* game, Unit* colon) {
     destroy_unit(colon);
 }
 
+int get_new_gold(Game* game) {
+    if (game == NULL) return -1;
+    if (game->new_ressources == NULL) return -1;
+    return game->new_ressources->ressource1;
+}
+int get_new_science(Game* game) {
+    if (game == NULL) return -1;
+    if (game->new_ressources == NULL) return -1;
+    return game->new_ressources->ressource2;
+}
+
 void give_bonus_building(Game* game, City* city, Building* building) {
     switch (building->type) {
         case 'G': city->new_ressources->ressource1 += 3; break; //Food
@@ -198,11 +209,6 @@ void give_bonus_tile(Game* game, City* city, Tile* tile) {
         }
     }
 }
-
-
-void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au choix Unit ou City
-/* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
-void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
 
 TileList* get_exploitation_range(Game* game, City* city, int range) {
     if (city != NULL) {
@@ -331,24 +337,17 @@ void give_all_bonuses(Game* game) {
         to_check = game->cityList;
         while (to_check != NULL) {
             city = to_check->city;
-
-            city->food += city->new_ressources->ressource1
-                        * (100 + game->tech_tree->bonus_food_percent) / 100;
+            city->food += (int) ((1 + game->tech_tree->bonus_food_percent/100) * get_new_food(city));
 
             //Juste un = car on perd la prod non utilisé à la fin du tour
-            city->production = city->new_ressources->ressource2
-                             * (100 + game->tech_tree->bonus_prod_percent) / 100;
+            city->production = (int) ((1 + game->tech_tree->bonus_prod_percent/100) * get_new_prod(city));
 
             city->new_ressources->ressource1 = 0;
             city->new_ressources->ressource2 = 0;
             to_check = to_check->next;
         }
-
-        game->gold += game->new_ressources->ressource1
-                    * (100 + game->tech_tree->bonus_gold_percent) / 100;
-
-        game->science += game->new_ressources->ressource2
-                       * (100 + game->tech_tree->bonus_science_percent) / 100;
+        game->gold += (int) (1 + game->tech_tree->bonus_gold_percent/100) * get_new_gold(game);
+        game->science += (int) (1 + game->tech_tree->bonus_science_percent/100) * get_new_science(game);
 
         game->new_ressources->ressource1 = 0;
         game->new_ressources->ressource2 = 0;
