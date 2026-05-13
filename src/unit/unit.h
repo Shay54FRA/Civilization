@@ -5,8 +5,6 @@
 #include "../map/map.h"
 #include "../city/city.h"
 
-typedef struct _Game Game;
-
 typedef enum {
     MOVE_OK,
     MOVE_NO_UNIT,
@@ -21,6 +19,10 @@ typedef enum {
     MOVE_ATTACKER_DEAD,
     MOVE_ATTACK_FORBIDDEN
 } MoveResult;
+
+typedef struct _Position Position;
+typedef struct _Camp Camp;
+typedef struct _Game Game;
 
 typedef struct _Unit {
     char type;
@@ -53,6 +55,10 @@ int get_pm(Unit* unit);
 int get_cost_per_turn(Unit* unit);
 char get_unit_type(Unit* unit);
 Position get_unit_pos(Unit* unit);
+
+//Vérifier la condition de distance, créer la ville et l'ajouter à game
+void colonize(Game* game, Unit* colon);
+
 
 Unit* get_unit(UnitList* lst);
 UnitList* get_unit_next(UnitList* lst);
