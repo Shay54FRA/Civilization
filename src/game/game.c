@@ -38,6 +38,7 @@ Game* create_game(Configuration* config) {
             game->barbarianList = NULL; //Pas encore créé
             game->campList = NULL; //Pas encore créé
             game->starting_point = pos; //A modifier
+            game->poverty = false;
             game->cityList = NULL; 
             game->unitList = NULL; //Pas encore créé
             game->tech_tree = create_tech_tree();
@@ -94,6 +95,29 @@ int get_entretien_cost(char type) {
         return 2;
     }
     return -1; 
+}
+
+int get_all_entretien_costs(Game* game) {
+    if (game == NULL) return -1;
+    int rep = 0;
+    CityList* city_to_check = game->cityList;
+    City* city;
+
+    while (city_to_check != NULL) {
+        city = city_to_check->city;
+        if (city != NULL) {
+            BuildList* to_check = city->buildings;
+            while (to_check != NULL) {
+                Building* build = to_check->data;
+                if (build != NULL) {
+                    rep += get_entretien_cost(build->type);
+                }
+                to_check = to_check->next;
+            }
+        }
+        city_to_check = city_to_check->next;
+    }
+    return rep;
 }
 
 int get_city_number(Game* game) {
@@ -161,6 +185,19 @@ void colonize(Game* game, Unit* colon) {
     destroy_unit(colon);
 }
 
+int get_unit_number(Game* game) {
+    if (game != NULL) {
+        int rep = 0;
+        UnitList* to_check = game->unitList;
+        while (to_check != NULL) {
+            rep += 1;
+            to_check = to_check->next;
+        }
+        return rep;
+    }
+    return -1;
+}
+
 int get_new_gold(Game* game) {
     if (game == NULL) return -1;
     if (game->new_ressources == NULL) return -1;
@@ -170,6 +207,74 @@ int get_new_science(Game* game) {
     if (game == NULL) return -1;
     if (game->new_ressources == NULL) return -1;
     return game->new_ressources->ressource2;
+}
+
+//Renvoie un booléen pour connaître s'il y a pauvreté ou non
+bool check_poor(Game* game) {
+    if (game == NULL) return false;
+    if (game->gold < 0) {
+        int unit_number = get_unit_number(game);
+        if (unit_number == 0) {
+            game->poverty = true;
+        }
+        game->poverty = false;
+        int random_destroy_number = (rand() % unit_number);
+        // A compléter : boucle sur unitList pour la trouver et la "tuer" (pas simplement destroy)
+        return true;
+    }
+    game->poverty = false;
+    return false;
+}
+
+bool check_famine(CityList* citylist, City* city) {
+    if (city == NULL) return false;
+    if (city->food < 0) {
+        city->population -= 1;
+        if (city->population <= 0) {
+            end_city(citylist, city);
+        }
+        return true;
+    }
+    return false;
+}
+
+void start_turn(Game* game) {
+    if (game == NULL) return;
+    game->active_turn += 1;
+    give_all_bonuses(game);
+    update_research(game);
+
+    int gold_costs = get_all_entretien_costs(game);
+    game->gold -= gold_costs;
+    check_poor(game);
+
+    CityList* to_check = game->cityList;
+    City* city;
+    while (to_check != NULL) {
+        city = to_check->city;
+        city->food -= FOOD_NEEDS;
+        croissance_check(city);
+        check_famine(game->cityList, city);
+        to_check = to_check->next;
+    }
+
+    //A compléter, check de victoire et Jeu
+}
+
+void end_turn(Game* game) {
+    if (game == NULL) return;
+    //A compléter, génération, mouvement, et combats des barbares
+    start_turn(game);
+}
+
+int game_score(Game* game) {
+    //A compléter
+    return 1000000;
+}
+
+int end_game(Game* game) {
+    //A compléter
+    return 0;
 }
 
 void give_bonus_building(Game* game, City* city, Building* building) {

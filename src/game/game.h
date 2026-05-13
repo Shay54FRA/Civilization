@@ -29,6 +29,7 @@ typedef struct _Game {
     int gold; //Ressource globale partagé entre toutes les villes
     int science; //idem, pour l'arbre de technologie
     int active_turn; //Tour en cours
+    bool poverty;
     TupleRessources* new_ressources;
     Position starting_point; //Utile pour placer les camps
     Map* map; //Carte de la partie
@@ -77,14 +78,22 @@ int get_new_science(Game* game);
 char* get_name(char type); //donner le nom du batiment ou de l'unité portant ce type
 int get_cost(char type); //donner le coût en production de l'unité ou du batiment portant ce type 
 int get_entretien_cost(char type); //coût d'entretien en or du batiment ou de l'unité
+int get_all_entretien_costs(Game* game); //somme de tous les coûts d'entretien de la partie
 
 //######## GAMEPLAY ########//
 
-//Incrémenter tour, attribuer les bonus
+//Incrémenter tour, attribuer les bonus, les dépenses d'entretien, famine, reset des pm, et check de croissance
 void start_turn(Game* game);
 
 //Fin du tour: déplacer les barbares, faire les combats si besoins, générer des barbares, soigner les villes
 void end_turn(Game* game);
+
+int game_score(Game* game);
+
+//Vérifier si victoire/défaite : renvoie 0 si pas fini, 1 pour victoire territo, 2 pour victoire technos, 3 pour défaite
+//Victoire si 10 villes simultanées pdt 5 tours ou toutes les technos/ 
+//Défaite si 0 villes, nbr tour max atteint sans victoire, productions nulles pdt 5 tours
+int end_game(Game* game);
 
 //########## BONUS ##########//
 

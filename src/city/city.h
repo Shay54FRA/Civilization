@@ -6,6 +6,7 @@
 #define CITY
 
 #define EXPLOITATION_RANGE ((city->population > 25) + (city->population > 9) + 1)
+#define FOOD_NEEDS (2*city->food)
 
 typedef struct _BuildList BuildList;
 

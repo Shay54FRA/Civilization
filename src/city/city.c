@@ -81,6 +81,11 @@ bool croissance_check(City* city) {
     return false;
 }
 
+void end_city(CityList* citylist, City* city) {
+    /* A compléter */
+    return;
+}
+
 int get_new_food(City* city) {
     if (city == NULL) return -1;
     if (city->new_ressources == NULL) return -1;
