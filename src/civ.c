@@ -3,9 +3,13 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include <SDL2/SDL.h>
 
 #include "unit/unit.h"
 #include "configuration/configuration.h"
+#include "game/game.h"
+#include "cli/cli.h"
+#include "sdl/sdl.h"
 
 char * minuscule(char *chaine)
 {
@@ -17,6 +21,11 @@ char * minuscule(char *chaine)
 
     return chaine;
 }
+
+
+void run_game_cli(Game * game);
+void run_game_sdl(Game * game);
+
 
 int main(int argc, char *argv[]) {
 
@@ -57,6 +66,24 @@ int main(int argc, char *argv[]) {
     printf("Civ lance - Graine: %u | Taille: %dx%d | Mode: %s\n | Nbr tours : %d | Nbr camps barbares : %d", 
             config->s, config->w, config->h, config->is_sdl ? "SDL" : "CLI",config->t,config->b);
 
+    // GAME 
+    Game * game = create_game(config);
+
+    if(game == NULL){
+        printf("Erreur : Impossible de créer la partie.");
+        return 1;
+    }
+
+    // CHOIX DU MODE DE JEU
+    if(config->is_sdl){ //si is_sdl == 1
+        run_game_sdl(game);
+    }
+    else{
+        run_game_cli(game);
+    }
+
+    // NETTOYAGE
+    destroy_game(game);
     destroy_configuration(config);
     
     return 0;
