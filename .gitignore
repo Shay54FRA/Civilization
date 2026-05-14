@@ -3,5 +3,5 @@
 **/.DS_Store
 
 *.o
-main
+civ
 *_test
