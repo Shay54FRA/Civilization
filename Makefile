@@ -16,9 +16,10 @@ LDFLAGS += -fsanitize=address
 # Libs
 # Voir SDL2 CM2 
 
-# On ajoute les flags SDL aux flags de compilation et de link
+# On ajoute la librairie SDL2 + SDL2_gfx
 CFLAS += $(SDL_CFLAGS)
-LIBS = $(SDL_LIBS) -lm
+LIBS = $(SDL_LIBS) -lSDL2_gfx -lm
+
 
 # Fichiers
 TARGET = civ
