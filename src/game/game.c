@@ -240,7 +240,6 @@ bool check_famine(CityList* citylist, City* city) {
 
 void start_turn(Game* game) {
     if (game == NULL) return;
-    game->active_turn += 1;
     give_all_bonuses(game);
     update_research(game);
 

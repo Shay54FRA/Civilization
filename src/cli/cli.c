@@ -233,8 +233,7 @@ void run_game_cli(Game* game) {
 
             case 'f':
                 printf("Passage au tour suivant...\n");
-
-                // Passage au tour suivant
+                end_turn(game);
                 game->active_turn++;
 
                 snprintf(last_message, MSG_SIZE, "Tour suivant.");

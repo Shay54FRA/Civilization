@@ -34,9 +34,6 @@ void barbarian_attack(Barbarian* barb, void* target);
 //Deplacer tous les barbares
 void move_all_barbarians(BarbarianList* barbarian_list);
 
-//Générer tous les barbares lors de ce tour
-void spawn_all_barbarians(CampList* camp_list);
-
 typedef struct _Camp {
     Position* pos;
     bool occupied; //Dit si la case est occupé (pour la génération de troupe)
@@ -53,6 +50,9 @@ CampList* get_camplist_next(CampList* lst);
 //Si c'est un guerrier il peut détruire un camp s'il est à la même position, ce qui rapporte une quantité d'or à calculer en fonction du nombre
 //de camps restants sur la carte
 void destroy_camp(Game* game, Camp* camp);
+
+//Générer tous les barbares lors de ce tour
+void spawn_all_barbarians(CampList* camp_list);
 
 
 #endif
