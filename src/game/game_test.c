@@ -3,6 +3,7 @@
 #include "../tile/tile.h"
 #include "../configuration/configuration.h"
 #include "../city/city.h"
+#include "../cli/cli.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -24,7 +25,7 @@ int main(void){
     liste_villes->next = NULL;
     game->cityList = liste_villes;
 
-    print_map(game->map, game->starting_point);
+    print_map_cli(game->map, game->starting_point);
     
     give_all_bonuses(game);
     printf("Gold : %d\n", game->gold);

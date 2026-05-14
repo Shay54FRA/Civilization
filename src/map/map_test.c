@@ -1,5 +1,6 @@
 #include "map.h"
 #include "../tile/tile.h"
+#include "../cli/cli.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -30,7 +31,7 @@ int main(void) {
     // La boucle de jeu
     while (input != 'p') { // 'p' pour quitter la map
         
-        print_map(ma_carte, curseur);
+        print_map_cli(ma_carte, curseur);
         
         printf("LÉGENDE : ");
         printf("%s EAU %s ", BG_EAU, COLOR_RESET);
