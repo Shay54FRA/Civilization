@@ -13,9 +13,6 @@ CFLAGS += -g
 CFLAGS += -fsanitize=address -fno-omit-frame-pointer
 LDFLAGS += -fsanitize=address
 
-# Libs
-# Voir SDL2 CM2 
-
 # On ajoute la librairie SDL2 + SDL2_gfx
 CFLAGS += $(SDL_CFLAGS)
 LIBS = $(SDL_LIBS) -lSDL2_gfx -lm
@@ -52,7 +49,12 @@ $(TEST_TARGET): $(TEST_BINS)
 	done
 
 %.o : %.c  #On ne s'embête pas avec les dépendances en .h qui pose peu problèmes
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+req:
+	sudo apt update
+	sudo apt install libsdl2-dev
+	sudo apt install libsdl2-gfx-dev
 
 clean:
 	rm -f $(COMMON_OBJS) $(TARGET) $(TEST_OBJS) $(TEST_BINS) $(MAIN_OBJ) $(TEST_TARGET)
