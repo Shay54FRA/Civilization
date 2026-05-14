@@ -4,6 +4,10 @@ CC = clang
 LDFLAGS = 
 LIBS = 
 
+# Recuperation automatique des flags SDL2
+SDL_CFLAGS := $(shell sdl2-config --cflags)
+SDL_LIBS := $(shell sdl2-config --libs)
+
 # Debug 
 CFLAGS += -g 
 CFLAGS += -fsanitize=address -fno-omit-frame-pointer
@@ -12,11 +16,16 @@ LDFLAGS += -fsanitize=address
 # Libs
 # Voir SDL2 CM2 
 
+# On ajoute la librairie SDL2 + SDL2_gfx
+CFLAS += $(SDL_CFLAGS)
+LIBS = $(SDL_LIBS) -lSDL2_gfx -lm
+
+
 # Fichiers
-TARGET = main
+TARGET = civ
 TEST_TARGET = test
  
-MAIN_SRC = src/main.c 
+MAIN_SRC = src/civ.c 
 MAIN_OBJ = $(MAIN_SRC:.c=.o) 
 
 ALL_SRCS = $(wildcard src/*/*.c) # /!\ ne prend pas les sous-dossiers de src
@@ -30,11 +39,11 @@ TEST_BINS = $(TEST_SRCS:.c=)
 # Par défaut
 all: $(TARGET) $(TEST_TARGET)
 
-$(TARGET): src/main.o $(COMMON_OBJS)
-	$(CC) $^ $(LDFLAGS) -o $@
+$(TARGET): src/civ.o $(COMMON_OBJS)
+	$(CC) $^ $(LDFLAGS) $(LIBS) -o $@
 
 $(TEST_BINS): %: %.o $(COMMON_OBJS)
-	$(CC) $^ $(LDFLAGS) -o $@
+	$(CC) $^ $(LDFLAGS) $(LIBS) -o $@
 
 $(TEST_TARGET): $(TEST_BINS)
 	@for test in $(TEST_BINS); do\

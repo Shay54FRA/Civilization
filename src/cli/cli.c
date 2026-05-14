@@ -1,91 +1,19 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
+#include <stdlib.h>
 
-#include "map.h"
+#include "cli.h"
+#include "../map/map.h"
+#include "../game/game.h"
 #include "../tile/tile.h"
 
-Map* create_map(int width, int height, int seed){
-
-    srand(seed); //Decide de la génération aléatoire selon la seed donnée. (Permet de rejouer la partie)
-
-    Map* m = malloc(sizeof(Map));
-    m->height=height;
-    m->length=width;
-    m->map=malloc(sizeof(Tile**)*height);
-
-    for(int i=0;i<height;i=i+1){
-        m->map[i]=malloc(sizeof(Tile*)*width);
-
-        for(int j=0;j<width;j=j+1){
-            Position pos = {j, i}; // X = Colonnes (largeur), Y = Lignes (hauteur)
-            //Initialisation biome
-            int alea = rand() % 100;
-            if (alea < 40) {
-                m->map[i][j] = create_tile(pos, 'P'); // 40% de chance d'avoir une Plaine
-            }
-            else if (alea < 50) {
-                m->map[i][j] = create_tile(pos, 'F'); // 10% de chance d'avoir une Forêt
-            }
-            else if (alea < 60) {
-                m->map[i][j] = create_tile(pos, 'M'); // 10% de chance d'avoir une Montagne
-            }
-            else if (alea < 70) {
-                m->map[i][j] = create_tile(pos, 'E'); // 10% de chance d'avoir de l'Eau
-            }
-            else if (alea < 80) {
-                m->map[i][j] = create_tile(pos, 'D'); // 10% de chance d'avoir un Désert
-            }
-            else{
-                m->map[i][j] = create_tile(pos, 'T'); // 20% de chance d'avoir une Toundra
-            }
-        }
-    }
-    return m;
-}
-
-
-void destroy_map(Map* m) {
-    if (m != NULL) {
-        for (int i = 0; i < m->height; i++) {
-            for(int j=0; j< m->length;j++){
-                free(m->map[i][j]);
-            }
-            free(m->map[i]); 
-        }
-
-        free(m->map);
-        
-        free(m);
-    }
-}
-
-
-
-/*
-void print_pos(Position pos) {
-    printf("Position : (%d, %d)", pos.x, pos.y);
-}
-*/
-
-int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
-    //On convertit les points dans un système de coordonnées approprié
-    int q1 = pos1.x - (pos1.y + (pos1.y & 0)) / 2;
-    int r1 = pos1.y;
-    int s1 = -(q1 + r1);
-
-    int q2 = pos2.x - (pos2.y + (pos2.y & 0)) / 2;
-    int r2 = pos2.y;
-    int s2 = -(q2 + r2);
-
-    return (abs(q1 - q2) + abs(r1 - r2) + abs(s1 - s2)) / 2;
-}
-/*
 // Le champ de vision de la carte
 #define VIEW_RADIUS 6 
 
+void print_pos(Position pos) {
+    printf("Position : (%d, %d)", pos.x, pos.y);
+}
 
-void print_map(Map* m, Position cursor) {
+void print_map_cli(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
     system("clear"); //permet de clear le terminal
 
@@ -181,25 +109,43 @@ void print_map(Map* m, Position cursor) {
     }
     printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
-*/
 
-TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
-    Position pos = tuile->pos;
-    if (map != NULL) {
-        TileList* rep = create_tilelist(NULL);
-        for (int x = pos.x-range; x<=pos.x+range; x++) {
-            for (int y = pos.y-range; y<=pos.y+range; y++) {
-                if (x >= 0 && x < map->length && y >= 0 && y < map->height) {
-                    Tile* new_tile = map->map[y][x];
-                    Position new_pos = {x,y};
-                    if (get_distance(pos, new_pos) == range && !(new_tile->exploited)) {
-                        new_tile->exploited = true;
-                        append_tilelist(rep, new_tile);
-                    }
-                }
-            }
+void run_game_cli(Game* game) {
+    int running = 1;
+    char command;
+    Position cursor = {0, 0}; // Position initiale de la caméra
+
+    while (running) {
+        // Affichage
+        print_map_cli(game->map, cursor);
+        
+        // Menu d'interaction
+        printf("\n--- TOUR %d | Or: %d | Science: %d ---\n", 
+                game->active_turn, game->gold, game->science);
+        printf("Commandes : [z/q/s/d] Déplacer caméra | [f] Fin de tour | [x] Quitter\n");
+        printf("> ");
+        
+        // Récupération de l'ordre
+        scanf(" %c", &command); // L'espace avant %c ignore les retours à la ligne
+
+        // Logique de commande
+        switch (command) {
+            case 'z': if (cursor.y > 0) cursor.y--; break;
+            case 's': if (cursor.y < game->map->height - 1) cursor.y++; break;
+            case 'q': if (cursor.x > 0) cursor.x--; break;
+            case 'd': if (cursor.x < game->map->length - 1) cursor.x++; break;
+            case 'f': 
+                printf("Passage au tour suivant...\n");
+                // Appeler ici ta fonction de fin de tour (calcul ressources, etc.)
+                game->active_turn++;
+                break;
+            case 'x':
+                running = 0;
+                break;
+            default:
+                printf("Commande inconnue !\n");
+                break;
         }
-        return rep;
     }
-    return NULL;
+    printf("Retour au menu principal...\n");
 }
