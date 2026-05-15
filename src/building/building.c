@@ -80,6 +80,22 @@ BuildList* get_buildlist_next(BuildList* lst){
     return NULL;
 }
 
+bool buildlist_contains(BuildList* lst, char type) {
+    BuildList* to_check = lst;
+
+    while (to_check != NULL) {
+        Building* build = get_buildlist_data(to_check);
+
+        if (build != NULL && get_building_type(build) == type) {
+            return true;
+        }
+
+        to_check = get_buildlist_next(to_check);
+    }
+
+    return false;
+}
+
 void print_buildlist(BuildList* lst) {
     BuildList* to_check = lst;
     if (to_check != NULL) {

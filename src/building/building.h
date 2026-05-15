@@ -1,4 +1,5 @@
 #include "../map/map.h" //Le typedef ne suffit pas car on appelle Position et non Position*
+#include <stdbool.h>
 
 #ifndef BUILDING
 #define BUILDING
@@ -33,6 +34,7 @@ void destroy_buildlist(BuildList* lst);
 void append_buildlist(BuildList* lst, Building* build);
 Building* get_buildlist_data(BuildList* lst);
 BuildList* get_buildlist_next(BuildList* lst);
+bool buildlist_contains(BuildList* lst, char type);
 void print_buildlist(BuildList* lst);
 
 #endif

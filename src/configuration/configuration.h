@@ -19,6 +19,6 @@ unsigned int get_seed(Configuration * config);
 int get_nbr_tours(Configuration * config);
 int get_nbr_camps_barbares(Configuration * config);
 int get_mode(Configuration * config);
-void destroy_configuration(Configuration * config);
+// Note : j'ai enlevé le 2ème destroy_configuration qui était en doublon tout en bas ;)
 
 #endif
