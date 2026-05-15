@@ -1,8 +1,10 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "tile.h"
 #include "../map/map.h"
 #include "../unit/unit.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "../cli/cli.h"
 
 Tile* create_tile(Position pos, char biome) {
     Tile* new_tile = malloc(sizeof(Tile));

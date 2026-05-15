@@ -1,5 +1,6 @@
 #ifndef TECHNOLOGY_H
 #define TECHNOLOGY_H
+#include "../game/game.h"
 
 // On inclut game.h pour pouvoir modifier la science plus tard si besoin
 typedef struct _Game Game; 
@@ -70,8 +71,8 @@ void destroy_tech_tree(TechTree* tree);
 
 // Fonctions de logique de jeu
 int can_research_tech(Game* game, TechTree* tree, int tech_id);
-void set_active_research(Game* game, int tech_id);
-void update_research(Game* game);
+int set_active_research(Game* game, int tech_id);
+int update_research(Game* game);
 
 // Afficher le menu interactif
 void show_technology_menu(Game* game);
@@ -81,4 +82,18 @@ int is_building_unlocked(TechTree* tree, char building_type);
 
 // Vérifie si une unité (ex: 'c' pour Colon) est débloquée
 int is_unit_unlocked(TechTree* tree, char unit_type);
+
+// Lance une recherche de technologie via son ID
+void attempt_research(Game* game, int tech_id);
+
+/* ===== CLI ===== */
+
+void show_technology_menu(Game* game);
+void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game);
+void print_available_techs_cli(Game* game);
+
+/* ===== GAME LOGIC ===== */
+
+int start_research(Game* game, int tech_id);
+
 #endif

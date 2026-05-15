@@ -3,6 +3,7 @@
 #include "../map/map.h"
 #include "../tile/tile.h"
 #include "../city/city.h"
+#include "../unit/unit.h"
 #include "../technology/technology.h"
 #include "../configuration/configuration.h"
 #include <stdlib.h>
@@ -106,6 +107,58 @@ int get_city_number(Game* game) {
         return rep;
     }
     return -1;
+}
+
+static void remove_unit_from_game(Game* game, Unit* unit) {
+    if (game == NULL || unit == NULL) return;
+
+    UnitList* current = game->unitList;
+    UnitList* previous = NULL;
+
+    while (current != NULL) {
+        if (current->data == unit) {
+            if (previous == NULL) {
+                game->unitList = current->next;
+            }
+            else {
+                previous->next = current->next;
+            }
+
+            free(current);
+            return;
+        }
+
+        previous = current;
+        current = current->next;
+    }
+}
+
+void colonize(Game* game, Unit* colon) {
+    if (game == NULL || game->map == NULL || colon == NULL) return;
+    if (colon->type != 'c') return;
+
+    Tile* tile = get_tile(game->map, colon->pos);
+    if (tile == NULL) return;
+    if (tile->city_on) return;
+
+    City* city = create_city(colon->pos);
+    if (city == NULL) return;
+
+    CityList* node = malloc(sizeof(CityList));
+    if (node == NULL) {
+        free(city);
+        return;
+    }
+
+    node->city = city;
+    node->next = game->cityList;
+    game->cityList = node;
+
+    tile->city_on = true;
+    tile->unit = NULL;
+
+    remove_unit_from_game(game, colon);
+    destroy_unit(colon);
 }
 
 void give_bonus_building(Game* game, City* city, Building* building) {
@@ -243,6 +296,20 @@ void give_bonus_exploitations(Game* game, TileList** tab) {
     }
 }
 
+void update_city_projects(Game* game) {
+    if (game != NULL) {
+        CityList* to_check = game->cityList;
+
+        while (to_check != NULL) {
+            if (to_check->city != NULL) {
+                end_project(game, to_check->city);
+            }
+
+            to_check = to_check->next;
+        }
+    }
+}
+
 void give_all_bonuses(Game* game) {
     if (game != NULL) {
         //Partie 1 : Donner les bonus d'exploitation
@@ -264,17 +331,24 @@ void give_all_bonuses(Game* game) {
         to_check = game->cityList;
         while (to_check != NULL) {
             city = to_check->city;
-            city->food += (int) ((1 + game->tech_tree->bonus_food_percent/100) * city->new_ressources->ressource1);
+
+            city->food += city->new_ressources->ressource1
+                        * (100 + game->tech_tree->bonus_food_percent) / 100;
 
             //Juste un = car on perd la prod non utilisé à la fin du tour
-            city->production = (int) ((1 + game->tech_tree->bonus_prod_percent/100) * city->new_ressources->ressource2);
+            city->production = city->new_ressources->ressource2
+                             * (100 + game->tech_tree->bonus_prod_percent) / 100;
 
             city->new_ressources->ressource1 = 0;
             city->new_ressources->ressource2 = 0;
             to_check = to_check->next;
         }
-        game->gold += (int) (1 + game->tech_tree->bonus_gold_percent/100) * game->new_ressources->ressource1;
-        game->science += (int) (1 + game->tech_tree->bonus_science_percent/100) * city->new_ressources->ressource2;
+
+        game->gold += game->new_ressources->ressource1
+                    * (100 + game->tech_tree->bonus_gold_percent) / 100;
+
+        game->science += game->new_ressources->ressource2
+                       * (100 + game->tech_tree->bonus_science_percent) / 100;
 
         game->new_ressources->ressource1 = 0;
         game->new_ressources->ressource2 = 0;

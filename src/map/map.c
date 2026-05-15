@@ -1,8 +1,9 @@
-#include "map.h"
-#include "../tile/tile.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#include "map.h"
+#include "../tile/tile.h"
 
 Map* create_map(int width, int height, int seed){
 
@@ -61,10 +62,11 @@ void destroy_map(Map* m) {
 
 
 
-
+/*
 void print_pos(Position pos) {
     printf("Position : (%d, %d)", pos.x, pos.y);
 }
+*/
 
 int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
     //On convertit les points dans un système de coordonnées approprié
@@ -78,7 +80,7 @@ int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
 
     return (abs(q1 - q2) + abs(r1 - r2) + abs(s1 - s2)) / 2;
 }
-
+/*
 // Le champ de vision de la carte
 #define VIEW_RADIUS 6 
 
@@ -179,6 +181,7 @@ void print_map(Map* m, Position cursor) {
     }
     printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
+*/
 
 TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
     Position pos = tuile->pos;

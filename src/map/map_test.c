@@ -1,6 +1,7 @@
 #include "map.h"
 #include "../tile/tile.h"
 #include "../game/game.h"
+#include "../cli/cli.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -46,7 +47,7 @@ int main(void) {
     // --- LA BOUCLE DE JEU ---
     while (input != 'p') { 
         
-        print_map(ma_carte, curseur);
+        print_map_cli(ma_carte, curseur);
         
         printf("LÉGENDE : ");
         printf("%s EAU %s ", BG_EAU, COLOR_RESET);

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../game/game.h"
+#include "../unit/unit.h"
 #include <stdbool.h>
 #include <math.h>
 
@@ -114,15 +115,20 @@ bool start_project(City* city, Position pos, char type) {
     return false;
 }
 
-bool end_project(City* city) {
+bool end_project(Game* game, City* city) {
     if (city != NULL) {
         if (city->project != NULL) {
             city->project->production_cost -= get_production(city);
             if (city->project->production_cost <= 0) {
-                /* A COMPLETER PLUS TARD */
-
+                if (city->project->type == 'c' || city->project->type == 'g') {
+                    spawn_unit_from_project(game, city);
+                }
+                else {
+                    /* A COMPLETER PLUS TARD */
+                }
 
                 destroy_project(city);
+                return true;
             }
         }
     }
@@ -131,7 +137,10 @@ bool end_project(City* city) {
 
 void destroy_project(City* city) {
     if (city != NULL) {
-        if (city->project != NULL) free(get_project(city));
+        if (city->project != NULL) {
+            free(get_project(city));
+            city->project = NULL;
+        }
     }
 }
 

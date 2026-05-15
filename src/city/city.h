@@ -44,6 +44,7 @@ BuildList* get_buildings_list(City* city); //Liste chaînée des bâtiments de l
 int get_distance_to_city(City* city, Position pos);
 
 bool start_project(City* city, Position pos, char type); //Renvoie si un projet a été créé ou non (si un projet était déjà actif)
+bool end_project(Game* game, City* city);
 void destroy_project(City* city);
 char get_project_type(City* city); //Récupère le char d'identification
 char* get_project_name(City* city);
