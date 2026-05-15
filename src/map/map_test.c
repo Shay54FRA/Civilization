@@ -1,6 +1,5 @@
 #include "map.h"
 #include "../tile/tile.h"
-#include "../game/game.h"
 #include "../cli/cli.h"
 #include <stdio.h>
 #include <stdlib.h>
