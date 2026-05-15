@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "unit/unit.h"
 #include "configuration/configuration.h"
@@ -84,7 +84,6 @@ int main(int argc, char *argv[]) {
 
     // NETTOYAGE
     destroy_game(game);
-    destroy_configuration(config);
-    
+        
     return 0;
 }
