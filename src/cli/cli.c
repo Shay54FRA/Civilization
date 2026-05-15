@@ -280,6 +280,7 @@ void run_game_cli(Game* game) {
     while (running) {
 
         // Affichage
+        system("clear"); //permet de clear le terminal
         print_map_cli(game->map, cursor);
         
         // Menu d'interaction

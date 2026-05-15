@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
+#include <SDL.h>
+#include <SDL2_gfxPrimitives.h>
 
 // À mettre en haut de sdl.c
 SDL_Color get_biome_color(char biome) {
