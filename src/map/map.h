@@ -37,10 +37,14 @@ typedef struct _Map {
     int length;
 } Map;
 
-Map* create_map(int width, int height, int seed);
+Map* create_map(int width, int height, int seed, int nb_camps);
 void destroy_map(Map* map);
 //void print_pos(Position pos);
 void print_tile(Tile* tile);
+
+
+Position get_starting_city_pos(Map* map); // Renvoie la position de la ville de départ
+
 
 // Définition des couleurs ANSI
 #define COLOR_RESET   "\x1b[0m"
@@ -52,9 +56,6 @@ void print_tile(Tile* tile);
 #define BG_TOUNDRA    "\x1b[48;5;159m\x1b[30m"  // Fond bleu givré
 
 #define COLOR_VILLE   "\x1b[45;1;37m" // Fond Magenta
-#define COLOR_UNITE   "\x1b[41;1;37m" // Fond Rouge
-
-//void print_map(Map* m, Position cursor);
 
 int get_distance(Position pos1, Position pos2);
 void reset_exploitation(Map* map); // Remet toute les tuiles à false pour l'exploitation

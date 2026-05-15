@@ -7,7 +7,7 @@
 #include "../tile/tile.h"
 
 // Le champ de vision de la carte
-#define VIEW_RADIUS 6 
+#define VIEW_RADIUS 10 
 
 void print_pos(Position pos) {
     printf("Position : (%d, %d)", pos.x, pos.y);
@@ -15,7 +15,7 @@ void print_pos(Position pos) {
 
 void print_map_cli(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
-    system("clear"); //permet de clear le terminal
+    
 
     int start_y = cursor.y - VIEW_RADIUS;
     int end_y = cursor.y + VIEW_RADIUS;
@@ -47,6 +47,7 @@ void print_map_cli(Map* m, Position cursor) {
                 // symbol = tuile->biome; //J'ai enlevé la lettre du biome
                 if (tuile->city_on) symbol = 'V';
                 else if (tuile->unit) symbol = 'U';
+                else if (tuile->camp_on) symbol = 'C';
 
                 // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
 
@@ -57,16 +58,13 @@ void print_map_cli(Map* m, Position cursor) {
                     // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité ( COLOR RESET = "\x1b[30m" )
 
                 const char* bg = ""; // Background color
-                const char* fg = "\x1b[30m"; // Couleur du texte par défaut = noir
+                const char* fg = "\x1b[30;1m"; // Couleur du texte par défaut noir et gras
                 
                 if (tuile->city_on){
                     bg = COLOR_VILLE;
                     fg = "\x1b[31;1m"; // Texte en rouge et gras
                 }
-                else if (tuile->unit){
-                    bg = COLOR_UNITE;
-                    fg = "\x1b[31;1m"; // Texte en rouge et gras
-                }
+
                 else {
                     switch(tuile->biome) {
                         case 'E': bg = BG_EAU; break;
@@ -117,6 +115,7 @@ void run_game_cli(Game* game) {
 
     while (running) {
         // Affichage
+        system("clear"); //permet de clear le terminal
         print_map_cli(game->map, cursor);
         
         // Menu d'interaction

@@ -5,7 +5,7 @@
 #include "map.h"
 #include "../tile/tile.h"
 
-Map* create_map(int width, int height, int seed){
+Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camps de barbares et ville de départ
 
     srand(seed); //Decide de la génération aléatoire selon la seed donnée. (Permet de rejouer la partie)
 
@@ -14,6 +14,7 @@ Map* create_map(int width, int height, int seed){
     m->length=width;
     m->map=malloc(sizeof(Tile**)*height);
 
+    // 1.BIOMES
     for(int i=0;i<height;i=i+1){
         m->map[i]=malloc(sizeof(Tile*)*width);
 
@@ -21,28 +22,66 @@ Map* create_map(int width, int height, int seed){
             Position pos = {j, i}; // X = Colonnes (largeur), Y = Lignes (hauteur)
             //Initialisation biome
             int alea = rand() % 100;
-            if (alea < 40) {
-                m->map[i][j] = create_tile(pos, 'P'); // 40% de chance d'avoir une Plaine
-            }
-            else if (alea < 50) {
-                m->map[i][j] = create_tile(pos, 'F'); // 10% de chance d'avoir une Forêt
-            }
-            else if (alea < 60) {
-                m->map[i][j] = create_tile(pos, 'M'); // 10% de chance d'avoir une Montagne
-            }
-            else if (alea < 70) {
-                m->map[i][j] = create_tile(pos, 'E'); // 10% de chance d'avoir de l'Eau
-            }
-            else if (alea < 80) {
-                m->map[i][j] = create_tile(pos, 'D'); // 10% de chance d'avoir un Désert
-            }
-            else{
-                m->map[i][j] = create_tile(pos, 'T'); // 20% de chance d'avoir une Toundra
+            if (alea < 40) {      m->map[i][j] = create_tile(pos, 'P');} // 40% Plaine
+            else if (alea < 50) { m->map[i][j] = create_tile(pos, 'F');} // 10% Forêt
+            else if (alea < 60) { m->map[i][j] = create_tile(pos, 'M');} // 10% Montagne
+            else if (alea < 70) { m->map[i][j] = create_tile(pos, 'E');} // 10% Eau
+            else if (alea < 80) { m->map[i][j] = create_tile(pos, 'D');} // 10% Désert
+            else{                 m->map[i][j] = create_tile(pos, 'T');} // 20% Toundra
+        }
+    }
+
+    // 2. PLACEMENT DE LA VILLE INITIALE
+    Position start_pos = {-1, -1};
+    int ville_placee = 0; 
+    
+    while (ville_placee == 0) {
+        int rx = rand() % width; //Méthode pas ouf de parcours aléatoire de la map pour trouver une plaine.
+        int ry = rand() % height; // Mais il y a 40% de plaine donc ça devrait en trouver une rapidement
+        
+        if (m->map[ry][rx]->biome == 'P') { // Si c'est une Plaine
+            m->map[ry][rx]->city_on = true; // On valide sur la tuile
+            start_pos.x = rx;
+            start_pos.y = ry;               // On garde la pos en mémoire car les barbares doivent être assez éloignés de la ville de départ
+            ville_placee = 1;               
+        }
+    }
+
+    // 3. PLACEMENT DES CAMPS BARBARES
+    int camps_places = 0;
+    while (camps_places < nb_camps) {
+        int rx = rand() % width;
+        int ry = rand() % height;
+        Tile* t = m->map[ry][rx];
+        Position p = {rx, ry};
+        
+        // Règle 1: Pas d'eau, pas de ville, pas déjà un camp
+        if (t->biome != 'E' && !t->city_on && !t->camp_on) {
+            // Règle 2: Au moins 5 tuiles de distance (Tchebychev) de la ville de départ
+            if (get_distance(start_pos, p) >= 5) {
+                t->camp_on = true; // On valide sur la tuile
+                camps_places++;
             }
         }
     }
+
     return m;
 }
+
+Position get_starting_city_pos(Map* map) {
+    if (map == NULL) return (Position){-1, -1};
+
+    for (int i = 0; i < map->height; i++) {
+        for (int j = 0; j < map->length; j++) {
+            if (map->map[i][j]->city_on) {
+                return map->map[i][j]->pos;
+            }
+        }
+    }
+    return (Position){-1, -1}; // Sécurité si aucune ville n'est trouvée
+}
+
+
 
 
 void destroy_map(Map* m) {
@@ -85,9 +124,9 @@ int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
 #define VIEW_RADIUS 6 
 
 
-void print_map(Map* m, Position cursor) {
+void print_map_cli(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
-    system("clear"); //permet de clear le terminal
+    
 
     int start_y = cursor.y - VIEW_RADIUS;
     int end_y = cursor.y + VIEW_RADIUS;
@@ -119,6 +158,7 @@ void print_map(Map* m, Position cursor) {
                 // symbol = tuile->biome; //J'ai enlevé la lettre du biome
                 if (tuile->city_on) symbol = 'V';
                 else if (tuile->unit) symbol = 'U';
+                else if (tuile->camp_on) symbol = 'C';
 
                 // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
 

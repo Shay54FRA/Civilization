@@ -33,7 +33,7 @@ Game* create_game(Configuration* config) {
             game->active_research_id = -1;
             game->active_turn = 1;
             game->configuration = config;
-            game->map = create_map(get_width(config), get_height(config), get_seed(config));
+            game->map = create_map(get_width(config), get_height(config), get_seed(config),get_nbr_camps_barbares(config));
             game->barbarianList = NULL; //Pas encore créé
             game->campList = NULL; //Pas encore créé
             game->starting_point = pos; //A modifier
