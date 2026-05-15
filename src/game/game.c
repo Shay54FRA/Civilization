@@ -357,3 +357,24 @@ void give_all_bonuses(Game* game) {
     }
 
 }
+
+
+int get_total_unit_maintenance(Game* game) {
+    if (game == NULL) {
+        return 0;
+    }
+
+    int total = 0;
+    UnitList* current = game->unitList;
+
+    while (current != NULL) {
+        if (current->data != NULL) {
+            total += current->data->cost_per_turn;
+        }
+
+        current = current->next;
+    }
+
+    return total;
+}
+

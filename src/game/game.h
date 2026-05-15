@@ -80,6 +80,7 @@ TileList** get_all_exploited_tiles(Game* game);
 
 //Met à jour les projets de production des villes
 void update_city_projects(Game* game);
+int get_total_unit_maintenance(Game* game);
 
 //Faire les bonus de toutes les villes : utilise toutes les fonctions au dessus
 void give_all_bonuses(Game* game); 

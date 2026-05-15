@@ -47,33 +47,6 @@ static int terrain_move_cost(char biome) {
 }
 
 
-// Renvoie le nom lisible d’une unité
-static const char* unit_name(char type) {
-    switch (type) {
-        case 'c': return "Colon";
-        case 'g': return "Guerrier";
-        default: return "Inconnue";
-    }
-}
-
-
-// Calcule le coût total d'entretien des unités
-static int total_unit_maintenance(UnitList* unitList) {
-    int total = 0;
-    UnitList* current = unitList;
-
-    while (current != NULL) {
-        if (current->data != NULL) {
-            total += current->data->cost_per_turn;
-        }
-
-        current = current->next;
-    }
-
-    return total;
-}
-
-
 void print_map_cli(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
     system("clear"); //permet de clear le terminal
@@ -200,7 +173,7 @@ static void print_tile_info(Game* game, Position cursor) {
 
     else if (tile->unit)
         printf("Contenu  : Unite %s [%c]\n",
-               unit_name(tile->unit->type),
+               get_name(tile->unit->type),
                tile->unit->type);
 
     else
@@ -218,7 +191,7 @@ static void print_selected_unit_info(Unit* selected_unit) {
     }
 
     printf("Type : %s [%c]\n",
-           unit_name(selected_unit->type),
+           get_name(selected_unit->type),
            selected_unit->type);
 
     printf("PV   : %d / %d\n",
@@ -361,7 +334,7 @@ void run_game_cli(Game* game) {
                         snprintf(last_message,
                                  MSG_SIZE,
                                  "Unite %s [%c] selectionnee.",
-                                 unit_name(selected_unit->type),
+                                 get_name(selected_unit->type),
                                  selected_unit->type);
                     }
 
@@ -456,44 +429,13 @@ void run_game_cli(Game* game) {
                 // Passage au tour suivant
                 game->active_turn++;
 
-                // Mise à jour des ressources et des projets de ville
-                give_all_bonuses(game);
-                update_city_projects(game);
-
-                // Mise à jour des recherches
-                int tech_id =
-                    update_research(game);
-
-                // Calcul et application de l'entretien des unités
-                int maintenance =
-                    total_unit_maintenance(game->unitList);
-
-                game->gold -= maintenance;
-
-                if (tech_id != -1) {
-
-                    snprintf(last_message,
-                             MSG_SIZE,
-                             "Technologie debloquee : %s. Entretien unites : -%d or.",
-                             game->tech_tree
-                                 ->technologies[tech_id]
-                                 .name,
-                             maintenance);
-                }
-
-                else {
-
-                    snprintf(last_message,
-                             MSG_SIZE,
-                             "Tour suivant. Entretien unites : -%d or.",
-                             maintenance);
-                }
-
-                // Réinitialisation des points de mouvement en fin de tour
-                reset_all_pm(game->unitList);
+                snprintf(last_message,
+                MSG_SIZE,
+                "Tour suivant.");
 
                 break;
 
+                
             case 'x':
                 running = 0;
                 break;
