@@ -111,12 +111,11 @@ void print_map_cli(Map* m, Position cursor) {
 
                 // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
 
-                    // '\x1b['    : début commande de style (couleur, police...)
-                    // '31'       : texte en rouge
-                    // ';1'       : texte en gras
-                    // 'm'        : fin ordre de style
-                    // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité
-                    // COLOR_RESET permet aussi de réinitialiser le style après chaque case
+                    // '\x1b['   : début commande de style (couleur, police...)
+                    // '31'      : texte en rouge
+                    // ';1'      : texte en gras
+                    // 'm'       : fin ordre de style
+                    // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité ( COLOR RESET = "\x1b[30m" )
 
                 const char* bg = ""; // Background color
                 const char* fg = "\x1b[30m"; // Couleur du texte par défaut = noir
@@ -140,33 +139,30 @@ void print_map_cli(Map* m, Position cursor) {
                     }
                 }
 
-                // 3. DESSIN D'UNE CASE
-                // Les cases sont dessinées sur une hauteur de 3 lignes et une largeur de 9 caractères
+                // 3. DESSIN D'UNE CASE (j'ai dessiné les cases sur une hauteur de 3 lignes et une largeur de 9 caractères)
 
-                if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case ---
+                if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case---
 
-                    if (cursor.x == x && cursor.y == y) { // Case actuelle encadrée en rouge
+                    if (cursor.x == x && cursor.y == y) { //Case actuelle encadrée en rouge
                         printf("%s\x1b[31;1m+-------+%s ", bg, COLOR_RESET);
                     }
 
                     else {
                         // Bloc de couleur uni
-                        printf("%s         %s ", bg, COLOR_RESET);
+                        printf("%s         %s ", bg,COLOR_RESET);
                     }
                 }
                 
-                else if (line == 1) { // --- Ligne du MILIEU avec la lettre ---
+                else if (line == 1) { // --- Ligne du MILIEU (avec la lettre) ---
 
                     if (cursor.x == x && cursor.y == y) { 
-                        // Bordure rouge '|' et lettre au centre
-                        printf("%s\x1b[31;1m|%s   %c   \x1b[31;1m|%s ",
-                               bg, fg, symbol, COLOR_RESET);
+
+                        printf("%s\x1b[31;1m|%s   %c   \x1b[31;1m|%s ", bg, fg, symbol,COLOR_RESET); // Bordure rouge '|' et lettre au centre
                     }
 
                     else {
-                        // Affichage case sur 9 de large
-                        printf("%s%s    %c    %s ",
-                               bg, fg, symbol, COLOR_RESET);
+                        printf("%s%s    %c    %s ", bg, fg, symbol,COLOR_RESET); // Affichage case sur 9 de large
+
                     }
                 }
             }
