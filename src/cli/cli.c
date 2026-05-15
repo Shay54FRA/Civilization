@@ -46,110 +46,6 @@ static int terrain_move_cost(char biome) {
     return 1;
 }
 
-
-void print_map_cli(Map* m, Position cursor) {
-    if (m == NULL || m->map == NULL) return;
-    system("clear"); //permet de clear le terminal
-
-    int start_y = cursor.y - VIEW_RADIUS;
-    int end_y = cursor.y + VIEW_RADIUS;
-    int start_x = cursor.x - VIEW_RADIUS;
-    int end_x = cursor.x + VIEW_RADIUS;
-
-    for (int y = start_y; y <= end_y; y++) {
-        
-        // Pour faire de grosses cases, on dessine sur 3 lignes
-        for (int line = 0; line < 3; line++) {
-            
-            // Pour faire un effet hexagone, on décale les lignes impaires
-            if (y % 2 != 0) {
-                printf("     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
-            }
-
-            for (int x = start_x; x <= end_x; x++) {
-                
-                // Si la caméra regarde dans le vide (hors carte)
-                if (x < 0 || x >= m->length || y < 0 || y >= m->height) {
-                    printf("     "); // 5 espaces
-                    continue;
-                }
-
-                Tile* tuile = m->map[y][x];
-                
-                // 1. Choix du symbole à afficher sur la case
-                char symbol = ' ';
-                // symbol = tuile->biome; //J'ai enlevé la lettre du biome
-                if (tuile->city_on) symbol = 'V';
-                else if (tuile->unit) symbol = 'U';
-
-                // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
-
-                    // '\x1b['   : début commande de style (couleur, police...)
-                    // '31'      : texte en rouge
-                    // ';1'      : texte en gras
-                    // 'm'       : fin ordre de style
-                    // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité ( COLOR RESET = "\x1b[30m" )
-
-                const char* bg = ""; // Background color
-                const char* fg = "\x1b[30m"; // Couleur du texte par défaut = noir
-                
-                if (tuile->city_on){
-                    bg = COLOR_VILLE;
-                    fg = "\x1b[31;1m"; // Texte en rouge et gras
-                }
-                else if (tuile->unit){
-                    bg = COLOR_UNITE;
-                    fg = "\x1b[31;1m"; // Texte en rouge et gras
-                }
-                else {
-                    switch(tuile->biome) {
-                        case 'E': bg = BG_EAU; break;
-                        case 'P': bg = BG_PLAINE; break;
-                        case 'F': bg = BG_FORET; break;
-                        case 'M': bg = BG_MONTAGNE; break;
-                        case 'D': bg = BG_DESERT; break;
-                        case 'T': bg = BG_TOUNDRA; break;
-                    }
-                }
-
-                // 3. DESSIN D'UNE CASE (j'ai dessiné les cases sur une hauteur de 3 lignes et une largeur de 9 caractères)
-
-                if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case---
-
-                    if (cursor.x == x && cursor.y == y) { //Case actuelle encadrée en rouge
-                        printf("%s\x1b[31;1m+-------+%s ", bg, COLOR_RESET);
-                    }
-
-                    else {
-                        // Bloc de couleur uni
-                        printf("%s         %s ", bg,COLOR_RESET);
-                    }
-                }
-                
-                else if (line == 1) { // --- Ligne du MILIEU (avec la lettre) ---
-
-                    if (cursor.x == x && cursor.y == y) { 
-
-                        printf("%s\x1b[31;1m|%s   %c   \x1b[31;1m|%s ", bg, fg, symbol,COLOR_RESET); // Bordure rouge '|' et lettre au centre
-                    }
-
-                    else {
-                        printf("%s%s    %c    %s ", bg, fg, symbol,COLOR_RESET); // Affichage case sur 9 de large
-
-                    }
-                }
-            }
-
-            printf("\n"); // On passe à la ligne suivante du terminal
-        }
-
-        printf("\n"); // On ajoute un espace vertical entre chaque rangée de cases
-    }
-
-    printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
-}
-
-
 // Affiche les informations de la case sélectionnée
 static void print_tile_info(Game* game, Position cursor) {
     Tile* tile = get_tile(game->map, cursor);
@@ -172,9 +68,7 @@ static void print_tile_info(Game* game, Position cursor) {
         printf("Contenu  : Ville\n");
 
     else if (tile->unit)
-        printf("Contenu  : Unite %s [%c]\n",
-               get_name(tile->unit->type),
-               tile->unit->type);
+        printf("Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
 
     else
         printf("Contenu  : Vide\n");
@@ -190,77 +84,49 @@ static void print_selected_unit_info(Unit* selected_unit) {
         return;
     }
 
-    printf("Type : %s [%c]\n",
-           get_name(selected_unit->type),
-           selected_unit->type);
+    printf("Type : %s [%c]\n", get_name(selected_unit->type), selected_unit->type);
 
-    printf("PV   : %d / %d\n",
-           selected_unit->pv,
-           selected_unit->max_pv);
+    printf("PV   : %d / %d\n", selected_unit->pv, selected_unit->max_pv);
 
-    printf("PM   : %d / %d\n",
-           selected_unit->pm,
-           selected_unit->max_pm);
+    printf("PM   : %d / %d\n", selected_unit->pm, selected_unit->max_pm);
 
     printf("ATK  : %d\n", selected_unit->atk);
     printf("DEF  : %d\n", selected_unit->def);
 
-    printf("Pos  : (%d, %d)\n",
-           selected_unit->pos.x,
-           selected_unit->pos.y);
+    printf("Pos  : (%d, %d)\n", selected_unit->pos.x, selected_unit->pos.y);
 }
 
 
 // Convertit le résultat d’un déplacement en message joueur
-static void move_result_to_message(MoveResult result,
-                                   char* buffer,
-                                   size_t size) {
+static void move_result_to_message(MoveResult result, char* buffer, size_t size) {
     switch (result) {
 
         case MOVE_OK:
-            snprintf(buffer, size,
-                     "Deplacement effectue !");
-            break;
+            snprintf(buffer, size, "Deplacement effectue !"); break;
 
         case MOVE_NO_UNIT:
-            snprintf(buffer, size,
-                     "Aucune unite selectionnee.");
-            break;
+            snprintf(buffer, size, "Aucune unite selectionnee."); break;
 
         case MOVE_NO_PM:
-            snprintf(buffer, size,
-                     "Cette unite n'a plus de PM.");
-            break;
+            snprintf(buffer, size, "Cette unite n'a plus de PM."); break;
 
         case MOVE_INVALID_TILE:
-            snprintf(buffer, size,
-                     "Case invalide.");
-            break;
+            snprintf(buffer, size, "Case invalide."); break;
 
         case MOVE_WATER:
-            snprintf(buffer, size,
-                     "Impossible : eau infranchissable.");
-            break;
+            snprintf(buffer, size, "Impossible : eau infranchissable."); break;
 
         case MOVE_NOT_ADJACENT:
-            snprintf(buffer, size,
-                     "Il faut se deplacer case par case.");
-            break;
+            snprintf(buffer, size, "Il faut se deplacer case par case."); break;
 
         case MOVE_NOT_ENOUGH_PM:
-            snprintf(buffer, size,
-                     "Pas assez de PM.");
-            break;
+            snprintf(buffer, size, "Pas assez de PM."); break;
 
         case MOVE_ALLY_OCCUPIED:
-            snprintf(buffer, size,
-                     "Case occupee par une unite.");
-            break;
+            snprintf(buffer, size, "Case occupee par une unite."); break;
 
         default:
-            snprintf(buffer, size,
-                     "Action impossible.");
-            break;
+            snprintf(buffer, size, "Action impossible."); break;
     }
 }
 
@@ -274,8 +140,7 @@ void run_game_cli(Game* game) {
     Unit* selected_unit = NULL;
 
     // Message affiché dans le HUD
-    char last_message[MSG_SIZE] =
-        "Bienvenue dans Civ PP2ix.";
+    char last_message[MSG_SIZE] = "Bienvenue dans Civ PP2ix.";
 
     while (running) {
 
@@ -283,7 +148,7 @@ void run_game_cli(Game* game) {
         system("clear"); //permet de clear le terminal
         print_map_cli(game->map, cursor);
         
-        // Menu d'interaction
+        // Menu des stats
         printf("\n--- TOUR %d | Or: %d | Science: %d ---\n", 
                 game->active_turn, game->gold, game->science);
 
@@ -304,152 +169,84 @@ void run_game_cli(Game* game) {
         switch (command) {
 
             case 'z':
-                if (cursor.y > 0) cursor.y--;
-                break;
+                if (cursor.y > 0) cursor.y--; break;
 
             case 's':
-                if (cursor.y < game->map->height - 1) cursor.y++;
-                break;
+                if (cursor.y < game->map->height - 1) cursor.y++; break;
 
             case 'q':
-                if (cursor.x > 0) cursor.x--;
-                break;
+                if (cursor.x > 0) cursor.x--; break;
 
             case 'd':
-                if (cursor.x < game->map->length - 1) cursor.x++;
-                break;
-
+                if (cursor.x < game->map->length - 1) cursor.x++; break;
 
             // Sélection et déplacement des unités
             case 'm':
-
                 if (selected_unit == NULL) {
-
-                    Tile* tile =
-                        get_tile(game->map, cursor);
+                    Tile* tile = get_tile(game->map, cursor);
 
                     if (tile && tile->unit) {
-
                         selected_unit = tile->unit;
-
-                        snprintf(last_message,
-                                 MSG_SIZE,
-                                 "Unite %s [%c] selectionnee.",
-                                 get_name(selected_unit->type),
-                                 selected_unit->type);
-                    }
-
-                    else {
-
-                        snprintf(last_message,
-                                 MSG_SIZE,
-                                 "Aucune unite sur cette case.");
+                        snprintf(last_message, MSG_SIZE, "Unite %s [%c] selectionnee.", get_name(selected_unit->type), selected_unit->type);
+                    } else {
+                        snprintf(last_message, MSG_SIZE, "Aucune unite sur cette case.");
                     }
                 }
-
                 else {
-
-                    MoveResult result =
-                        move_unit_step(game,
-                                       selected_unit,
-                                       cursor);
-
-                    move_result_to_message(result,
-                                           last_message,
-                                           MSG_SIZE);
-
+                    MoveResult result = move_unit_step(game, selected_unit, cursor);
+                    move_result_to_message(result, last_message, MSG_SIZE);
                     selected_unit = NULL;
                 }
-
                 break;
-
 
             // Fondation d'une ville par un colon
             case 'v':
-
                 if (selected_unit == NULL) {
-
-                    snprintf(last_message,
-                             MSG_SIZE,
-                             "Aucune unite selectionnee.");
+                    snprintf(last_message, MSG_SIZE, "Aucune unite selectionnee.");
                 }
-
                 else if (selected_unit->type != 'c') {
-
-                    snprintf(last_message,
-                             MSG_SIZE,
-                             "Seul un Colon peut fonder une ville.");
+                    snprintf(last_message, MSG_SIZE, "Seul un Colon peut fonder une ville.");
                 }
-
                 else {
-
                     Position city_pos = selected_unit->pos;
                     Tile* tile = get_tile(game->map, city_pos);
 
                     if (tile != NULL && tile->city_on) {
-
-                        snprintf(last_message,
-                                 MSG_SIZE,
-                                 "Impossible : il y a deja une ville ici.");
+                        snprintf(last_message, MSG_SIZE, "Impossible : il y a deja une ville ici.");
                     }
 
                     else {
-
                         colonize(game, selected_unit);
                         selected_unit = NULL;
 
-                        snprintf(last_message,
-                                 MSG_SIZE,
-                                 "Ville fondee en (%d, %d).",
-                                 city_pos.x,
-                                 city_pos.y);
+                        snprintf(last_message, MSG_SIZE, "Ville fondee en (%d, %d).", city_pos.x, city_pos.y);
                     }
                 }
-
                 break;
-
 
             // Ouverture du menu des technologies
             case 't':
-
                 system("clear");
-
                 show_technology_menu(game);
-
-                snprintf(last_message,
-                         MSG_SIZE,
-                         "Retour arbre technologique.");
-
+                snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
                 break;
 
-
             case 'f':
-
                 printf("Passage au tour suivant...\n");
 
                 // Passage au tour suivant
                 game->active_turn++;
 
-                snprintf(last_message,
-                MSG_SIZE,
-                "Tour suivant.");
-
+                snprintf(last_message, MSG_SIZE, "Tour suivant.");
                 break;
-
                 
             case 'x':
-                running = 0;
-                break;
+                running = 0; break;
 
             default:
-
-                snprintf(last_message,
-                         MSG_SIZE,
-                         "Commande inconnue.");
-
+                snprintf(last_message, MSG_SIZE, "Commande inconnue.");
                 break;
         }
     }
-
     printf("Retour au menu principal...\n");
 }
