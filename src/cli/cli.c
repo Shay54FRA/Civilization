@@ -105,21 +105,29 @@ void print_map_cli(Map* m, Position cursor) {
                 
                 // 1. Choix du symbole à afficher sur la case
                 char symbol = ' ';
+                // symbol = tuile->biome; //J'ai enlevé la lettre du biome
                 if (tuile->city_on) symbol = 'V';
                 else if (tuile->unit) symbol = 'U';
 
-                // 2. Gestion des couleurs des cases
+                // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
 
-                const char* bg = "";
-                const char* fg = "\x1b[30m";
+                    // '\x1b['    : début commande de style (couleur, police...)
+                    // '31'       : texte en rouge
+                    // ';1'       : texte en gras
+                    // 'm'        : fin ordre de style
+                    // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité
+                    // COLOR_RESET permet aussi de réinitialiser le style après chaque case
+
+                const char* bg = ""; // Background color
+                const char* fg = "\x1b[30m"; // Couleur du texte par défaut = noir
                 
                 if (tuile->city_on){
                     bg = COLOR_VILLE;
-                    fg = "\x1b[31;1m";
+                    fg = "\x1b[31;1m"; // Texte en rouge et gras
                 }
                 else if (tuile->unit){
                     bg = COLOR_UNITE;
-                    fg = "\x1b[31;1m";
+                    fg = "\x1b[31;1m"; // Texte en rouge et gras
                 }
                 else {
                     switch(tuile->biome) {
@@ -133,37 +141,43 @@ void print_map_cli(Map* m, Position cursor) {
                 }
 
                 // 3. DESSIN D'UNE CASE
+                // Les cases sont dessinées sur une hauteur de 3 lignes et une largeur de 9 caractères
 
-                if (line == 0 || line == 2) {
+                if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case ---
 
-                    if (cursor.x == x && cursor.y == y) {
+                    if (cursor.x == x && cursor.y == y) { // Case actuelle encadrée en rouge
                         printf("%s\x1b[31;1m+-------+%s ", bg, COLOR_RESET);
                     }
 
                     else {
+                        // Bloc de couleur uni
                         printf("%s         %s ", bg, COLOR_RESET);
                     }
                 }
                 
-                else if (line == 1) {
+                else if (line == 1) { // --- Ligne du MILIEU avec la lettre ---
 
                     if (cursor.x == x && cursor.y == y) { 
+                        // Bordure rouge '|' et lettre au centre
                         printf("%s\x1b[31;1m|%s   %c   \x1b[31;1m|%s ",
                                bg, fg, symbol, COLOR_RESET);
                     }
 
                     else {
+                        // Affichage case sur 9 de large
                         printf("%s%s    %c    %s ",
                                bg, fg, symbol, COLOR_RESET);
                     }
                 }
             }
 
-            printf("\n");
+            printf("\n"); // On passe à la ligne suivante du terminal
         }
 
-        printf("\n");
+        printf("\n"); // On ajoute un espace vertical entre chaque rangée de cases
     }
+
+    printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
 
 
@@ -314,7 +328,7 @@ void run_game_cli(Game* game) {
         printf("> ");
         
         // Récupération de l'ordre
-        scanf(" %c", &command);
+        scanf(" %c", &command); // L'espace avant %c ignore les retours à la ligne
 
         // Logique de commande
         switch (command) {
@@ -443,16 +457,18 @@ void run_game_cli(Game* game) {
 
                 printf("Passage au tour suivant...\n");
 
+                // Passage au tour suivant
                 game->active_turn++;
 
                 // Mise à jour des ressources et des projets de ville
                 give_all_bonuses(game);
                 update_city_projects(game);
 
-                // Mise à jour des recherches et des points de mouvement
+                // Mise à jour des recherches
                 int tech_id =
                     update_research(game);
 
+                // Calcul et application de l'entretien des unités
                 int maintenance =
                     total_unit_maintenance(game->unitList);
 
@@ -477,6 +493,7 @@ void run_game_cli(Game* game) {
                              maintenance);
                 }
 
+                // Réinitialisation des points de mouvement en fin de tour
                 reset_all_pm(game->unitList);
 
                 break;
