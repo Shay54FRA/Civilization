@@ -14,7 +14,7 @@ int main(void) {
     
     assert(colon != NULL);
     assert(get_unit_type(colon) == 'c');
-    assert(get_pv(colon) == 1);       
+    assert(get_pv(colon) == 10);       
     assert(get_atk(colon) == 0);      
     assert(get_pm(colon) == 2);       
     assert(get_unit_pos(colon).x == 5);
