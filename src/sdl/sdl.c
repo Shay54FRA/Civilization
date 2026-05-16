@@ -10,7 +10,6 @@
 #include <SDL2_gfxPrimitives.h>
 
 
-
 SDL_Color get_biome_color(char biome) {
     switch (biome) {
         case 'E': return (SDL_Color){0, 105, 148, 255};   // Eau (Bleu)
@@ -50,7 +49,28 @@ void draw_hexagones(SDL_Renderer* renderer, int x, int y, int R, SDL_Color color
     polygonRGBA(renderer, vx, vy, 6, 0, 0, 0, 255); 
 }
 
-void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position position_actuelle, int cameraX, int cameraY) {
+// Chargement des sprites
+SDL_Texture* load_sprite(SDL_Renderer* renderer, const char* filepath) {
+    SDL_Surface* surface = SDL_LoadBMP(filepath);
+    if (!surface) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Impossible de charger l'image %s : %s", filepath, SDL_GetError());
+        return NULL;
+    }
+    
+    // Rendre le fond rose fluo (255, 0, 255) transparent
+    SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 255, 0, 255));
+    
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface); // On libère la surface qui ne sert plus
+    
+    return texture;
+}
+
+
+
+void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position position_actuelle, int cameraX, int cameraY, 
+                SDL_Texture* tex_ville, SDL_Texture* tex_ville_mur, SDL_Texture* tex_guerrier, SDL_Texture* tex_colon, 
+                SDL_Texture* tex_camp, SDL_Texture* tex_barbare){
 
     for (int i = 0; i < game->map->height; i++) {
         for (int j = 0; j < game->map->length; j++) {
@@ -78,13 +98,50 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
                 }
             }
 
-            // Petit ajout pour les unités avec la version RGBA aussi
-            if (tuile->unit != NULL) {
-                filledCircleRGBA(renderer, x, y, R/2, 255, 0, 0, 255); // Rouge
+            // Zone de dessin du sprite (centrée sur l'hexagone)
+            SDL_Rect dstRect = { x - 16, y - 16, 32, 32 };
+
+            // Dessin camp barbares
+            if (tuile->camp_on && tex_camp) {
+                SDL_RenderCopy(renderer, tex_camp, NULL, &dstRect);
             }
-        }
+
+            // Dessin villes (Normale OU Fortifiée)
+            if (tuile->city_on) {
+
+                int a_la_muraille = (game->active_turn > 10); 
+
+                if (a_la_muraille && tex_ville_mur) {
+                    SDL_RenderCopy(renderer, tex_ville_mur, NULL, &dstRect);
+                } 
+                
+                else if (tex_ville) {
+                    SDL_RenderCopy(renderer, tex_ville, NULL, &dstRect);
+                }
+            }
+
+            // Dessin unite (Guerrier, Colon OU Barbare)
+            if (tuile->unit != NULL) {
+
+                SDL_Texture* tex_unit = NULL;
+                char type = tuile->unit->type;
+                
+                if (type == 'g' || type == 'G') tex_unit = tex_guerrier;
+                else if (type == 'c' || type == 'C') tex_unit = tex_colon;
+                else if (type == 'b' || type == 'B') tex_unit = tex_barbare;
+                
+                if (tex_unit) {
+                    SDL_RenderCopy(renderer, tex_unit, NULL, &dstRect);
+                } 
+                
+                else {
+                    filledCircleRGBA(renderer, x, y, R/2, 255, 0, 0, 255); // Sécurité
+                }
+            }
+        }   
     }
 }
+
 
 // Convertit le résultat d’un déplacement en texte
 void get_move_message(MoveResult result, char* buffer, size_t size) {
@@ -188,25 +245,31 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
     // Indication du mode de sélection
     if (selected_unit) {
         stringRGBA(renderer, x1 + 20, y1 + 80, "-> MODE DEPLACEMENT ACTIF", 255, 150, 0, 255);
-    } else if (tuile->unit) {
+    } 
+    
+    else if (tuile->unit) {
         stringRGBA(renderer, x1 + 20, y1 + 80, "Appuyez sur [M] pour selectionner", 100, 200, 255, 255);
+    }
+
+    else if (tuile->unit && tuile->unit->type == 'c') {
+        stringRGBA(renderer, x1 + 20, y1 + 80, "Appuyez sur [V] pour fonder une ville", 100, 255, 100, 255);
     }
 
     // Colonne Droite : Infos unite (si presente)
 
     if (tuile->unit != NULL) {
         Unit* u = tuile->unit;
-        sprintf(ligne1, "UNITE : %c", u->type);
-        sprintf(ligne2, "PV : %d / %d", u->pv, u->max_pv); // Corrigé avec max_pv !
-        sprintf(ligne3, "ATK : %d | DEF : %d | PM : %d / %d", u->atk, u->def, u->pm, u->max_pm); // Corrigé avec max_pm !
+        sprintf(ligne1, "UNITE : %s [%c]", (u->type == 'b' || u->type == 'B') ? "Barbare" : (u->type == 'c' ? "Colon" : "Guerrier"), u->type);
+        sprintf(ligne2, "PV : %d / %d", u->pv, u->max_pv); 
+        sprintf(ligne3, "ATK : %d | DEF : %d | PM : %d / %d", u->atk, u->def, u->pm, u->max_pm);
 
-        stringRGBA(renderer, x1 + 320, y1 + 20, ligne1, 100, 255, 100, 255);
-        stringRGBA(renderer, x1 + 320, y1 + 45, ligne2, 255, 255, 255, 255);
-        stringRGBA(renderer, x1 + 320, y1 + 70, ligne3, 255, 200, 200, 255);
-    }
+        stringRGBA(renderer, x1 + 340, y1 + 20, ligne1, 100, 255, 100, 255);
+        stringRGBA(renderer, x1 + 340, y1 + 45, ligne2, 255, 255, 255, 255);
+        stringRGBA(renderer, x1 + 340, y1 + 70, ligne3, 255, 200, 200, 255);
+    } 
     
     else {
-        stringRGBA(renderer, x1 + 320, y1 + 20, "UNITE : Aucune", 150, 150, 150, 255);
+        stringRGBA(renderer, x1 + 340, y1 + 20, "UNITE : Aucune", 150, 150, 150, 255);
     }
 }
 
@@ -219,8 +282,9 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
     stringRGBA(renderer, 80, 130, "- Agriculture [Debloque]", 100, 255, 100, 255);
     stringRGBA(renderer, 80, 160, "- Elevage     (Cout: 15 Science)", 255, 255, 255, 255);
     stringRGBA(renderer, 80, 190, "- Poterie     (Cout: 20 Science)", 255, 255, 255, 255);
+    stringRGBA(renderer, 80, 220, "- Maçonnerie  [Muraille] (Cout: 30 Science)", 255, 255, 255, 255);
 
-    stringRGBA(renderer, 80, screenH - 90, "Appuyez sur [T] ou [ECHAP] pour revenir au jeu", 180, 180, 180, 255);
+    stringRGBA(renderer, 80, screenH - 90, "Appuyez sur [T] ou [ECHAP] pour fermer l'arbre", 180, 180, 180, 255);
 }
 
 
@@ -291,9 +355,11 @@ void run_game_sdl(Game * game) {
     int R = 40; 
     int h = (int)(R * 0.866f);
 
-    //Variables caméra qui commencent au cnetre (0,0)
-    int cameraX = 0;
-    int cameraY = 0;
+    // Centrage initial de la caméra sur la ville de départ !
+    Position start_city = get_starting_city_pos(game->map);
+    
+    int cameraX = (start_city.x != -1) ? start_city.x * (2 * h) + ((start_city.y % 2) * h) : 0;
+    int cameraY = (start_city.y != -1) ? start_city.y * (1.5f * R) : 0;
 
     //On calcule la taille maximale de la carte en pixels pour bloquer la caméra (qu'elle n'aille pas dans des énormes coordonnées)
     int maxWidth = game->map->length * (2*h);
@@ -303,6 +369,15 @@ void run_game_sdl(Game * game) {
     Unit* selected_unit = NULL;
     char last_message[100] = "Bienvenue dans Civ PP2ix !";
     int show_arbre_tech = 0; // arbre techno initialement pas affiché
+
+    // Chargement de tous les SDL2_gfxPrimitives
+    SDL_Texture* tex_ville = load_sprite(renderer, "src/sprites/ville.bmp");
+    SDL_Texture* tex_ville_mur = load_sprite(renderer, "src/sprites/ville_muraille.bmp"); 
+    SDL_Texture* tex_guerrier = load_sprite(renderer, "src/sprites/guerrier.bmp");
+    SDL_Texture* tex_colon = load_sprite(renderer, "src/sprites/colon.bmp");
+    SDL_Texture* tex_barbare = load_sprite(renderer, "src/sprites/barbares.bmp");       
+    SDL_Texture* tex_camp = load_sprite(renderer, "src/sprites/camp_barbares.bmp");
+
 
     while(running) {
 
@@ -338,18 +413,18 @@ void run_game_sdl(Game * game) {
                     if (position_actuelle.x != -1 && !show_arbre_tech) {
                         Tile* tuile_suivante = game->map->map[position_actuelle.y][position_actuelle.x];
 
-                        // Selectionner ou Déplacer (Touche M)
+                        // Selectionner ou Déplacer une unité (Touche M)
                         if (event.key.keysym.sym == SDLK_m) {
 
                             if (selected_unit == NULL) {
 
                                 if (tuile_suivante && tuile_suivante->unit) {
                                     selected_unit = tuile_suivante->unit;
-                                    snprintf(last_message, sizeof(last_message), "Unité selectionnée, cliquez sur la case cible + la touche M");
+                                    snprintf(last_message, sizeof(last_message), "Unite selectionnee, cliquez sur la case cible + la touche M");
                                 }
 
                                 else {
-                                    snprintf(last_message, sizeof(last_message), "Aucune unité sur cette case");
+                                    snprintf(last_message, sizeof(last_message), "Aucune unite sur cette case");
                                 }
 
                             } 
@@ -390,18 +465,24 @@ void run_game_sdl(Game * game) {
                     int my = event.button.y;
                     
                     // gestion des clics sur les boutons des panneaux d'abord
+
+                    //arbre tech
                     if (mx >= 20 && mx <= 150 && my >= 75 && my <= 105) {
                         show_arbre_tech = !show_arbre_tech;
                         break;
                     }
 
+                    //fin de tour
                     if (mx >= 170 && mx <= 300 && my >= 75 && my <= 105 && !show_arbre_tech) {
+                        give_all_bonuses(game);
+                        update_city_projects(game);
+                        reset_all_pm(game->unitList);
                         game->active_turn++;
                         snprintf(last_message, sizeof(last_message), "Tour suivant.");
                         break;
                     }
 
-                    // 2. CLIC SUR LE TERRAIN (Seulement si l'arbre techno est fermé)
+                    // clic sur le terrain (Seulement si l'arbre techno est fermé)
                     if (!show_arbre_tech) {
                         Position nouvelle_selection = position_hexagone(mx, my, R, h, cameraX, cameraY, game);
 
@@ -415,11 +496,11 @@ void run_game_sdl(Game * game) {
                         }
                     }
                 }
+
                 break;
-                
+                }
             }
         }
-    }
 
     // CAMERA 
     if(!show_arbre_tech){ //seulement si arbre tech pas affiché
@@ -445,7 +526,8 @@ void run_game_sdl(Game * game) {
     SDL_RenderClear(renderer); 
 
     //Dessin de la map avec la caméra
-    draw_map_sdl(renderer, game, R, h, position_actuelle, cameraX, cameraY);
+    draw_map_sdl(renderer, game, R, h, position_actuelle, cameraX, cameraY,
+                tex_ville, tex_ville_mur, tex_guerrier, tex_colon, tex_camp, tex_barbare);
 
     //Dessin du tableau d'affichage global
     draw_panneau_global(renderer, game);
@@ -466,9 +548,17 @@ void run_game_sdl(Game * game) {
     //Limiteur de vitesse : 1000ms / 16ms = 60 images par secondes
     //permet de forcer le processeur à attendre -> diminution de la chauffe du CPU
     //SDL_Delay(16);
-}
+    }
 
     //NETTOYAGE
+
+    if(tex_ville)         SDL_DestroyTexture(tex_ville);
+    if(tex_ville_mur)     SDL_DestroyTexture(tex_ville_mur); // NOUVEAU
+    if(tex_guerrier)      SDL_DestroyTexture(tex_guerrier);
+    if(tex_colon)         SDL_DestroyTexture(tex_colon);
+    if(tex_barbare)       SDL_DestroyTexture(tex_barbare);   // NOUVEAU
+    if(tex_camp)          SDL_DestroyTexture(tex_camp);
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
