@@ -17,7 +17,7 @@ LDFLAGS += -fsanitize=address
 # Voir SDL2 CM2 
 
 # On ajoute la librairie SDL2 + SDL2_gfx
-CFLAS += $(SDL_CFLAGS)
+CFLAGS += $(SDL_CFLAGS)
 LIBS = $(SDL_LIBS) -lSDL2_gfx -lm
 
 
