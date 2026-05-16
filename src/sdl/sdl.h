@@ -1,8 +1,11 @@
 #ifndef SDL
 #define SDL
 
+#include <SDL2/SDL.h>
+#include "../map/map.h"
+
 typedef struct _Game Game;
-typedef struct _Position Position;
+
 
 SDL_Color get_biome_color(char biome);
 const char* get_biome_name(char biome);
