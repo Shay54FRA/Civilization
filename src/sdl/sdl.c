@@ -8,7 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 
-// À mettre en haut de sdl.c
+
 SDL_Color get_biome_color(char biome) {
     switch (biome) {
         case 'E': return (SDL_Color){0, 105, 148, 255};   // Eau (Bleu)
@@ -20,6 +20,19 @@ SDL_Color get_biome_color(char biome) {
         default:  return (SDL_Color){255, 255, 255, 255}; // Cas de base
     }
 }
+
+const char* get_biome_name(char biome) {
+    switch (biome) {
+        case 'E': return "Eau";
+        case 'P': return "Plaine";
+        case 'F': return "Foret";
+        case 'M': return "Montagne";
+        case 'D': return "Desert";
+        case 'T': return "Toundra";
+        default:  return "Inconnu";
+    }
+}
+
 
 void draw_hexagones(SDL_Renderer* renderer, int x, int y, int R, SDL_Color color) {
     int h = (int)(R * 0.866f); 
@@ -71,19 +84,64 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
     }
 }
 
-void draw_panneau_affichage(SDL_Renderer* renderer, Game* game, int screenW, int screenH) {
-    // Fond du panneau (un rectangle noir semi-transparent en bas)
-    int hudHeight = 100;
-    boxRGBA(renderer, 0, screenH - hudHeight, screenW, screenH, 0, 0, 0, 200);
+void draw_panneau_global(SDL_Renderer* renderer, Game* game) {
+    // Boîte noire semi-transparent (X=10, Y=10, Largeur=310, Hauteur=80)
+    boxRGBA(renderer, 10, 10, 310, 80, 0, 0, 0, 200);
+    
+    // Bordure fine grise pour faire stylé
+    rectangleRGBA(renderer, 10, 10, 310, 80, 150, 150, 150, 255);
 
-    //Ressources (Or, Science, Tours)
-    char stats[100];
-    sprintf(stats, "OR: %d | SCIENCE: %d | TOUR: %d / %d", 
-            game->gold, game->science, game->active_turn, game->configuration->t);
-    stringRGBA(renderer, 20, screenH - 80, stats, 255, 255, 255, 255);
+    char txt_tour[50];
+    char txt_ressources[100];
 
-    //Légende
-    stringRGBA(renderer, 20, screenH - 50, "SOURIS aux bords: Deplacer camera | CLIC GAUCHE: Selectionner une case | ECHAP: Quitter | LEGENDE: BLEU=Eau, VERT=Plaine, VERT FONCE=Foret, GRIS=Montagne", 200, 200, 200, 255);
+    sprintf(txt_tour, "TOUR : %d / %d", game->active_turn, game->configuration->t);
+    sprintf(txt_ressources, "OR : %d  |  SCIENCE : %d", game->gold, game->science);
+
+    // Affichage des textes
+    stringRGBA(renderer, 25, 25, txt_tour, 255, 255, 255, 255);
+    stringRGBA(renderer, 25, 50, txt_ressources, 255, 215, 0, 255); // Écrit en couleur dorée
+}
+
+void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position selection, int screenW, int screenH) {
+    // Si aucune tuile n'est sélectionnée, on ne dessine rien
+    if (selection.x == -1 || selection.y == -1) {
+        return;
+    }
+
+    // Calcul pour centrer le panneau de 500px en bas de l'écran
+    int w = 500;
+    int h = 80;
+    int x1 = (screenW - w) / 2;
+    int y1 = screenH - h - 20; // À 20 pixels du bas de l'écran
+    int x2 = x1 + w;
+    int y2 = y1 + h;
+
+    // Récupération des données de la tuile cliquée
+    Tile* tuile = game->map->map[selection.y][selection.x];
+
+    // On récupère la couleur du biome pour l'appliquer à la bordure
+    SDL_Color biome_color = get_biome_color(tuile->biome);
+
+    // Fond noir semi-transparent
+    boxRGBA(renderer, x1, y1, x2, y2, 0, 0, 0, 220);
+
+    // Bordure assortie à la couleur du biome de la tuile !
+    rectangleRGBA(renderer, x1, y1, x2, y2, biome_color.r, biome_color.g, biome_color.b, 255);
+
+    char ligne1[100];
+    char ligne2[100];
+
+    // On utilise get_biome_name pour afficher textuellement le biome (Plaine, Eau...)
+    sprintf(ligne1, "COORDONNEES : (%d, %d)  |  BIOME : %s", 
+            tuile->pos.x, tuile->pos.y, get_biome_name(tuile->biome));
+            
+    sprintf(ligne2, "VILLE : %s  |  UNITE : %s", 
+            tuile->city_on ? "Oui" : "Aucune", 
+            (tuile->unit != NULL) ? "Presente" : "Aucune");
+
+    // Affichage des textes
+    stringRGBA(renderer, x1 + 20, y1 + 20, ligne1, 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 20, y1 + 45, ligne2, 200, 200, 200, 255);
 }
 
 
@@ -196,9 +254,20 @@ void run_game_sdl(Game * game) {
                     int mx = event.button.x;
                     int my = event.button.y;
                     
-                    // On utilise notre fonction pour savoir quelle case c'est
-                    position_actuelle = position_hexagone(mx, my, R, h, cameraX, cameraY, game);
+                    // On utilise notre fonction pour savoir sur quelle tuile on a cliqué
+                    Position nouvelle_selection = position_hexagone(mx, my, R, h, cameraX, cameraY, game);
+
+                    // Si on reclique sur la tuile déjà illuminée -> on désélectionne la tuile
+                    if (nouvelle_selection.x == position_actuelle.x && nouvelle_selection.y == position_actuelle.y) {
+                        position_actuelle.x = -1;
+                        position_actuelle.y = -1; 
+                    } 
+                    // Sinon, on applique la nouvelle sélection
+                    else {
+                        position_actuelle = nouvelle_selection;
+                    }
                 }
+
                 break;
                 }
             }
@@ -235,8 +304,12 @@ void run_game_sdl(Game * game) {
         //Dessin de la map avec la caméra
         draw_map_sdl(renderer, game, R, h, position_actuelle, cameraX, cameraY);
 
-        //Dessin du tableau d'affichage
-        draw_panneau_affichage(renderer, game, width, height);
+        //Dessin du tableau d'affichage global
+        draw_panneau_global(renderer, game);
+
+        // Dessin du panneau de la tuile illuminee en bas, qui s'affiche dynamiquement
+        draw_panneau_tuile_illuminee(renderer, game, position_actuelle, width, height);
+
 
         SDL_RenderPresent(renderer);
 
