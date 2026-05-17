@@ -212,7 +212,7 @@ int biome_to_int(char k){
 }
 
 
-void smooth_map(Map* m) { // Principe d'automate cellulaire
+void smooth_map(Map* m) { // Principe d'automate cellulaire très simple
     if (m == NULL) return;
 
     // 1. On crée une grille temporaire pour stocker les nouveaux biomes
