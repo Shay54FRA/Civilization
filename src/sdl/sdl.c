@@ -1,53 +1,18 @@
-#include "../map/map.h"
-#include "../tile/tile.h"
 #include "../game/game.h"
 #include "../configuration/configuration.h"
+#include "../building/building.h"
 #include "../unit/unit.h"
+#include "../sdl_map/sdl_map.h"
+#include "../sdl_panneaux/sdl_panneaux.h"
+#include "../tile/tile.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
 
+bool croissance_check(City* city);
 
-SDL_Color get_biome_color(char biome) {
-    switch (biome) {
-        case 'E': return (SDL_Color){0, 105, 148, 255};   // Eau (Bleu)
-        case 'P': return (SDL_Color){34, 139, 34, 255};   // Plaine (Vert)
-        case 'F': return (SDL_Color){0, 100, 0, 255};     // Forêt (Vert foncé)
-        case 'M': return (SDL_Color){128, 128, 128, 255}; // Montagne (Gris)
-        case 'D': return (SDL_Color){194, 178, 128, 255}; // Désert (Sable)
-        case 'T': return (SDL_Color){210, 210, 210, 255}; // Toundra (Gris clair)
-        default:  return (SDL_Color){255, 255, 255, 255}; // Cas de base
-    }
-}
-
-const char* get_biome_name(char biome) {
-    switch (biome) {
-        case 'E': return "Eau";
-        case 'P': return "Plaine";
-        case 'F': return "Foret";
-        case 'M': return "Montagne";
-        case 'D': return "Desert";
-        case 'T': return "Toundra";
-        default:  return "Inconnu";
-    }
-}
-
-
-void draw_hexagones(SDL_Renderer* renderer, int x, int y, int R, SDL_Color color) {
-    int h = (int)(R * 0.866f); 
-
-    const Sint16 vx[6] = {x, x + h, x + h, x, x - h, x - h};
-    const Sint16 vy[6] = {y - R, y - R/2, y + R/2, y + R, y + R/2, y - R/2};
-
-    // appartient à la bibliothèque sdl2_gfxs
-    filledPolygonRGBA(renderer, vx, vy, 6, 
-                      color.r, color.g, color.b, color.a); 
-    
-    // + petit contour en noir ici
-    polygonRGBA(renderer, vx, vy, 6, 0, 0, 0, 255); 
-}
 
 // Chargement des sprites
 SDL_Texture* load_sprite(SDL_Renderer* renderer, const char* filepath) {
@@ -64,268 +29,6 @@ SDL_Texture* load_sprite(SDL_Renderer* renderer, const char* filepath) {
     SDL_FreeSurface(surface); // On libère la surface qui ne sert plus
     
     return texture;
-}
-
-
-
-void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position position_actuelle, int cameraX, int cameraY, 
-                SDL_Texture* tex_ville, SDL_Texture* tex_ville_mur, SDL_Texture* tex_guerrier, SDL_Texture* tex_colon, 
-                SDL_Texture* tex_camp, SDL_Texture* tex_barbare){
-
-    for (int i = 0; i < game->map->height; i++) {
-        for (int j = 0; j < game->map->length; j++) {
-            Tile* tuile = game->map->map[i][j];
-
-
-            //Calcule de la position puis on soustrait la caméra
-            int x = j * (2 * h) + ((i % 2) * h) - cameraX + (1280 / 2);
-            int y = i * (1.5f * R) - cameraY + (720 / 2);
-
-            // On récupère la SDL_Color directement pour la mettre dans l'hexagone
-            SDL_Color color = get_biome_color(tuile->biome);
-            draw_hexagones(renderer, x, y, R, color);
-
-            // surbrillance de la position où l'on est + verif qu'on est pas en dehors de la carte
-            if (position_actuelle.x != -1 && tuile->pos.x == position_actuelle.x && tuile->pos.y == position_actuelle.y) {
-
-                // On dessine un contour blanc épais (3 hexagones de tailles très proches)
-                for(int sw = 0; sw < 3; sw++) {
-
-                    polygonRGBA(renderer, 
-                        (Sint16[]){x, x + h - sw, x + h - sw, x, x - h + sw, x - h + sw},
-                        (Sint16[]){y - R + sw, y - R/2 + sw/2, y + R/2 - sw/2, y + R - sw, y + R/2 - sw/2, y - R/2 + sw/2},
-                        6, 255, 255, 255, 255);
-                }
-            }
-
-            // Zone de dessin du sprite (centrée sur l'hexagone)
-            SDL_Rect dstRect = { x - 16, y - 16, 32, 32 };
-
-            // Dessin camp barbares
-            if (tuile->camp_on && tex_camp) {
-                SDL_RenderCopy(renderer, tex_camp, NULL, &dstRect);
-            }
-
-            // Dessin villes (Normale OU Fortifiée)
-            if (tuile->city_on) {
-
-                int a_la_muraille = (game->active_turn > 10); 
-
-                if (a_la_muraille && tex_ville_mur) {
-                    SDL_RenderCopy(renderer, tex_ville_mur, NULL, &dstRect);
-                } 
-                
-                else if (tex_ville) {
-                    SDL_RenderCopy(renderer, tex_ville, NULL, &dstRect);
-                }
-            }
-
-            // Dessin unite (Guerrier, Colon OU Barbare)
-            if (tuile->unit != NULL) {
-
-                SDL_Texture* tex_unit = NULL;
-                char type = tuile->unit->type;
-                
-                if (type == 'g' || type == 'G') tex_unit = tex_guerrier;
-                else if (type == 'c' || type == 'C') tex_unit = tex_colon;
-                else if (type == 'b' || type == 'B') tex_unit = tex_barbare;
-                
-                if (tex_unit) {
-                    SDL_RenderCopy(renderer, tex_unit, NULL, &dstRect);
-                } 
-                
-                else {
-                    filledCircleRGBA(renderer, x, y, R/2, 255, 0, 0, 255); // Sécurité
-                }
-            }
-        }   
-    }
-}
-
-
-// Convertit le résultat d’un déplacement en texte
-void get_move_message(MoveResult result, char* buffer, size_t size) {
-    switch (result) {
-        case MOVE_OK:
-            snprintf(buffer, size, "Deplacement effectue !"); break;
-        case MOVE_NO_UNIT:
-            snprintf(buffer, size, "Aucune unite selectionnee"); break;
-        case MOVE_NO_PM:
-            snprintf(buffer, size, "Cette unite n'a plus de PM"); break;
-        case MOVE_INVALID_TILE:
-            snprintf(buffer, size, "Case invalide"); break;
-        case MOVE_WATER:
-            snprintf(buffer, size, "Impossible : eau infranchissable"); break;
-        case MOVE_NOT_ADJACENT:
-            snprintf(buffer, size, "Il faut se deplacer case par case"); break;
-        case MOVE_NOT_ENOUGH_PM:
-            snprintf(buffer, size, "Pas assez de PM"); break;
-        case MOVE_ALLY_OCCUPIED:
-            snprintf(buffer, size, "Case occupee par une unite alliee"); break;
-        default:
-            snprintf(buffer, size, "Action ou deplacement impossible"); break;
-    }
-}
-
-// Panneau Message d'action (Flotte en haut au centre)
-void draw_panneau_message_action(SDL_Renderer* renderer, const char* message, int screenW) {
-    int w = 500;
-    int x1 = (screenW - w) / 2;
-    boxRGBA(renderer, x1, 10, x1 + w, 45, 0, 0, 0, 180);
-    rectangleRGBA(renderer, x1, 10, x1 + w, 45, 200, 200, 200, 255);
-    stringRGBA(renderer, x1 + 20, 22, message, 255, 255, 100, 255);
-}
-
-void draw_panneau_global(SDL_Renderer* renderer, Game* game) {
-    // Boîte noire semi-transparent (X=10, Y=10, Largeur=310, Hauteur=80)
-    boxRGBA(renderer, 10, 10, 310, 115, 0, 0, 0, 200);
-    
-    // Bordure fine grise pour faire stylé
-    rectangleRGBA(renderer, 10, 10, 310, 115, 150, 150, 150, 255);
-
-    char txt_tour[50];
-    char txt_ressources[100];
-
-    sprintf(txt_tour, "TOUR : %d / %d", game->active_turn, game->configuration->t);
-    sprintf(txt_ressources, "OR : %d  |  SCIENCE : %d", game->gold, game->science);
-
-    // Affichage des textes
-    stringRGBA(renderer, 25, 25, txt_tour, 255, 255, 255, 255);
-    stringRGBA(renderer, 25, 50, txt_ressources, 255, 215, 0, 255); // Écrit en couleur dorée
-
-    // Dessin du Bouton TECHNOLOGIES (Bleu)
-    boxRGBA(renderer, 20, 75, 150, 105, 30, 80, 150, 255);
-    rectangleRGBA(renderer, 20, 75, 150, 105, 255, 255, 255, 200);
-    stringRGBA(renderer, 40, 85, "TECH [T]", 255, 255, 255, 255);
-
-    // Dessin du Bouton FIN DE TOUR (Rouge)
-    boxRGBA(renderer, 170, 75, 300, 105, 150, 40, 40, 255);
-    rectangleRGBA(renderer, 170, 75, 300, 105, 255, 255, 255, 200);
-    stringRGBA(renderer, 195, 85, "FIN TOUR [F]", 255, 255, 255, 255);
-}
-
-void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position selection, int screenW, int screenH, Unit * selected_unit) {
-    // Si aucune tuile n'est sélectionnée, on ne dessine rien
-    if (selection.x == -1 || selection.y == -1) {
-        return;
-    }
-
-    // Calcul pour centrer le panneau de 500px en bas de l'écran
-    int w = 600;
-    int h = 110;
-    int x1 = (screenW - w) / 2;
-    int y1 = screenH - h - 20; // À 20 pixels du bas de l'écran
-    int x2 = x1 + w;
-    int y2 = y1 + h;
-
-    // Récupération des données de la tuile cliquée
-    Tile* tuile = game->map->map[selection.y][selection.x];
-
-    // On récupère la couleur du biome pour l'appliquer à la bordure
-    SDL_Color biome_color = get_biome_color(tuile->biome);
-
-    // Fond noir semi-transparent
-    boxRGBA(renderer, x1, y1, x2, y2, 0, 0, 0, 220);
-
-    // Bordure assortie à la couleur du biome de la tuile !
-    rectangleRGBA(renderer, x1, y1, x2, y2, biome_color.r, biome_color.g, biome_color.b, 255);
-
-    char ligne1[100];
-    char ligne2[100];
-    char ligne3[100];
-
-    // Colonne Gauche : Infos terrain
-
-    // On utilise get_biome_name pour afficher textuellement le biome (Plaine, Eau...)
-    sprintf(ligne1, "TERRAIN : %s (%d, %d)", get_biome_name(tuile->biome), tuile->pos.x, tuile->pos.y);
-    sprintf(ligne2, "VILLE   : %s", tuile->city_on ? "Oui" : "Non");
-    stringRGBA(renderer, x1 + 20, y1 + 20, ligne1, 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 20, y1 + 45, ligne2, 200, 200, 200, 255);
-
-    // Indication du mode de sélection
-    if (selected_unit) {
-        stringRGBA(renderer, x1 + 20, y1 + 80, "-> MODE DEPLACEMENT ACTIF", 255, 150, 0, 255);
-    } 
-    
-    else if (tuile->unit) {
-        stringRGBA(renderer, x1 + 20, y1 + 80, "Appuyez sur [M] pour selectionner", 100, 200, 255, 255);
-    }
-
-    else if (tuile->unit && tuile->unit->type == 'c') {
-        stringRGBA(renderer, x1 + 20, y1 + 80, "Appuyez sur [V] pour fonder une ville", 100, 255, 100, 255);
-    }
-
-    // Colonne Droite : Infos unite (si presente)
-
-    if (tuile->unit != NULL) {
-        Unit* u = tuile->unit;
-        sprintf(ligne1, "UNITE : %s [%c]", (u->type == 'b' || u->type == 'B') ? "Barbare" : (u->type == 'c' ? "Colon" : "Guerrier"), u->type);
-        sprintf(ligne2, "PV : %d / %d", u->pv, u->max_pv); 
-        sprintf(ligne3, "ATK : %d | DEF : %d | PM : %d / %d", u->atk, u->def, u->pm, u->max_pm);
-
-        stringRGBA(renderer, x1 + 340, y1 + 20, ligne1, 100, 255, 100, 255);
-        stringRGBA(renderer, x1 + 340, y1 + 45, ligne2, 255, 255, 255, 255);
-        stringRGBA(renderer, x1 + 340, y1 + 70, ligne3, 255, 200, 200, 255);
-    } 
-    
-    else {
-        stringRGBA(renderer, x1 + 340, y1 + 20, "UNITE : Aucune", 150, 150, 150, 255);
-    }
-}
-
-// Dessin de l'arbre technologique
-void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, int screenH) {
-    boxRGBA(renderer, 50, 50, screenW - 50, screenH - 50, 15, 20, 35, 245);
-    rectangleRGBA(renderer, 50, 50, screenW - 50, screenH - 50, 0, 200, 255, 255);
-
-    stringRGBA(renderer, 80, 80, "=== ARBRE DES TECHNOLOGIES ===", 0, 255, 255, 255);
-    stringRGBA(renderer, 80, 130, "- Agriculture [Debloque]", 100, 255, 100, 255);
-    stringRGBA(renderer, 80, 160, "- Elevage     (Cout: 15 Science)", 255, 255, 255, 255);
-    stringRGBA(renderer, 80, 190, "- Poterie     (Cout: 20 Science)", 255, 255, 255, 255);
-    stringRGBA(renderer, 80, 220, "- Maçonnerie  [Muraille] (Cout: 30 Science)", 255, 255, 255, 255);
-
-    stringRGBA(renderer, 80, screenH - 90, "Appuyez sur [T] ou [ECHAP] pour fermer l'arbre", 180, 180, 180, 255);
-}
-
-
-Position position_hexagone(int mx, int my, int R, int h, int cameraX, int cameraY, Game* game) {
-    Position p = {-1, -1}; // coordonnées initiales en dehors du tableau
-
-    //On va utiliser la méthode de la distance carrée
-    //On va regarder la case dont le centre de dessin est le plus proche de ma souris
-    //Et pour éviter une fonction racine carrée lourde et lente, on utilise la distance au carré
-
-    long min_dist_carree = 99999999; //on commence avec une distance infinie
-
-    for (int i = 0; i < game->map->height; i++) {
-        for (int j = 0; j < game->map->length; j++) {
-            
-            // On calcule le centre exact en pixels de cet hexagone (la même formule que pour le dessin de l'hexagone)
-            int x = j * (2 * h) + ((i % 2) * h) - cameraX + (1280 / 2);
-            int y = i * (1.5f * R) - cameraY + (720 / 2);
-
-            // Calcul de la distance entre la souris (mx, my) et le centre de l'hexagone (x, y)
-            long dx = mx - x;
-            long dy = my - y;
-            long dist_carree = (dx * dx) + (dy * dy); // Pas besoin de racine carrée !
-
-            // Si ce centre est le plus proche qu'on ait trouvé jusqu'ici
-            if (dist_carree < min_dist_carree) {
-                min_dist_carree = dist_carree;
-                p.x = j;
-                p.y = i;
-            }
-        }
-    }
-
-    // Sécurité optionnelle : Si on clique trop loin de l'hexagone le plus proche (dans le grand vide noir dehors)
-    // Le rayon au carré d'une case est R * R. Si on est plus loin, on considère qu'on a cliqué dans le vide.
-    if (min_dist_carree > (R * R)) {
-        p.x = -1;
-        p.y = -1;
-    }
-
-    return p;
 }
 
 
@@ -352,7 +55,7 @@ void run_game_sdl(Game * game) {
     SDL_Event event;
 
     // Constantes pour les hexagones
-    int R = 40; 
+    int R = 60; 
     int h = (int)(R * 0.866f);
 
     // Centrage initial de la caméra sur la ville de départ !
@@ -377,6 +80,7 @@ void run_game_sdl(Game * game) {
     SDL_Texture* tex_colon = load_sprite(renderer, "src/sprites/colon.bmp");
     SDL_Texture* tex_barbare = load_sprite(renderer, "src/sprites/barbares.bmp");       
     SDL_Texture* tex_camp = load_sprite(renderer, "src/sprites/camp_barbares.bmp");
+    SDL_Texture* tex_bat_const = load_sprite(renderer, "src/sprites/batiment_construction.bmp");
 
 
     while(running) {
@@ -405,8 +109,26 @@ void run_game_sdl(Game * game) {
 
                     // Passer le tour au clavier (touche F)
                     if (event.key.keysym.sym == SDLK_f && !show_arbre_tech) {
+                        // 1. Phase de Production (Calcul revenus + Avancement projets)
+                        give_all_bonuses(game);
+                        update_city_projects(game);
+
+                        // 2. Phase de Croissance (Vérification population/famine pour CHAQUE ville)
+                        CityList* curr_city = game->cityList;
+                        while (curr_city != NULL) {
+                            if (curr_city->city) {
+                                croissance_check(curr_city->city); // Appelle la macro/fonction de city.c
+                            }
+                            curr_city = curr_city->next;
+                        }
+
+                        // 3. Phase des Barbares (À connecter quand vos barbares bougeront)
+                        // move_all_barbarians(game); 
+
+                        // 4. Fin de tour & Passage au suivant
+                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur
                         game->active_turn++;
-                        snprintf(last_message, sizeof(last_message), "Tour suivant actif");
+                        snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees et population mise a jour !", game->active_turn);
                     }
 
                     // Unités et Ville
@@ -474,12 +196,26 @@ void run_game_sdl(Game * game) {
 
                     //fin de tour
                     if (mx >= 170 && mx <= 300 && my >= 75 && my <= 105 && !show_arbre_tech) {
+                        // 1. Phase de Production (Calcul revenus + Avancement projets)
                         give_all_bonuses(game);
                         update_city_projects(game);
-                        reset_all_pm(game->unitList);
+
+                        // 2. Phase de Croissance (Vérification population/famine pour CHAQUE ville)
+                        CityList* curr_city = game->cityList;
+                        while (curr_city != NULL) {
+                            if (curr_city->city) {
+                                croissance_check(curr_city->city); // Appelle la macro/fonction de city.c
+                            }
+                            curr_city = curr_city->next;
+                        }
+
+                        // 3. Phase des Barbares (À connecter quand vos barbares bougeront)
+                        // move_all_barbarians(game); 
+
+                        // 4. Fin de tour & Passage au suivant
+                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur
                         game->active_turn++;
-                        snprintf(last_message, sizeof(last_message), "Tour suivant.");
-                        break;
+                        snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees et population mise a jour !", game->active_turn);
                     }
 
                     // clic sur le terrain (Seulement si l'arbre techno est fermé)
@@ -527,7 +263,7 @@ void run_game_sdl(Game * game) {
 
     //Dessin de la map avec la caméra
     draw_map_sdl(renderer, game, R, h, position_actuelle, cameraX, cameraY,
-                tex_ville, tex_ville_mur, tex_guerrier, tex_colon, tex_camp, tex_barbare);
+                tex_ville, tex_ville_mur, tex_guerrier, tex_colon, tex_camp, tex_barbare, tex_bat_const);
 
     //Dessin du tableau d'affichage global
     draw_panneau_global(renderer, game);
@@ -552,12 +288,13 @@ void run_game_sdl(Game * game) {
 
     //NETTOYAGE
 
-    if(tex_ville)         SDL_DestroyTexture(tex_ville);
-    if(tex_ville_mur)     SDL_DestroyTexture(tex_ville_mur); // NOUVEAU
-    if(tex_guerrier)      SDL_DestroyTexture(tex_guerrier);
-    if(tex_colon)         SDL_DestroyTexture(tex_colon);
-    if(tex_barbare)       SDL_DestroyTexture(tex_barbare);   // NOUVEAU
-    if(tex_camp)          SDL_DestroyTexture(tex_camp);
+    if(tex_ville) SDL_DestroyTexture(tex_ville);
+    if(tex_ville_mur) SDL_DestroyTexture(tex_ville_mur);
+    if(tex_guerrier) SDL_DestroyTexture(tex_guerrier);
+    if(tex_colon) SDL_DestroyTexture(tex_colon);
+    if(tex_barbare) SDL_DestroyTexture(tex_barbare); 
+    if(tex_camp) SDL_DestroyTexture(tex_camp);
+    if(tex_bat_const) SDL_DestroyTexture(tex_bat_const);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
