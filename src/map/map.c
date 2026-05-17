@@ -4,6 +4,7 @@
 
 #include "map.h"
 #include "../tile/tile.h"
+#include <ncurses.h>
 
 Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camps de barbares et ville de départ
 
@@ -90,7 +91,7 @@ Position get_starting_city_pos(Map* map) {
 }
 
 // Le champ de vision de la carte
-#define VIEW_RADIUS 8
+#define VIEW_RADIUS 3
 
 void print_map_cli(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
@@ -108,14 +109,14 @@ void print_map_cli(Map* m, Position cursor) {
             
             // Pour faire un effet hexagone, on décale les lignes impaires
             if (y % 2 != 0) {
-                printf("     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
+                printw("     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
             }
 
             for (int x = start_x; x <= end_x; x++) {
                 
                 // Si la caméra regarde dans le vide (hors carte)
                 if (x < 0 || x >= m->length || y < 0 || y >= m->height) {
-                    printf("     "); // 5 espaces
+                    printw("     "); // 5 espaces
                     continue;
                 }
 
@@ -128,30 +129,17 @@ void print_map_cli(Map* m, Position cursor) {
                 else if (tuile->unit) symbol = 'U';
                 else if (tuile->camp_on) symbol = 'C';
 
-                // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
-
-                    // '\x1b['   : début commande de style (couleur, police...)
-                    // '31'      : texte en rouge
-                    // ';1'      : texte en gras
-                    // 'm'       : fin ordre de style
-                    // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité ( COLOR RESET = "\x1b[30m" )
-
-                const char* bg = ""; // Background color
-                const char* fg = "\x1b[30;1m"; // Couleur du texte par défaut noir et gras
-                
-                if (tuile->city_on){
-                    bg = COLOR_VILLE;
-                    fg = "\x1b[31;1m"; // Texte en rouge et gras
-                }
-
+                // 2. Gestion des couleurs ncurses (couleurs définies dans mpa.h)
+                int current_color = COLOR_PLAINE;                
+                if (tuile->city_on){ current_color = COLOR_VILLE;}
                 else {
                     switch(tuile->biome) {
-                        case 'E': bg = BG_EAU; break;
-                        case 'P': bg = BG_PLAINE; break;
-                        case 'F': bg = BG_FORET; break;
-                        case 'M': bg = BG_MONTAGNE; break;
-                        case 'D': bg = BG_DESERT; break;
-                        case 'T': bg = BG_TOUNDRA; break;
+                        case 'E': current_color = COLOR_EAU; break;
+                        case 'P': current_color = COLOR_PLAINE; break;
+                        case 'F': current_color = COLOR_FORET; break;
+                        case 'M': current_color = COLOR_MONTAGNE; break;
+                        case 'D': current_color = COLOR_DESERT; break;
+                        case 'T': current_color = COLOR_TOUNDRA; break;
                     }
                 }
 
@@ -160,12 +148,18 @@ void print_map_cli(Map* m, Position cursor) {
                 if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case---
 
                     if (cursor.x == x && cursor.y == y) { //Case actuelle encadrée en rouge
-                        printf("%s\x1b[31;1m+-------+%s ", bg,COLOR_RESET);
+                        attron(COLOR_PAIR(COLOR_CURSEUR)); // attron change la couleur d'écriture
+                        printw("+-------+");
+                        attroff(COLOR_PAIR(COLOR_CURSEUR)); // attron change la couleur d'écriture
+                        printw(" ");
                     }
 
                     else {
                         // Bloc de couleur uni
-                        printf("%s         %s ", bg,COLOR_RESET);
+                        attron(COLOR_PAIR(current_color));
+                        printw("         ");
+                        attroff(COLOR_PAIR(current_color));
+                        printw(" ");
                     }
                 }
                 
@@ -173,18 +167,24 @@ void print_map_cli(Map* m, Position cursor) {
                 
                 else if (line == 1) { // --- Ligne du MILIEU (avec la lettre) ---
                     if (cursor.x == x && cursor.y == y) { 
-                        printf("%s\x1b[31;1m|%s   %c   \x1b[31;1m|%s ", bg, fg, symbol,COLOR_RESET); // Bordure rouge '|' et lettre au centre
+                        attron(COLOR_PAIR(COLOR_CURSEUR)); printw("|"); attroff(COLOR_PAIR(COLOR_CURSEUR)); // Bordure rouge '|' et lettre au centre
+                        attron(COLOR_PAIR(current_color)); printw("   %c   ", symbol); attroff(COLOR_PAIR(current_color));
+                        attron(COLOR_PAIR(COLOR_CURSEUR)); printw("|"); attroff(COLOR_PAIR(COLOR_CURSEUR));
+                        printw(" ");
                     }
                     else {
-                        printf("%s%s    %c    %s ", bg, fg, symbol,COLOR_RESET); // Affichage case sur 9 de large
+                        attron(COLOR_PAIR(current_color));
+                        printw("    %c    ", symbol); // 4 espaces, char, 4 espaces, affichage sur 9 cases de large
+                        attroff(COLOR_PAIR(current_color));
+                        printw(" ");
                     }
                 }
             }
-            printf("\n"); // On passe à la ligne suivante du terminal
+            printw("\n"); // On passe à la ligne suivante du terminal
         }
-        printf("\n"); // On ajoute un espace vertical entre chaque rangée de cases
+        printw("\n"); // On ajoute un espace vertical entre chaque rangée de cases
     }
-    printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
+    printw("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
 
 char int_to_biome(int k){
