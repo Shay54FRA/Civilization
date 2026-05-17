@@ -22,10 +22,10 @@ Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camp
             Position pos = {j, i}; // X = Colonnes (largeur), Y = Lignes (hauteur)
             //Initialisation biome
             int alea = rand() % 100;
-            if (alea < 18) {      m->map[i][j] = create_tile(pos, 'P');} // 18% Plaine
-            else if (alea < 37) { m->map[i][j] = create_tile(pos, 'F');} // 16.5% Forêt
-            else if (alea < 53.5) { m->map[i][j] = create_tile(pos, 'M');} // 16.5% Montagne
-            else if (alea < 69.5) { m->map[i][j] = create_tile(pos, 'E');} // 16% Eau
+            if (alea < 19) {      m->map[i][j] = create_tile(pos, 'P');} // 19% Plaine
+            else if (alea < 38) { m->map[i][j] = create_tile(pos, 'F');} // 16.5% Forêt
+            else if (alea < 54.5) { m->map[i][j] = create_tile(pos, 'M');} // 16.5% Montagne
+            else if (alea < 69.5) { m->map[i][j] = create_tile(pos, 'E');} // 15% Eau
             else if (alea < 86) { m->map[i][j] = create_tile(pos, 'D');} // 16.5% Désert
             else{                 m->map[i][j] = create_tile(pos, 'T');} // 16.5% Toundra
         }
