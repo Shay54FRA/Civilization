@@ -196,6 +196,7 @@ char int_to_biome(int k){
     case 3: return 'M';
     case 4: return 'D';
     case 5: return 'T';
+    default: return 'P'; //J'évite les warning "non-void function does not return a value in all control paths"
     }
 }
 
@@ -208,6 +209,7 @@ int biome_to_int(char k){
     case 'M': return 3;
     case 'D': return 4;
     case 'T': return 5;
+    default: return 1; //J'évite les warning "non-void function does not return a value in all control paths"
     }
 }
 

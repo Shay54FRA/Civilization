@@ -15,7 +15,7 @@ LDFLAGS += -fsanitize=address
 
 # On ajoute la librairie SDL2 + SDL2_gfx
 CFLAGS += $(SDL_CFLAGS)
-LIBS = $(SDL_LIBS) -lSDL2_gfx -lm
+LIBS = $(SDL_LIBS) -lSDL2_gfx -lm -lncurses
 
 
 # Fichiers
