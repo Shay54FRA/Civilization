@@ -35,13 +35,19 @@ Game* create_game(Configuration* config) {
             game->active_turn = 1;
             game->configuration = config;
             game->map = create_map(get_width(config), get_height(config), get_seed(config),get_nbr_camps_barbares(config));
+            City* base_city = create_city(pos);
             game->barbarianList = NULL; //Pas encore créé
             game->campList = NULL; //Pas encore créé
             game->starting_point = pos; //A modifier
             game->poverty = false;
             game->turns_10_cities = 0;
             game->turns_no_productions = 0;
-            game->cityList = NULL; 
+            game->cityList = NULL; //S'assurer que l'espace est libre
+            game->cityList = create_city_list(game, base_city); 
+
+            Tile* tile_to_use = get_tile(game->map, pos);
+            tile_to_use->city_on = true;
+
             game->unitList = NULL; //Pas encore créé
             game->tech_tree = create_tech_tree();
             game->new_ressources = create_tuple_ressources();
@@ -244,6 +250,13 @@ void start_turn(Game* game) {
     if (game == NULL) return;
     give_all_bonuses(game);
     update_research(game);
+    update_city_projects(game);
+
+    if (get_city_number(game) >= 10) {
+        game->turns_10_cities ++;
+    } else {
+        game->turns_10_cities = 0;
+    }
 
     int gold_costs = get_all_entretien_costs(game);
     game->gold -= gold_costs;
@@ -264,6 +277,7 @@ void start_turn(Game* game) {
 
 void end_turn(Game* game) {
     if (game == NULL) return;
+    reset_exploitation(game->map);
     //A compléter, génération, mouvements, et combats des barbares
 }
 
@@ -465,7 +479,6 @@ void give_all_bonuses(Game* game) {
 
         game->new_ressources->ressource1 = 0;
         game->new_ressources->ressource2 = 0;
-
 
     }
 

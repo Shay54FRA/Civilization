@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "../game/game.h"
 #include "../unit/unit.h"
+#include "../tile/tile.h"
 #include <stdbool.h>
 #include <math.h>
 
@@ -16,6 +17,7 @@
 City* create_city(Position pos) {
     Building* build = create_building('G', pos);
     City* city = malloc(sizeof(City));
+    if (city == NULL || build == NULL) return NULL;
     city->food = 0;
     city->population = 1;
     city->production = 0;
@@ -29,6 +31,15 @@ City* create_city(Position pos) {
     city->can_produce_unit = false;
     return city;
 }
+
+void destroy_city(City* city) {
+    if (city == NULL) return;
+    destroy_project(city);
+    destroy_tuple_ressources(city->new_ressources);
+    destroy_buildlist(city->buildings);
+    free(city);
+}
+
 
 int get_population(City* city){
     if (city != NULL) {
@@ -191,6 +202,23 @@ int get_production_left(City* city) {
         if (get_project(city) != NULL) return get_project(city)->production_cost;
     }
     return -1;
+}
+
+CityList* create_city_list(Game* game, City* city) {
+    CityList* city_list = malloc(sizeof(CityList));
+    if (city_list != NULL) {
+        city_list->city = city;
+        city_list->next = game->cityList;
+    }
+    return city_list;
+}
+
+void destroy_city_list(CityList* city_list) {
+    if (city_list != NULL) {
+        destroy_city(city_list->city);
+        destroy_city_list(city_list->next);
+        free(city_list);
+    }
 }
 
 City* get_city(CityList* lst){
