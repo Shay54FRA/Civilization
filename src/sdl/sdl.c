@@ -109,26 +109,35 @@ void run_game_sdl(Game * game) {
 
                     // Passer le tour au clavier (touche F)
                     if (event.key.keysym.sym == SDLK_f && !show_arbre_tech) {
-                        // 1. Phase de Production (Calcul revenus + Avancement projets)
-                        give_all_bonuses(game);
-                        update_city_projects(game);
+                        // On termine le tour actuel
+                        end_turn(game);
 
-                        // 2. Phase de Croissance (Vérification population/famine pour CHAQUE ville)
-                        CityList* curr_city = game->cityList;
-                        while (curr_city != NULL) {
-                            if (curr_city->city) {
-                                croissance_check(curr_city->city); // Appelle la macro/fonction de city.c
+                        // On initialise le nouveau tour (Calcule l'or, science, nourriture, projets, croissance et famine)
+                        start_turn(game);
+
+                        // Maintenance de l'interface graphique
+                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur pour le nouveau tour
+                        game->active_turn++;          // Passage officiel au tour suivant
+
+                        // 3. Vérification des conditions de Victoire / Défaite (Comme dans le CLI !)
+                        int game_status = end_game(game);
+                        if (game_status != 0) {
+                            if (game_status == 1) {
+                                snprintf(last_message, sizeof(last_message), "VICTOIRE TERRITORIALE ! (10+ villes)");
+                            } 
+                            
+                            else if (game_status == 2) {
+                                snprintf(last_message, sizeof(last_message), "VICTOIRE TECHNOLOGIQUE ! (Arbre complet)");
+                            } 
+                            
+                            else if (game_status == 3) {
+                                snprintf(last_message, sizeof(last_message), "DEFAITE ! Score final : %d", game_score(game));
                             }
-                            curr_city = curr_city->next;
+                        } 
+                        
+                        else {
+                            snprintf(last_message, sizeof(last_message), "Tour %d : Revenus percus et projets mis a jour.", game->active_turn);
                         }
-
-                        // 3. Phase des Barbares (À connecter quand vos barbares bougeront)
-                        // move_all_barbarians(game); 
-
-                        // 4. Fin de tour & Passage au suivant
-                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur
-                        game->active_turn++;
-                        snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees et population mise a jour !", game->active_turn);
                     }
 
                     // Unités et Ville
@@ -170,6 +179,50 @@ void run_game_sdl(Game * game) {
                             }
                         }
                     }
+
+                    // Commande [G] : Entraîner un Guerrier (Coût: 40)
+                    if (event.key.keysym.sym == SDLK_g && !show_arbre_tech) {
+                        if (position_actuelle.x != -1) {
+                            City* city = find_city_at_position(game, position_actuelle);
+                            if (city != NULL) {
+                                // RÈGLE DU SUJET : Vérification de la présence d'une Caserne ('C')
+                                if (!buildlist_contains(get_buildings_list(city), 'C')) {
+                                    snprintf(last_message, sizeof(last_message), "ERREUR : Caserne requise dans cette ville pour le Guerrier !");
+                                } 
+                                // Tente de lancer le projet via la fonction de ton pote
+                                else if (start_project(city, position_actuelle, 'g')) {
+                                    snprintf(last_message, sizeof(last_message), "SUCCES : Projet Guerrier planifie ! (Cout: 40 pr)");
+                                } else {
+                                    snprintf(last_message, sizeof(last_message), "ERREUR : Un projet est deja en cours dans cette ville !");
+                                }
+                            } else {
+                                snprintf(last_message, sizeof(last_message), "ERREUR : La case selectionnee n'est pas un centre urbain !");
+                            }
+                        } else {
+                            snprintf(last_message, sizeof(last_message), "ERREUR : Cliquez sur une ville avant d'appuyer sur [G].");
+                        }
+                    }
+
+                    // Commande [C] : Bâtir un Colon (Coût: 50)
+                    if (event.key.keysym.sym == SDLK_c && !show_arbre_tech) {
+                        if (position_actuelle.x != -1) {
+                            City* city = find_city_at_position(game, position_actuelle);
+                            if (city != NULL) {
+                                // Le colon est disponible sans prérequis au départ
+                                if (start_project(city, position_actuelle, 'c')) {
+                                    snprintf(last_message, sizeof(last_message), "SUCCES : Projet Colon planifie ! (Cout: 50 pr)");
+                                } else {
+                                    snprintf(last_message, sizeof(last_message), "ERREUR : Un projet est deja en cours dans cette ville !");
+                                }
+                            } else {
+                                snprintf(last_message, sizeof(last_message), "ERREUR : Pas de ville sur cette case !");
+                            }
+                        } else {
+                            snprintf(last_message, sizeof(last_message), "ERREUR : Cliquez sur une ville avant d'appuyer sur [C].");
+                        }
+                    }
+
+                    
                 
                     // On vérifie les limites AVANT de valider le mouvement
                     if (next_position.x >= 0 && next_position.x < game->map->length &&
@@ -196,26 +249,17 @@ void run_game_sdl(Game * game) {
 
                     //fin de tour
                     if (mx >= 170 && mx <= 300 && my >= 75 && my <= 105 && !show_arbre_tech) {
-                        // 1. Phase de Production (Calcul revenus + Avancement projets)
-                        give_all_bonuses(game);
-                        update_city_projects(game);
+                        // On termine le tour actuel
+                        end_turn(game);
 
-                        // 2. Phase de Croissance (Vérification population/famine pour CHAQUE ville)
-                        CityList* curr_city = game->cityList;
-                        while (curr_city != NULL) {
-                            if (curr_city->city) {
-                                croissance_check(curr_city->city); // Appelle la macro/fonction de city.c
-                            }
-                            curr_city = curr_city->next;
-                        }
+                        // On initialise le nouveau tour (Calcule l'or, science, nourriture, projets, croissance et famine)
+                        start_turn(game);
 
-                        // 3. Phase des Barbares (À connecter quand vos barbares bougeront)
-                        // move_all_barbarians(game); 
+                        // Maintenance de l'interface graphique
+                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur pour le nouveau tour
+                        game->active_turn++;          // Passage officiel au tour suivant
 
-                        // 4. Fin de tour & Passage au suivant
-                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur
-                        game->active_turn++;
-                        snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees et population mise a jour !", game->active_turn);
+                        snprintf(last_message, sizeof(last_message), "Tour %d : Revenus percus, production allouee et tuiles rafraichies !", game->active_turn);
                     }
 
                     // clic sur le terrain (Seulement si l'arbre techno est fermé)
@@ -267,6 +311,14 @@ void run_game_sdl(Game * game) {
 
     //Dessin du tableau d'affichage global
     draw_panneau_global(renderer, game);
+    
+    //Affichage du panneau de guide d'actions pour la ville uniquement si on clique sur une ville
+    if (position_actuelle.x != -1 && position_actuelle.y != -1) {
+            City* selected_city = find_city_at_position(game, position_actuelle);
+            if (selected_city != NULL) {
+                draw_panneau_guide_actions(renderer, game); 
+            }
+        }
 
     //dessin panneau des messages 
     draw_panneau_message_action(renderer,last_message,width);

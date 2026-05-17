@@ -159,10 +159,14 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
                         Position city_center = get_building_pos(b);
 
                         if (get_distance(city_center, tuile->pos) <= 2) { 
-                            filledPolygonRGBA(renderer, 
-                                (Sint16[]){x, x + h, x + h, x, x - h, x - h},
-                                (Sint16[]){y - R, y - R/2, y + R/2, y + R, y + R/2, y - R/2},
-                                6, 255, 255, 0, 40);
+                            Sint16 vx_exploit[6] = {x, x + h, x + h, x, x - h, x - h};
+                            Sint16 vy_exploit[6] = {y - R, y - R/2, y + R/2, y + R, y + R/2, y - R/2};
+
+                            // Un voile jaune = zone d'exploitation
+                            filledPolygonRGBA(renderer, vx_exploit, vy_exploit, 6, 255, 255, 0, 95);
+                            
+                            // + contour jaune/or brillant pour bien fermer les cases de la frontière
+                            polygonRGBA(renderer, vx_exploit, vy_exploit, 6, 255, 215, 0, 255);
                         }
                     }
                 }

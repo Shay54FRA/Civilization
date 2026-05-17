@@ -10,5 +10,6 @@ void draw_panneau_message_action(SDL_Renderer* renderer, const char* message, in
 void draw_panneau_global(SDL_Renderer* renderer, Game* game);
 void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position selection, int screenW, int screenH, Unit * selected_unit);
 void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, int screenH);
+void draw_panneau_guide_actions(SDL_Renderer* renderer, Game* game);
 
 #endif
