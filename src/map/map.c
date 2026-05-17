@@ -195,13 +195,19 @@ void destroy_map(Map* m) {
     }
 }
 
-
-
-/*
-void print_pos(Position pos) {
-    printf("Position : (%d, %d)", pos.x, pos.y);
+Position* create_position(int x, int y) {
+    Position* pos = malloc(sizeof(Position));
+    if (pos == NULL) return NULL;
+    pos->x = x;
+    pos->y = y;
+    return pos;
 }
-*/
+
+void destroy_position(Position* pos) {
+    if (pos != NULL) {
+        free(pos);
+    }
+}
 
 int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
     //On convertit les points dans un système de coordonnées approprié
@@ -224,6 +230,15 @@ void reset_exploitation(Map* map) {
             Tile* tile = get_tile(map, pos);
             tile->exploited = false;
         }
+    }
+}
+
+void mark_exploited_tiles(TileList* tile_list) {
+    TileList* to_check = tile_list;
+    while(to_check != NULL) {
+        Tile* tile = to_check->data;
+        tile->exploited = true;
+        to_check = to_check->next;
     }
 }
 

@@ -63,8 +63,8 @@ BuildList* get_buildings_list(City* city); //Liste chaînée des bâtiments de l
 int get_new_food(City* city);
 int get_new_prod(City* city);
 
-//Renvoie le min de la distance avec les différents batiments de la ville
-int get_distance_to_city(City* city, Position pos);
+//Renvoie la position du min de la distance avec les différents batiments de la ville
+Position get_distance_to_city(City* city, Position pos);
 
 bool end_project(Game* game, City* city);
 //Si PV <= 0 ou population <= 0 : la sortir de la CityList et la destroy

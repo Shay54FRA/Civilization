@@ -5,10 +5,14 @@
 #include <stdbool.h>
 
 typedef struct _Game Game;
+typedef struct _Position Position;
 
 typedef struct _Barbarian {
     int pv;
     int pm;
+    int max_pm;
+    int atk;
+    int def;
     Position* pos;
 } Barbarian;
 
@@ -17,19 +21,24 @@ typedef struct _BarbarianList {
     struct _Barbarian* next;
 } BarbarianList;
 
-int get_barb_pv(Barbarian barb);
-int get_barb_pm(Barbarian barb);
-int get_barb_pos(Barbarian barb);
+Barbarian* create_barbarian(Position pos);
+void destroy_barbarian(Barbarian* barbarian);
+BarbarianList* create_barb_list(Barbarian* barb, BarbarianList* next);
+void destroy_barb_list(BarbarianList* barb_list);
 
-//void* pour renvoyer au choix Unit* ou City*
-void* get_nearest_target(Game* game, Barbarian* barb); 
+int get_barb_pv(Barbarian* barb);
+int get_barb_pm(Barbarian* barb);
+Position* get_barb_pos(Barbarian* barb);
+
+//La position de la ville ou l'unité la plus proche
+Position get_nearest_target(Game* game, Barbarian* barb); 
 /* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
 
 //Calculer la direction nécéssaire pour se rapprocher et l'applique
-void move_barbarian(Game* game, Barbarian* barb, void* target); 
+void move_barbarian(Game* game, Barbarian* barb, Position pos_cible); 
 
 //Attaque du barbare
-void barbarian_attack(Barbarian* barb, void* target);
+int barbarian_attack(Game* game, Barbarian* barb, Position pos);
 
 //Deplacer tous les barbares
 void move_all_barbarians(BarbarianList* barbarian_list);

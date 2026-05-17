@@ -32,6 +32,7 @@ typedef struct _Game {
     bool poverty; //Etat de greve ou non
     int turns_10_cities; //Nombre de tours consécutifs avec +10 villes
     int turns_no_productions; //Nombre de tours consécutifs productions nulles
+    int barbs_number; //Nombre de barbares sur la carte
     TupleRessources* new_ressources;
     Position starting_point; //Utile pour placer les camps
     Map* map; //Carte de la partie

@@ -5,7 +5,7 @@
 #include "../building/building.h"
 #include <stdlib.h>
 
-static int get_terrain_cost(char biome)
+int get_terrain_cost(char biome)
 {
     if (biome == 'E') return 999;
     if (biome == 'F' || biome == 'M') return 2;

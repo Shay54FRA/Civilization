@@ -108,26 +108,29 @@ int get_new_prod(City* city) {
     return city->new_ressources->ressource2;
 }
 
-int get_distance_to_city(City* city, Position pos) {
+Position get_distance_to_city(City* city, Position pos) {
+    Position rep = {-1, -1};
     if (city != NULL) {
         if (city->buildings != NULL) {
             if (city->buildings->data != NULL) {
-                int min = get_distance(city->buildings->data->pos, pos); // Par rapport au premier batîment
+                rep = city->buildings->data->pos;
+                int min = get_distance(rep, pos); // Par rapport au premier batîment
                 int dist;
                 BuildList* to_check = get_buildlist_next(city->buildings);
                 while (to_check != NULL) {
                     Building* bat = get_buildlist_data(to_check);
                     dist = get_distance(bat->pos, pos);
                     if (min > dist) {
+                        rep = bat->pos;
                         min = dist;
                     }
                     to_check = to_check->next;
                 }
-                return min;
+                return rep;
             }
         }
     }
-    return -1;
+    return rep;
 }
 
 bool start_project(City* city, Position pos, char type) {

@@ -67,5 +67,6 @@ void spawn_unit_from_project(Game* game, City* city);
 MoveResult move_unit_step(Game* game, Unit* unit, Position dest);
 void resolve_combat(Game* game, Unit* attacker, Unit* target, Tile* target_tile);
 void reset_all_pm(UnitList* lst);
+int get_terrain_cost(char biome);
 
 #endif

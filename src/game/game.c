@@ -6,6 +6,7 @@
 #include "../unit/unit.h"
 #include "../technology/technology.h"
 #include "../configuration/configuration.h"
+#include "../barbarian/barbarian.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -34,6 +35,7 @@ Game* create_game(Configuration* config) {
             game->active_research_id = -1;
             game->active_turn = 1;
             game->configuration = config;
+            game->barbs_number = 0;
             game->map = create_map(get_width(config), get_height(config), get_seed(config),get_nbr_camps_barbares(config));
             City* base_city = create_city(pos);
             game->barbarianList = NULL; //Pas encore créé
@@ -62,7 +64,8 @@ void destroy_game(Game* game) {
         destroy_tech_tree(game->tech_tree);
         destroy_tuple_ressources(game->new_ressources);
         // Rajouter la destruction des units, des camps de barbares et des barbares
-        // A rajouter destroy_citylist()
+        destroy_barb_list(game->barbarianList);
+        destroy_city_list(game->cityList);
         destroy_map(game->map);
         destroy_configuration(game->configuration);
     }
@@ -353,6 +356,7 @@ TileList* get_exploitation_range(Game* game, City* city, int range) {
                     pos = build->pos;
                     tile = get_tile(game->map, pos);
                     exploit_of_building = get_exploited_tiles(game->map, tile, range);
+                    mark_exploited_tiles(exploit_of_building);
                     merge_and_destroy_tilelists(rep, exploit_of_building);
                     to_check = to_check->next;
                 }
