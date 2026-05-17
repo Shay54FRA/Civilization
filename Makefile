@@ -55,6 +55,7 @@ req:
 	sudo apt update
 	sudo apt install libsdl2-dev
 	sudo apt install libsdl2-gfx-dev
+	sudo apt-get install libncurses5-dev libncursesw5-dev
 
 clean:
 	rm -f $(COMMON_OBJS) $(TARGET) $(TEST_OBJS) $(TEST_BINS) $(MAIN_OBJ) $(TEST_TARGET)
