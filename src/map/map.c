@@ -22,25 +22,33 @@ Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camp
             Position pos = {j, i}; // X = Colonnes (largeur), Y = Lignes (hauteur)
             //Initialisation biome
             int alea = rand() % 100;
-            if (alea < 40) {      m->map[i][j] = create_tile(pos, 'P');} // 40% Plaine
-            else if (alea < 50) { m->map[i][j] = create_tile(pos, 'F');} // 10% Forêt
-            else if (alea < 60) { m->map[i][j] = create_tile(pos, 'M');} // 10% Montagne
-            else if (alea < 70) { m->map[i][j] = create_tile(pos, 'E');} // 10% Eau
-            else if (alea < 80) { m->map[i][j] = create_tile(pos, 'D');} // 10% Désert
-            else{                 m->map[i][j] = create_tile(pos, 'T');} // 20% Toundra
+            if (alea < 19) {      m->map[i][j] = create_tile(pos, 'P');} // 19% Plaine
+            else if (alea < 38) { m->map[i][j] = create_tile(pos, 'F');} // 16.5% Forêt
+            else if (alea < 54.5) { m->map[i][j] = create_tile(pos, 'M');} // 16.5% Montagne
+            else if (alea < 69.5) { m->map[i][j] = create_tile(pos, 'E');} // 15% Eau
+            else if (alea < 86) { m->map[i][j] = create_tile(pos, 'D');} // 16.5% Désert
+            else{                 m->map[i][j] = create_tile(pos, 'T');} // 16.5% Toundra
         }
     }
+
+    smooth_map(m); // 1er passage
+    smooth_map(m); // 2eme
+    smooth_map(m); // 3eme
+    smooth_map(m); // 4e
+    smooth_map(m); // 5e
+    smooth_map(m); // 6e
+
 
     // 2. PLACEMENT DE LA VILLE INITIALE
     Position start_pos = {-1, -1};
     int ville_placee = 0; 
     
     while (ville_placee == 0) {
-        int rx = rand() % width; //Méthode pas ouf de parcours aléatoire de la map pour trouver une plaine.
-        int ry = rand() % height; // Mais il y a 40% de plaine donc ça devrait en trouver une rapidement
+        int rx = rand() % width; //Méthode pas ouf de parcours aléatoire de la map pour trouver une plaine mais ça passe.
+        int ry = rand() % height; //
         
         if (m->map[ry][rx]->biome == 'P') { // Si c'est une Plaine
-            m->map[ry][rx]->city_on = true; // On valide sur la tuile
+            m->map[ry][rx]->city_on = true;
             start_pos.x = rx;
             start_pos.y = ry;               // On garde la pos en mémoire car les barbares doivent être assez éloignés de la ville de départ
             ville_placee = 1;               
@@ -59,7 +67,7 @@ Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camp
         if (t->biome != 'E' && !t->city_on && !t->camp_on) {
             // Règle 2: Au moins 5 tuiles de distance (Tchebychev) de la ville de départ
             if (get_distance(start_pos, p) >= 5) {
-                t->camp_on = true; // On valide sur la tuile
+                t->camp_on = true;
                 camps_places++;
             }
         }
@@ -179,6 +187,83 @@ void print_map_cli(Map* m, Position cursor) {
     printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
 
+char int_to_biome(int k){
+    switch (k)
+    {
+    case 0: return 'E';
+    case 1: return 'P';
+    case 2: return 'F';
+    case 3: return 'M';
+    case 4: return 'D';
+    case 5: return 'T';
+    default: return 'P'; //J'évite les warning "non-void function does not return a value in all control paths"
+    }
+}
+
+int biome_to_int(char k){
+    switch (k)
+    {
+    case 'E': return 0;
+    case 'P': return 1;
+    case 'F': return 2;
+    case 'M': return 3;
+    case 'D': return 4;
+    case 'T': return 5;
+    default: return 1; //J'évite les warning "non-void function does not return a value in all control paths"
+    }
+}
+
+
+void smooth_map(Map* m) { // Principe d'automate cellulaire très simple
+    if (m == NULL) return;
+
+    // 1. On crée une grille temporaire pour stocker les nouveaux biomes
+    char temp_biomes[m->height][m->length];
+
+    // 2. On parcourt toute la carte
+    for (int y = 0; y < m->height; y++) {
+        for (int x = 0; x < m->length; x++) {
+
+            // On a 6 biomes : P,F,M,E,D,T
+            int counts[6] = {0}; // Tableau de compteurs des 6 biomes possibles
+            
+            // 3. On inspecte les 8 voisins (et la case elle-même)
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    int nx = x + dx;
+                    int ny = y + dy;
+                    
+                    // On vérifie qu'on ne sort pas des limites de la carte
+                    if (nx >= 0 && nx < m->length && ny >= 0 && ny < m->height) {
+                        char biome_voisin = m->map[ny][nx]->biome;
+                        counts[biome_to_int(biome_voisin)]++;
+                        }
+                    }
+                }
+
+            // 4. On cherche quel est le biome majoritaire autour de cette case
+            char biome_majoritaire = m->map[y][x]->biome; // Par défaut, on garde le biome actuel
+            int max_count = 0;
+
+            for (int i = 0; i < 6; i++) {
+                if (counts[i] > max_count) {
+                    max_count = counts[i];
+                    biome_majoritaire = int_to_biome(i);
+                }
+            }
+
+            // On sauvegarde le résultat dans notre grille temporaire
+            temp_biomes[y][x] = biome_majoritaire;
+        }
+    }
+
+    // 5. Une fois que toute la carte a été calculée, on applique les modifications
+    for (int y = 0; y < m->height; y++) {
+        for (int x = 0; x < m->length; x++) {
+            m->map[y][x]->biome = temp_biomes[y][x];
+        }
+    }
+}
 
 void destroy_map(Map* m) {
     if (m != NULL) {

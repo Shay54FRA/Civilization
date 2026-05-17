@@ -38,6 +38,16 @@ typedef struct _Map {
 } Map;
 
 Map* create_map(int width, int height, int seed, int nb_camps);
+void print_map_cli(Map* m, Position cursor);
+void smooth_map(Map* m);
+
+/*
+Explication de la fonction smooth.
+
+
+
+
+*/
 void destroy_map(Map* map);
 //void print_pos(Position pos);
 void print_tile(Tile* tile);
