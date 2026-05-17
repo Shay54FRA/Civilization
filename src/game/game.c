@@ -39,6 +39,8 @@ Game* create_game(Configuration* config) {
             game->campList = NULL; //Pas encore créé
             game->starting_point = pos; //A modifier
             game->poverty = false;
+            game->turns_10_cities = 0;
+            game->turns_no_productions = 0;
             game->cityList = NULL; 
             game->unitList = NULL; //Pas encore créé
             game->tech_tree = create_tech_tree();
@@ -262,8 +264,7 @@ void start_turn(Game* game) {
 
 void end_turn(Game* game) {
     if (game == NULL) return;
-    //A compléter, génération, mouvement, et combats des barbares
-    start_turn(game);
+    //A compléter, génération, mouvements, et combats des barbares
 }
 
 int game_score(Game* game) {
@@ -272,8 +273,17 @@ int game_score(Game* game) {
 }
 
 int end_game(Game* game) {
-    //A compléter
-    return 0;
+    if (game == NULL) return 0;
+    if (game->configuration == NULL || game->tech_tree == NULL) return 0;
+
+    if (game->cityList == NULL) return 3; //Défaite aucune ville
+    if (game->active_turn > game->configuration->t) return 3; //Défaite nombre de tour max atteint
+    /* A compléter : défaite si prod nulle pdt 5 tours de suite */
+
+    if (game->turns_10_cities >= 5) return 1; //Victoire territoriale
+    if (game->tech_tree->num_unlocked == (game->tech_tree->num_technologies-1)) return 2; //Victoire technologique
+
+    return 0; //Partie non terminée
 }
 
 void give_bonus_building(Game* game, City* city, Building* building) {

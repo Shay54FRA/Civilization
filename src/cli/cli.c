@@ -130,6 +130,21 @@ static void move_result_to_message(MoveResult result, char* buffer, size_t size)
     }
 }
 
+void end_game_cli(Game* game, int end_code) {
+    if (end_code == 1) {
+        printf("VICTOIRE TERRITORIALE ! Vous possédez plus de 10 villes depuis 5 tours.\n");
+    }
+    else if (end_code == 2) {
+        printf("VICTOIRE TECHNOLOGIQUE ! Vous possédez toutes les technologies.\n");
+    }
+    else if (end_code == 3) {
+        printf("DEFAITE !\n");
+    }
+    else {
+        printf("ERREUR !\n");
+    }
+    printf("SCORE : %d\n", game_score(game));
+}
 
 void run_game_cli(Game* game) {
     int running = 1;
@@ -235,7 +250,12 @@ void run_game_cli(Game* game) {
                 printf("Passage au tour suivant...\n");
                 end_turn(game);
                 game->active_turn++;
-
+                start_turn(game);
+                if (end_game(game) != 0) {
+                    end_game_cli(game, end_game(game));
+                    running = 0;
+                    break;
+                }
                 snprintf(last_message, MSG_SIZE, "Tour suivant.");
                 break;
                 

@@ -29,7 +29,9 @@ typedef struct _Game {
     int gold; //Ressource globale partagé entre toutes les villes
     int science; //idem, pour l'arbre de technologie
     int active_turn; //Tour en cours
-    bool poverty;
+    bool poverty; //Etat de greve ou non
+    int turns_10_cities; //Nombre de tours consécutifs avec +10 villes
+    int turns_no_productions; //Nombre de tours consécutifs productions nulles
     TupleRessources* new_ressources;
     Position starting_point; //Utile pour placer les camps
     Map* map; //Carte de la partie

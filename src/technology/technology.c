@@ -26,6 +26,8 @@ TechTree* create_tech_tree(void)
         return NULL;
     }
 
+    tree->num_unlocked = 0;
+
     /* BONUS GLOBAUX */
     tree->bonus_food_forest = 0;
     tree->bonus_food_percent = 0;
@@ -259,6 +261,7 @@ int update_research(Game* game)
     tree->bonus_science_percent += tech->bonus.bonus_science_percent;
     tree->bonus_food_forest += tech->bonus.bonus_food_forest;
     tree->bonus_pm_units += tech->bonus.bonus_pm_units;
+    tree->num_unlocked += 1;
 
     if (tech->bonus.bonus_pm_units > 0) {
         UnitList* current = game->unitList;
