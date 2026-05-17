@@ -107,7 +107,7 @@ int get_entretien_cost(char type) {
 
 int get_all_entretien_costs(Game* game) {
     if (game == NULL) return -1;
-    int rep = 0;
+    int rep = get_total_unit_maintenance(game);
     CityList* city_to_check = game->cityList;
     City* city;
 
