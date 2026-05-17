@@ -59,6 +59,9 @@ Position get_unit_pos(Unit* unit);
 //Vérifier la condition de distance, créer la ville et l'ajouter à game
 void colonize(Game* game, Unit* colon);
 
+//La détruit tout en la retirant de la partie
+void kill_unit(Game* game, Unit* unit);
+
 
 Unit* get_unit(UnitList* lst);
 UnitList* get_unit_next(UnitList* lst);

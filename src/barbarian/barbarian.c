@@ -33,12 +33,16 @@ void kill_barbarian(Game* game, Barbarian* barb) {
     BarbarianList* previous = NULL;
     while (to_check != NULL) {
         if (to_check->data == barb) { // On a trouvé le barbare en question
+            Tile* tile = get_tile(game, *(barb->pos));
+            tile->barb_on = NULL;
             if (previous == NULL) {
                 game->barbarianList = to_check->next;
             } else {
                 previous->next = to_check->next;
             }
             game->barbs_number -= 1;
+            destroy_barbarian(barb);
+            free(to_check);
             break;
         }
         previous = to_check;
@@ -167,5 +171,26 @@ void move_barbarian(Game* game, Barbarian* barb, Position pos_cible) {
 }
 
 int barbarian_attack(Game* game, Barbarian* barb, Position pos) {
-    return 0;
+    if (game == NULL || barb == NULL) return;
+    Tile* fighting_tile = get_tile(game->map, pos);
+    Unit* unit = fighting_tile->unit;
+    if (fighting_tile->unit != NULL) {
+        int dmg_to_target = barb->atk - unit->def;
+        if (dmg_to_target < 1) dmg_to_target = 1;
+
+        int dmg_to_attacker = unit->atk - barb->def;
+        if (dmg_to_attacker < 0) dmg_to_attacker = 0;
+
+        unit->pv -= dmg_to_target;
+        barb->pv -= dmg_to_attacker;
+
+        if (unit->pv <= 0) {
+            kill_unit(game, unit);
+        }
+
+        if (barb->pv <= 0) {
+            kill_barbarian(game, barb);
+    }
+    }
+
 }

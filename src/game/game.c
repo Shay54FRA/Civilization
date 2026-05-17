@@ -144,6 +144,19 @@ int get_city_number(Game* game) {
     return -1;
 }
 
+int get_camp_list_number(Game* game) {
+    int rep = 0;
+    Tile* tile;
+    for (int x = 0; x < game->map->length; x++) {
+        for (int y = 0; y < game->map->height; y++) {
+            Position pos = {x, y};
+            tile = get_tile(game->map, pos);
+            if (tile->camp_on) rep += 1;
+        }
+    }
+    return rep;
+}
+
 static void remove_unit_from_game(Game* game, Unit* unit) {
     if (game == NULL || unit == NULL) return;
 

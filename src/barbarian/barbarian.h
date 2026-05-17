@@ -40,21 +40,11 @@ void move_barbarian(Game* game, Barbarian* barb, Position pos_cible);
 //Attaque du barbare
 int barbarian_attack(Game* game, Barbarian* barb, Position pos);
 
+//Lorsqu'il meurt au combat
+void kill_barbarian(Game* game, Barbarian* barb);
+
 //Deplacer tous les barbares
 void move_all_barbarians(BarbarianList* barbarian_list);
-
-typedef struct _Camp {
-    Position* pos;
-    bool occupied; //Dit si la case est occupé (pour la génération de troupe)
-} Camp;
-
-typedef struct _CampList {
-    Camp* data;
-    struct _CampList* next;
-} CampList;
-
-Camp* get_camplist_data(CampList* lst);
-CampList* get_camplist_next(CampList* lst);
 
 //Si c'est un guerrier il peut détruire un camp s'il est à la même position, ce qui rapporte une quantité d'or à calculer en fonction du nombre
 //de camps restants sur la carte

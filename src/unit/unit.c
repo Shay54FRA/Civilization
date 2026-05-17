@@ -144,6 +144,30 @@ void resolve_combat(Game* game, Unit* attacker, Unit* target, Tile* target_tile)
     }
 }
 
+void kill_unit(Game* game, Unit* unit) {
+    if (unit == NULL) return;
+    if (game == NULL) destroy_unit(unit); return;
+    UnitList* to_check = game->unitList;
+    UnitList* previous = NULL;
+    while (to_check != NULL) {
+        Unit* test_unit = to_check->data;
+        if (test_unit == unit) {
+            if (previous == NULL) {
+                game->unitList = to_check->next;
+            } else {
+                previous->next = to_check->next;
+            }
+            Tile* tile = get_tile(game->map, unit->pos);
+            tile->unit = NULL;
+            destroy_unit(unit);
+            free(to_check);
+            break;
+        }
+        previous = to_check;
+        to_check = to_check->next;
+    }
+}
+
 MoveResult move_unit_step(Game* game, Unit* unit, Position dest)
 {
     if (!game || !game->map || !unit)
