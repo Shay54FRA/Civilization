@@ -84,6 +84,6 @@ int main(int argc, char *argv[]) {
 
     // NETTOYAGE
     destroy_game(game);
-        
+    
     return 0;
 }

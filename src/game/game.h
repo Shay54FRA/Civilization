@@ -16,6 +16,9 @@ typedef struct _Tile Tile;
 typedef struct _TileList TileList;
 typedef struct _Configuration Configuration;
 typedef struct _TechTree TechTree;
+typedef struct _Camp Camp;
+
+//=============|STRUCTURES|=============//
 
 typedef struct _TupleRessources { //Structure pour connaître toutes les nouvelles ressources et pouvoir appliquer les bonus de l'arbre par dessus
     int ressource1;
@@ -26,8 +29,10 @@ typedef struct _Game {
     int gold; //Ressource globale partagé entre toutes les villes
     int science; //idem, pour l'arbre de technologie
     int active_turn; //Tour en cours
+    bool poverty; //Etat de greve ou non
+    int turns_10_cities; //Nombre de tours consécutifs avec +10 villes
+    int turns_no_productions; //Nombre de tours consécutifs productions nulles
     TupleRessources* new_ressources;
-    int max_turn; //Tour maximum, défaite si dépassé
     Position starting_point; //Utile pour placer les camps
     Map* map; //Carte de la partie
     UnitList* unitList; //Liste des unités du joueur
@@ -39,11 +44,26 @@ typedef struct _Game {
     int active_research_id;   // Le post-it pour retenir le projet en cours
 } Game;
 
+//================|TUPLE|================//
+
+//########## INIT ##########//
+
 TupleRessources* create_tuple_ressources(void);
 void destroy_tuple_ressources(TupleRessources* structure);
 
+//######### GETTERS #########//
+
+int get_ressource1(TupleRessources* tuple);
+int get_ressource2(TupleRessources* tuple);
+
+//================|GAME|================//
+
+//########## INIT ##########//
+
 Game* create_game(Configuration* config);
 void destroy_game(Game* game);
+
+//######### GETTERS #########//
 
 int get_turn(Game* game);
 Map* get_map(Game* game);
@@ -52,13 +72,32 @@ CityList* get_citylist(Game* game);
 BarbarianList* get_barblist(Game* game);
 CampList* get_camplist(Game* game);
 
+//########## UTILS ##########//
+
+int get_city_number(Game* game);
+int get_new_gold(Game* game);
+int get_new_science(Game* game);
 char* get_name(char type); //donner le nom du batiment ou de l'unité portant ce type
 int get_cost(char type); //donner le coût en production de l'unité ou du batiment portant ce type 
 int get_entretien_cost(char type); //coût d'entretien en or du batiment ou de l'unité
-void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au choix Unit ou City
-/* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
-void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
-void colonize(Game* game, Unit* colon); //Vérifier la condition de distance, créer la ville et l'ajouter à game
+int get_all_entretien_costs(Game* game); //somme de tous les coûts d'entretien de la partie
+
+//######## GAMEPLAY ########//
+
+//Incrémenter tour, attribuer les bonus, les dépenses d'entretien, famine, reset des pm, et check de croissance
+void start_turn(Game* game);
+
+//Fin du tour: déplacer les barbares, faire les combats si besoins, générer des barbares, soigner les villes
+void end_turn(Game* game);
+
+int game_score(Game* game);
+
+//Vérifier si victoire/défaite : renvoie 0 si pas fini, 1 pour victoire territo, 2 pour victoire technos, 3 pour défaite
+//Victoire si 10 villes simultanées pdt 5 tours ou toutes les technos/ 
+//Défaite si 0 villes, nbr tour max atteint sans victoire, productions nulles pdt 5 tours
+int end_game(Game* game);
+
+//########## BONUS ##########//
 
 //Donner le bonus lié au batiment
 void give_bonus_building(Game* game, City* city, Building* building);

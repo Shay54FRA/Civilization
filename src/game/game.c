@@ -35,10 +35,19 @@ Game* create_game(Configuration* config) {
             game->active_turn = 1;
             game->configuration = config;
             game->map = create_map(get_width(config), get_height(config), get_seed(config),get_nbr_camps_barbares(config));
+            City* base_city = create_city(pos);
             game->barbarianList = NULL; //Pas encore créé
             game->campList = NULL; //Pas encore créé
             game->starting_point = pos; //A modifier
-            game->cityList = NULL; 
+            game->poverty = false;
+            game->turns_10_cities = 0;
+            game->turns_no_productions = 0;
+            game->cityList = NULL; //S'assurer que l'espace est libre
+            game->cityList = create_city_list(game, base_city); 
+
+            Tile* tile_to_use = get_tile(game->map, pos);
+            tile_to_use->city_on = true;
+
             game->unitList = NULL; //Pas encore créé
             game->tech_tree = create_tech_tree();
             game->new_ressources = create_tuple_ressources();
@@ -94,6 +103,29 @@ int get_entretien_cost(char type) {
         return 2;
     }
     return -1; 
+}
+
+int get_all_entretien_costs(Game* game) {
+    if (game == NULL) return -1;
+    int rep = get_total_unit_maintenance(game);
+    CityList* city_to_check = game->cityList;
+    City* city;
+
+    while (city_to_check != NULL) {
+        city = city_to_check->city;
+        if (city != NULL) {
+            BuildList* to_check = city->buildings;
+            while (to_check != NULL) {
+                Building* build = to_check->data;
+                if (build != NULL) {
+                    rep += get_entretien_cost(build->type);
+                }
+                to_check = to_check->next;
+            }
+        }
+        city_to_check = city_to_check->next;
+    }
+    return rep;
 }
 
 int get_city_number(Game* game) {
@@ -161,6 +193,113 @@ void colonize(Game* game, Unit* colon) {
     destroy_unit(colon);
 }
 
+int get_unit_number(Game* game) {
+    if (game != NULL) {
+        int rep = 0;
+        UnitList* to_check = game->unitList;
+        while (to_check != NULL) {
+            rep += 1;
+            to_check = to_check->next;
+        }
+        return rep;
+    }
+    return -1;
+}
+
+int get_new_gold(Game* game) {
+    if (game == NULL) return -1;
+    if (game->new_ressources == NULL) return -1;
+    return game->new_ressources->ressource1;
+}
+int get_new_science(Game* game) {
+    if (game == NULL) return -1;
+    if (game->new_ressources == NULL) return -1;
+    return game->new_ressources->ressource2;
+}
+
+//Renvoie un booléen pour connaître s'il y a pauvreté ou non
+bool check_poor(Game* game) {
+    if (game == NULL) return false;
+    if (game->gold < 0) {
+        int unit_number = get_unit_number(game);
+        if (unit_number == 0) {
+            game->poverty = true;
+        }
+        game->poverty = false;
+        int random_destroy_number = (rand() % unit_number);
+        // A compléter : boucle sur unitList pour la trouver et la "tuer" (pas simplement destroy)
+        return true;
+    }
+    game->poverty = false;
+    return false;
+}
+
+bool check_famine(CityList* citylist, City* city) {
+    if (city == NULL) return false;
+    if (city->food < 0) {
+        city->population -= 1;
+        if (city->population <= 0) {
+            end_city(citylist, city);
+        }
+        return true;
+    }
+    return false;
+}
+
+void start_turn(Game* game) {
+    if (game == NULL) return;
+    give_all_bonuses(game);
+    update_research(game);
+    update_city_projects(game);
+
+    if (get_city_number(game) >= 10) {
+        game->turns_10_cities ++;
+    } else {
+        game->turns_10_cities = 0;
+    }
+
+    int gold_costs = get_all_entretien_costs(game);
+    game->gold -= gold_costs;
+    check_poor(game);
+
+    CityList* to_check = game->cityList;
+    City* city;
+    while (to_check != NULL) {
+        city = to_check->city;
+        city->food -= FOOD_NEEDS;
+        croissance_check(city);
+        check_famine(game->cityList, city);
+        to_check = to_check->next;
+    }
+
+    //A compléter, check de victoire et Jeu
+}
+
+void end_turn(Game* game) {
+    if (game == NULL) return;
+    reset_exploitation(game->map);
+    //A compléter, génération, mouvements, et combats des barbares
+}
+
+int game_score(Game* game) {
+    //A compléter
+    return 1000000;
+}
+
+int end_game(Game* game) {
+    if (game == NULL) return 0;
+    if (game->configuration == NULL || game->tech_tree == NULL) return 0;
+
+    if (game->cityList == NULL) return 3; //Défaite aucune ville
+    if (game->active_turn > game->configuration->t) return 3; //Défaite nombre de tour max atteint
+    /* A compléter : défaite si prod nulle pdt 5 tours de suite */
+
+    if (game->turns_10_cities >= 5) return 1; //Victoire territoriale
+    if (game->tech_tree->num_unlocked == (game->tech_tree->num_technologies-1)) return 2; //Victoire technologique
+
+    return 0; //Partie non terminée
+}
+
 void give_bonus_building(Game* game, City* city, Building* building) {
     switch (building->type) {
         case 'G': city->new_ressources->ressource1 += 3; break; //Food
@@ -198,11 +337,6 @@ void give_bonus_tile(Game* game, City* city, Tile* tile) {
         }
     }
 }
-
-
-void* get_nearest_target(Game* game, Barbarian* barb); //void* pour renvoyer au choix Unit ou City
-/* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
-void move_barbarian(Game* game, Barbarian* barb, void* target); //Calculer la direction nécéssaire pour se rapprocher et l'appliquer
 
 TileList* get_exploitation_range(Game* game, City* city, int range) {
     if (city != NULL) {
@@ -331,28 +465,20 @@ void give_all_bonuses(Game* game) {
         to_check = game->cityList;
         while (to_check != NULL) {
             city = to_check->city;
-
-            city->food += city->new_ressources->ressource1
-                        * (100 + game->tech_tree->bonus_food_percent) / 100;
+            city->food += (int) ((1 + game->tech_tree->bonus_food_percent/100) * get_new_food(city));
 
             //Juste un = car on perd la prod non utilisé à la fin du tour
-            city->production = city->new_ressources->ressource2
-                             * (100 + game->tech_tree->bonus_prod_percent) / 100;
+            city->production = (int) ((1 + game->tech_tree->bonus_prod_percent/100) * get_new_prod(city));
 
             city->new_ressources->ressource1 = 0;
             city->new_ressources->ressource2 = 0;
             to_check = to_check->next;
         }
-
-        game->gold += game->new_ressources->ressource1
-                    * (100 + game->tech_tree->bonus_gold_percent) / 100;
-
-        game->science += game->new_ressources->ressource2
-                       * (100 + game->tech_tree->bonus_science_percent) / 100;
+        game->gold += (int) (1 + game->tech_tree->bonus_gold_percent/100) * get_new_gold(game);
+        game->science += (int) (1 + game->tech_tree->bonus_science_percent/100) * get_new_science(game);
 
         game->new_ressources->ressource1 = 0;
         game->new_ressources->ressource2 = 0;
-
 
     }
 

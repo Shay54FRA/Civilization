@@ -13,18 +13,6 @@ int main(void) {
 
     print_map_cli(ma_carte,cursor);
 
-    // Tile* ma_tuile = get_tile(ma_carte, pos);
-    // print_tile(ma_tuile);
-    // TileList* tuiles_voisines = get_neighbors(ma_carte, ma_tuile);
-    // print_tilelist(tuiles_voisines);
-
-    // destroy_tilelist(tuiles_voisines);
-
-    // Position pos = {1,1};
-    // TileList* zone_exploitation = get_exploited_tiles(ma_carte, get_tile(ma_carte,pos), 1);
-    // print_tilelist(zone_exploitation);
-
-    // destroy_tilelist(zone_exploitation);
     destroy_map(ma_carte);
 
     return 0;

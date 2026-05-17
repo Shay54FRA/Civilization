@@ -53,6 +53,8 @@ typedef struct _TechTree {
     int unlocked_buildings_global[256];
     int unlocked_units_global[256];
 
+    int num_unlocked; //Nombre de technologies débloquées (pour la victoire technologique)
+
     /* Résumé de tous les bonus acquis */
     int bonus_food_percent;
     int bonus_prod_percent;
