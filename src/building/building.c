@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Building* create_building(char type, Position pos){
+Building* create_building(char type){
     Building* rep = malloc(sizeof(Building));
     rep->type = type;
-    rep->pos = pos;
     return rep;
 }
+
 void destroy_building(Building* build) {
     if (build != NULL) {
         free(build);
@@ -23,20 +23,20 @@ char get_building_type(Building* build) {
     return '\0';
 }
 
-Position get_building_pos(Building* build) {
+/*Position get_building_pos(Building* build) {
     if (build != NULL) {
         return build->pos;
     }
     Position error_pos = {-1,-1};
     return error_pos;
-}
+}*/
 
 void print_building(Building* build) {
     if (build == NULL) {
         printf("NULL");
     }
     else {
-        printf("%s : x = %d | y = %d\n", get_name(get_building_type(build)), build->pos.x, build->pos.y);
+        printf("%s\n", get_name(get_building_type(build)));
     }
 }
 
@@ -46,6 +46,7 @@ BuildList* create_buildlist(Building* build) { //Une ville commence tjrs avec un
     rep->next = NULL;
     return rep;
 }
+
 void destroy_buildlist(BuildList* lst) {
     if (lst != NULL) {
         if (get_buildlist_next(lst) != NULL) {

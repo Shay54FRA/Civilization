@@ -294,7 +294,8 @@ void start_turn(Game* game) {
 void end_turn(Game* game) {
     if (game == NULL) return;
     reset_exploitation(game->map);
-    //A compléter, génération, mouvements, et combats des barbares
+    spawn_all_barbarians(game); //Cet ordre pour éviter génération à tous les tours
+    move_all_barbarians(game);
 }
 
 int game_score(Game* game) {
@@ -356,27 +357,13 @@ void give_bonus_tile(Game* game, City* city, Tile* tile) {
 
 TileList* get_exploitation_range(Game* game, City* city, int range) {
     if (city != NULL) {
-        if (city->buildings != NULL) {
-            TileList* rep = create_tilelist(NULL);
-            if (rep != NULL) {
-                BuildList* to_check = city->buildings;
-                Building* build;
-                Position pos;
-                Tile* tile;
-                TileList* exploit_of_building;
-                while(to_check != NULL) {
-                    build = to_check->data;
-                    pos = build->pos;
-                    tile = get_tile(game->map, pos);
-                    exploit_of_building = get_exploited_tiles(game->map, tile, range);
-                    mark_exploited_tiles(exploit_of_building);
-                    merge_and_destroy_tilelists(rep, exploit_of_building);
-                    to_check = to_check->next;
-                }
-            }
-            return rep;
-        }
+        Position pos = city->pos;
+        Tile* tile = get_tile(game->map, pos);
+        TileList* exploit_of_building = get_exploited_tiles(game->map, tile, range);
+        mark_exploited_tiles(exploit_of_building);
+        return exploit_of_building;
     }
+    return NULL;
 } 
 
 TileList** get_all_exploited_tiles(Game* game) {

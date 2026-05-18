@@ -4,6 +4,8 @@
 #include "../map/map.h"
 #include <stdbool.h>
 
+#define MAX_BARBS (3*game->configuration->b)
+
 typedef struct _Game Game;
 typedef struct _Position Position;
 
@@ -18,7 +20,7 @@ typedef struct _Barbarian {
 
 typedef struct _BarbarianList {
     Barbarian* data;
-    struct _Barbarian* next;
+    struct _BarbarianList* next;
 } BarbarianList;
 
 Barbarian* create_barbarian(Position pos);
@@ -44,14 +46,14 @@ int barbarian_attack(Game* game, Barbarian* barb, Position pos);
 void kill_barbarian(Game* game, Barbarian* barb);
 
 //Deplacer tous les barbares
-void move_all_barbarians(BarbarianList* barbarian_list);
+void move_all_barbarians(Game* game);
 
 //Si c'est un guerrier il peut détruire un camp s'il est à la même position, ce qui rapporte une quantité d'or à calculer en fonction du nombre
-//de camps restants sur la carte
-void destroy_camp(Game* game, Camp* camp);
+//de camps restants sur la carte et renvoyer la quantité d'or remportée
+int destroy_camp(Game* game, Position pos);
 
 //Générer tous les barbares lors de ce tour
-void spawn_all_barbarians(CampList* camp_list);
+void spawn_all_barbarians(Game* game);
 
 
 #endif
