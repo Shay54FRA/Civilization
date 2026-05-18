@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ncurses.h>
 
 #include "cli.h"
 #include "../map/map.h"
@@ -13,6 +14,24 @@
 #include "../technology/technology.h"
 #include "../technology/technology_cli.h"
 
+void init_ncurses_interface() {
+    initscr(); //lance l'affichage ncurses           
+    cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                    
+    // curs_set(0);          
+
+    if (has_colors()) {
+        start_color();
+        init_pair(COLOR_EAU, COLOR_BLACK, COLOR_BLUE); //Les couleurs de bg et fg sont forcément définies par pairs avec ncurses
+        init_pair(COLOR_PLAINE, COLOR_BLACK, COLOR_GREEN);
+        init_pair(COLOR_FORET, COLOR_WHITE, COLOR_GREEN);
+        init_pair(COLOR_MONTAGNE, COLOR_BLACK, COLOR_WHITE);
+        init_pair(COLOR_DESERT, COLOR_BLACK, COLOR_YELLOW);
+        init_pair(COLOR_TOUNDRA, COLOR_BLACK, COLOR_CYAN);
+        init_pair(COLOR_VILLE, COLOR_WHITE, COLOR_MAGENTA);
+        init_pair(COLOR_CURSEUR, COLOR_RED, COLOR_BLACK);
+    }
+}
+
 // Le champ de vision de la carte
 #define VIEW_RADIUS 6
 
@@ -21,7 +40,7 @@
 
 
 void print_pos(Position pos) {
-    printf("Position : (%d, %d)", pos.x, pos.y);
+    printw("Position : (%d, %d)", pos.x, pos.y);
 }
 
 
@@ -54,46 +73,46 @@ static void print_tile_info(Game* game, Position cursor) {
 
     int cost = terrain_move_cost(tile->biome);
 
-    printf("\n=== CASE SELECTIONNEE ===\n");
+    printw("\n=== CASE SELECTIONNEE ===\n");
 
-    printf("Position : (%d, %d)\n", cursor.x, cursor.y);
-    printf("Terrain  : %s\n", biome_name(tile->biome));
+    printw("Position : (%d, %d)\n", cursor.x, cursor.y);
+    printw("Terrain  : %s\n", biome_name(tile->biome));
 
     if (cost == -1)
-        printf("Cout PM  : Infranchissable\n");
+        printw("Cout PM  : Infranchissable\n");
     else
-        printf("Cout PM  : %d\n", cost);
+        printw("Cout PM  : %d\n", cost);
 
     if (tile->city_on)
-        printf("Contenu  : Ville\n");
+        printw("Contenu  : Ville\n");
 
     else if (tile->unit)
-        printf("Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
+        printw("Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
 
     else
-        printf("Contenu  : Vide\n");
+        printw("Contenu  : Vide\n");
 }
 
 
 // Affiche les statistiques de l’unité sélectionnée
 static void print_selected_unit_info(Unit* selected_unit) {
-    printf("\n=== UNITE SELECTIONNEE ===\n");
+    printw("\n=== UNITE SELECTIONNEE ===\n");
 
     if (!selected_unit) {
-        printf("Aucune unite selectionnee.\n");
+        printw("Aucune unite selectionnee.\n");
         return;
     }
 
-    printf("Type : %s [%c]\n", get_name(selected_unit->type), selected_unit->type);
+    printw("Type : %s [%c]\n", get_name(selected_unit->type), selected_unit->type);
 
-    printf("PV   : %d / %d\n", selected_unit->pv, selected_unit->max_pv);
+    printw("PV   : %d / %d\n", selected_unit->pv, selected_unit->max_pv);
 
-    printf("PM   : %d / %d\n", selected_unit->pm, selected_unit->max_pm);
+    printw("PM   : %d / %d\n", selected_unit->pm, selected_unit->max_pm);
 
-    printf("ATK  : %d\n", selected_unit->atk);
-    printf("DEF  : %d\n", selected_unit->def);
+    printw("ATK  : %d\n", selected_unit->atk);
+    printw("DEF  : %d\n", selected_unit->def);
 
-    printf("Pos  : (%d, %d)\n", selected_unit->pos.x, selected_unit->pos.y);
+    printw("Pos  : (%d, %d)\n", selected_unit->pos.x, selected_unit->pos.y);
 }
 
 
@@ -132,21 +151,24 @@ static void move_result_to_message(MoveResult result, char* buffer, size_t size)
 
 void end_game_cli(Game* game, int end_code) {
     if (end_code == 1) {
-        printf("VICTOIRE TERRITORIALE ! Vous possédez plus de 10 villes depuis 5 tours.\n");
+        printw("VICTOIRE TERRITORIALE ! Vous possédez plus de 10 villes depuis 5 tours.\n");
     }
     else if (end_code == 2) {
-        printf("VICTOIRE TECHNOLOGIQUE ! Vous possédez toutes les technologies.\n");
+        printw("VICTOIRE TECHNOLOGIQUE ! Vous possédez toutes les technologies.\n");
     }
     else if (end_code == 3) {
-        printf("DEFAITE !\n");
+        printw("DEFAITE !\n");
     }
     else {
-        printf("ERREUR !\n");
+        printw("ERREUR !\n");
     }
-    printf("SCORE : %d\n", game_score(game));
+    printw("SCORE : %d\n", game_score(game));
 }
 
 void run_game_cli(Game* game) {
+    init_ncurses_interface(); // DÉMARRAGE DE NCURSES
+
+
     int running = 1;
     char command;
     Position cursor = {0, 0}; // Position initiale de la caméra
@@ -160,40 +182,34 @@ void run_game_cli(Game* game) {
     while (running) {
 
         // Affichage
-        system("clear"); //permet de clear le terminal
+        clear(); //permet de clear le terminal
         print_map_cli(game->map, cursor);
         
         // Menu des stats
-        printf("\n--- TOUR %d | Or: %d | Science: %d ---\n", 
+        printw("\n--- TOUR %d | Or: %d | Science: %d ---\n", 
                 game->active_turn, game->gold, game->science);
 
         // Affichage du dernier message d’action
-        printf("Message : %s\n", last_message);
+        printw("Message : %s\n", last_message);
 
         // Affichage des informations de la case et de l’unité sélectionnée
         print_tile_info(game, cursor);
         print_selected_unit_info(selected_unit);
 
-        printf("\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
-        printf("> ");
+        printw("\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
+        printw("> ");
+
+        refresh(); // CRUCIAL : Affiche tout l'écran d'un coup
         
         // Récupération de l'ordre
-        scanf(" %c", &command); // L'espace avant %c ignore les retours à la ligne
+        command = getch(); // Remplaçant de scanf, lit la touche instantanément
 
         // Logique de commande
         switch (command) {
-
-            case 'z':
-                if (cursor.y > 0) cursor.y--; break;
-
-            case 's':
-                if (cursor.y < game->map->height - 1) cursor.y++; break;
-
-            case 'q':
-                if (cursor.x > 0) cursor.x--; break;
-
-            case 'd':
-                if (cursor.x < game->map->length - 1) cursor.x++; break;
+            case 'z': if (cursor.y > 0) cursor.y--; break;
+            case 's': if (cursor.y < game->map->height - 1) cursor.y++; break;
+            case 'q': if (cursor.x > 0) cursor.x--; break;
+            case 'd': if (cursor.x < game->map->length - 1) cursor.x++; break;
 
             // Sélection et déplacement des unités
             case 'm':
@@ -241,13 +257,13 @@ void run_game_cli(Game* game) {
 
             // Ouverture du menu des technologies
             case 't':
-                system("clear");
+                clear(); //clear le terminal
                 show_technology_menu(game);
                 snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
                 break;
 
             case 'f':
-                printf("Passage au tour suivant...\n");
+                printw("Passage au tour suivant...\n");
                 end_turn(game);
                 game->active_turn++;
                 start_turn(game);
@@ -267,5 +283,7 @@ void run_game_cli(Game* game) {
                 break;
         }
     }
-    printf("Retour au menu principal...\n");
+
+    endwin(); // CRUCIAL : Rend le terminal normal
+    printf("Retour au menu principal...\n"); // Celui-ci reste en printf car on a quitté ncurses
 }

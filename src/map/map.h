@@ -38,6 +38,16 @@ typedef struct _Map {
 } Map;
 
 Map* create_map(int width, int height, int seed, int nb_camps);
+void print_map_cli(Map* m, Position cursor);
+void smooth_map(Map* m);
+
+/*
+Explication de la fonction smooth.
+
+
+
+
+*/
 void destroy_map(Map* map);
 //void print_pos(Position pos);
 void print_tile(Tile* tile);
@@ -49,16 +59,26 @@ void destroy_position(Position* pos);
 Position get_starting_city_pos(Map* map); // Renvoie la position de la ville de départ
 
 
-// Définition des couleurs ANSI
-#define COLOR_RESET   "\x1b[0m"
-#define BG_EAU        "\x1b[48;5;33m\x1b[30m"   // Fond Bleu
-#define BG_PLAINE     "\x1b[48;5;114m\x1b[30m"  // Fond Vert clair
-#define BG_FORET      "\x1b[48;5;22m\x1b[37m"   // Fond Vert foncé
-#define BG_MONTAGNE   "\x1b[48;5;244m\x1b[30m"  // Fond Gris
-#define BG_DESERT     "\x1b[48;5;220m\x1b[30m"  // Fond Jaune
-#define BG_TOUNDRA    "\x1b[48;5;159m\x1b[30m"  // Fond bleu givré
+// // Définition des couleurs ANSI
+// #define COLOR_RESET   "\x1b[0m"
+// #define BG_EAU        "\x1b[48;5;33m\x1b[30m"   // Fond Bleu
+// #define BG_PLAINE     "\x1b[48;5;114m\x1b[30m"  // Fond Vert clair
+// #define BG_FORET      "\x1b[48;5;22m\x1b[37m"   // Fond Vert foncé
+// #define BG_MONTAGNE   "\x1b[48;5;244m\x1b[30m"  // Fond Gris
+// #define BG_DESERT     "\x1b[48;5;220m\x1b[30m"  // Fond Jaune
+// #define BG_TOUNDRA    "\x1b[48;5;159m\x1b[30m"  // Fond bleu givré
 
-#define COLOR_VILLE   "\x1b[45;1;37m" // Fond Magenta
+// #define COLOR_VILLE   "\x1b[45;1;37m" // Fond Magenta
+
+// Définition des identifiants de couleurs ncurses
+#define COLOR_EAU 1
+#define COLOR_PLAINE 2
+#define COLOR_FORET 3
+#define COLOR_MONTAGNE 4
+#define COLOR_DESERT 5
+#define COLOR_TOUNDRA 6
+#define COLOR_VILLE 7
+#define COLOR_CURSEUR 8
 
 int get_distance(Position pos1, Position pos2);
 void reset_exploitation(Map* map); // Remet toute les tuiles à false pour l'exploitation
