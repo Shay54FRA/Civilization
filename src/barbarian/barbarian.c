@@ -34,7 +34,7 @@ void kill_barbarian(Game* game, Barbarian* barb) {
     BarbarianList* previous = NULL;
     while (to_check != NULL) {
         if (to_check->data == barb) { // On a trouvé le barbare en question
-            Tile* tile = get_tile(game, *(barb->pos));
+            Tile* tile = get_tile(game->map, *(barb->pos));
             tile->barb_on = NULL;
             if (previous == NULL) {
                 game->barbarianList = to_check->next;
@@ -212,6 +212,7 @@ int barbarian_attack(Game* game, Barbarian* barb, Position pos) {
         if (dmg_to_attacker < 0) dmg_to_attacker = 0;
 
         city->damage += dmg_to_target;
+        city->has_taken_damage = true;
         barb->pv -= dmg_to_attacker;
 
         if (barb->pv <= 0) {
@@ -245,16 +246,7 @@ void move_all_barbarians(Game* game) {
 int destroy_camp(Game* game, Position pos) {
     if (game == NULL) return 0;
     if (game->map == NULL) return 0;
-    int camps_not_destroyed = -1; //On retire déjà celui qui sera compté dans la première boucle et retiré après
-    for (int x = 0; x < game->map->length; x++) {
-        for (int y = 0; y < game->map->height; y++) {
-            Position pos = {x,y};
-            Tile* tile = get_tile(game->map, pos);
-            if (tile->camp_on) {
-                camps_not_destroyed++;
-            }
-        }
-    }
+    int camps_not_destroyed = get_camp_list_number(game) - 1; //On retire déjà celui qui sera compté dans la première boucle et retiré après
     Tile* tile_with_camp = get_tile(game->map, pos);
     if (!(tile_with_camp->camp_on)) return 0;
     tile_with_camp->camp_on = false; // Destruction du camp
@@ -273,5 +265,15 @@ void spawn_all_barbarians(Game* game) {
                 game->barbarianList = create_barb_list(new_barb, game->barbarianList); // On le met au début de la liste
             }
         }
+    }
+}
+
+void reset_all_barbs_pm(BarbarianList* barb_list) {
+    BarbarianList* to_check = barb_list;
+    while (to_check != NULL) {
+        if (to_check->data != NULL) {//Le barbare existe
+            to_check->data->pm = to_check->data->max_pm;
+        }
+        to_check = to_check->next;
     }
 }

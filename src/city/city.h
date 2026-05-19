@@ -32,6 +32,7 @@ typedef struct _City {
     Position pos;
     TupleRessources* new_ressources;
     bool can_produce_unit;
+    bool has_taken_damage;
     Project* project;
     BuildList* buildings;
 } City;
@@ -79,6 +80,9 @@ void end_city(CityList* citylist, City* city);
 
 bool croissance_check(City* city);
 
+//Par tour une ville récupère la moitié de ses PV si elle n'a pas subi de dégâts pendant ce tour
+void heal_city(City* city);
+
 void kill_city(Game* game, City* city);
 
 //===============|PROJECT|===============//
@@ -114,5 +118,13 @@ CityList* get_next_city(CityList* lst);
 //########## UTILS ##########//
 
 void append_city_list(CityList* to_append, CityList* to_add);
+
+void heal_cities(CityList* city_list);
+
+void update_food(CityList* city_list);
+
+bool check_famine(Game* game, City* city);
+
+void update_croissance(Game* game);
 
 #endif

@@ -25,6 +25,7 @@ City* create_city(Position pos) {
     city->new_ressources = create_tuple_ressources();
     city->buildings = create_buildlist(build);
     city->can_produce_unit = false;
+    city->has_taken_damage = false;
     return city;
 }
 
@@ -43,15 +44,17 @@ void kill_city(Game* game, City* city) {
     while (to_check != NULL) {
         if (to_check->city == city) { // On a trouvé la ville en question
             Tile* tile = get_tile(game, city->pos);
-            tile->city_on = false;
-            if (previous == NULL) {
-                game->cityList = to_check->next;
-            } else {
-                previous->next = to_check->next;
+            if (tile != NULL) {
+                tile->city_on = false;
+                if (previous == NULL) {
+                    game->cityList = to_check->next;
+                } else {
+                    previous->next = to_check->next;
+                }
+                destroy_city(city);
+                free(to_check);
+                break;
             }
-            destroy_city(city);
-            free(to_check);
-            break;
         }
         previous = to_check;
         to_check = to_check->next;
@@ -259,4 +262,62 @@ City* get_city(CityList* lst){
 CityList* get_next_city(CityList* lst){
     if (lst != NULL) return lst->next;
     return NULL;
+}
+
+int max(int a, int b) {
+    if (a >= b) return a;
+    return b;
+}
+
+void heal_city(City* city) {
+    if (city->has_taken_damage) {
+        city->has_taken_damage = false; //On réinitialise pour le prochain tour
+    } else {
+        city->damage = max(0, city->damage - (MAX_HP/2));
+    }
+}
+
+void heal_cities(CityList* city_list) {
+    CityList* to_check = city_list;
+    while (to_check != NULL) {
+        if (to_check->city != NULL) {
+            heal_city(to_check->city);
+        }
+        to_check = to_check->next;
+    }
+}
+
+void update_food(CityList* city_list) {
+    CityList* to_check = city_list;
+    while (to_check != NULL) {
+        if (to_check->city != NULL) {
+            City* city = to_check->city;
+            city->food -= FOOD_NEEDS;
+        }
+        to_check = to_check->next;
+    }
+}
+
+bool check_famine(Game* game, City* city) {
+    if (city == NULL) return false;
+    if (city->food < 0) {
+        city->population -= 1;
+        if (city->population <= 0) {
+            kill_city(game, city);
+        }
+        return true;
+    }
+    return false;
+}
+
+void update_croissance(Game* game) {
+    CityList* to_check = game->cityList;
+    while (to_check != NULL) {
+        if (to_check->city != NULL) {
+            City* city = to_check->city;
+            croissance_check(city);
+            check_famine(game, city);
+        }
+        to_check = to_check->next;
+    }
 }

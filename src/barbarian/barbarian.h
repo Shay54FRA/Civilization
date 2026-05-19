@@ -48,6 +48,8 @@ void kill_barbarian(Game* game, Barbarian* barb);
 //Deplacer tous les barbares
 void move_all_barbarians(Game* game);
 
+void reset_all_barbs_pm(BarbarianList* barb_list);
+
 //Si c'est un guerrier il peut détruire un camp s'il est à la même position, ce qui rapporte une quantité d'or à calculer en fonction du nombre
 //de camps restants sur la carte et renvoyer la quantité d'or remportée
 int destroy_camp(Game* game, Position pos);

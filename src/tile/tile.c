@@ -28,7 +28,10 @@ void destroy_tile(Tile* tile) {
 }
 
 Tile* get_tile(Map* map, Position pos) {
-    return map->map[pos.y][pos.x];
+    if (pos.x >= 0 && pos.y >= 0 && pos.x < map->length && pos.y < map->height) {
+        return map->map[pos.y][pos.x];
+    }
+    return NULL;
 }
 
 void print_tile(Tile* tile) {

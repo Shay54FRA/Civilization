@@ -264,14 +264,13 @@ void run_game_cli(Game* game) {
 
             case 'f':
                 printw("Passage au tour suivant...\n");
-                end_turn(game);
-                game->active_turn++;
-                start_turn(game);
-                if (end_game(game) != 0) {
-                    end_game_cli(game, end_game(game));
+                int game_result = end_turn(game);
+                if (game_result != 0) {
+                    end_game_cli(game, game_result);
                     running = 0;
                     break;
                 }
+                game->active_turn++;
                 snprintf(last_message, MSG_SIZE, "Tour suivant.");
                 break;
                 

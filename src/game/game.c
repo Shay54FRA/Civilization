@@ -29,18 +29,17 @@ Game* create_game(Configuration* config) {
     if (config != NULL) {
         Game* game = malloc(sizeof(Game));
         if (game != NULL) {
-            Position pos = {1,1};
             game->science = 0;
             game->gold = 0;
             game->active_research_id = -1;
             game->active_turn = 1;
             game->configuration = config;
             game->barbs_number = 0;
-            game->map = create_map(get_width(config), get_height(config), get_seed(config),get_nbr_camps_barbares(config));
+            game->map = create_map(get_width(config), get_height(config), get_seed(config), get_nbr_camps_barbares(config));
+            Position pos = get_starting_city_pos(game->map);
             City* base_city = create_city(pos);
-            game->barbarianList = NULL; //Pas encore créé
-            game->campList = NULL; //Pas encore créé
-            game->starting_point = pos; //A modifier
+            game->barbarianList = NULL; //Pas de barbares au départ
+            game->starting_point = pos;
             game->poverty = false;
             game->turns_10_cities = 0;
             game->turns_no_productions = 0;
@@ -50,7 +49,7 @@ Game* create_game(Configuration* config) {
             Tile* tile_to_use = get_tile(game->map, pos);
             tile_to_use->city_on = true;
 
-            game->unitList = NULL; //Pas encore créé
+            game->unitList = NULL; //Pas d'unités au départ
             game->tech_tree = create_tech_tree();
             game->new_ressources = create_tuple_ressources();
             return game;
@@ -63,11 +62,12 @@ void destroy_game(Game* game) {
     if (game != NULL) {
         destroy_tech_tree(game->tech_tree);
         destroy_tuple_ressources(game->new_ressources);
-        // Rajouter la destruction des units, des camps de barbares et des barbares
+        destroy_unit_list(game->unitList);
         destroy_barb_list(game->barbarianList);
         destroy_city_list(game->cityList);
         destroy_map(game->map);
         destroy_configuration(game->configuration);
+        free(game);
     }
 }
 
@@ -250,52 +250,33 @@ bool check_poor(Game* game) {
     return false;
 }
 
-bool check_famine(CityList* citylist, City* city) {
-    if (city == NULL) return false;
-    if (city->food < 0) {
-        city->population -= 1;
-        if (city->population <= 0) {
-            end_city(citylist, city);
-        }
-        return true;
-    }
-    return false;
-}
-
-void start_turn(Game* game) {
-    if (game == NULL) return;
+int end_turn(Game* game) {
+    if (game == NULL) return 0;
+    // PHASE DE PRODUCTION
     give_all_bonuses(game);
     update_research(game);
     update_city_projects(game);
+    game->gold -= get_all_entretien_costs(game);
+    update_food(game->cityList);
 
+    // PHASE DE CROISSANCE
+    check_poor(game);
+    update_croissance(game);
+
+    // PHASE DE BARBARES
+    move_all_barbarians(game);
+    spawn_all_barbarians(game);
+
+    //PHASE DE FIN DE TOUR
+    reset_exploitation(game->map);
+    reset_all_barbs_pm(game->barbarianList);
+    reset_all_pm(game->unitList);
     if (get_city_number(game) >= 10) {
         game->turns_10_cities ++;
     } else {
         game->turns_10_cities = 0;
     }
-
-    int gold_costs = get_all_entretien_costs(game);
-    game->gold -= gold_costs;
-    check_poor(game);
-
-    CityList* to_check = game->cityList;
-    City* city;
-    while (to_check != NULL) {
-        city = to_check->city;
-        city->food -= FOOD_NEEDS;
-        croissance_check(city);
-        check_famine(game->cityList, city);
-        to_check = to_check->next;
-    }
-
-    //A compléter, check de victoire et Jeu
-}
-
-void end_turn(Game* game) {
-    if (game == NULL) return;
-    reset_exploitation(game->map);
-    spawn_all_barbarians(game); //Cet ordre pour éviter génération à tous les tours
-    move_all_barbarians(game);
+    return end_game(game);
 }
 
 int game_score(Game* game) {
@@ -487,7 +468,6 @@ void give_all_bonuses(Game* game) {
     }
 
 }
-
 
 int get_total_unit_maintenance(Game* game) {
     if (game == NULL) {

@@ -14,5 +14,6 @@ int main(void) {
     assert(get_city_pv(city1) == 10);
     assert(start_project(city1, 'G', pos));
     print_buildlist(city1->buildings);
+    destroy_city(city1);
     return 0;
 }

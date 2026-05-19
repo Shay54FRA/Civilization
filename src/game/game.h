@@ -1,4 +1,5 @@
 #include "../map/map.h"
+#include <stdbool.h>
 
 #ifndef GAME
 #define GAME
@@ -40,7 +41,6 @@ typedef struct _Game {
     CityList* cityList; // Liste des villes du joueur
     Configuration* configuration; // Configuration de la partie (nbr de camps barabares, taille map,...)
     BarbarianList* barbarianList;
-    CampList* campList;
     TechTree* tech_tree;
     int active_research_id;   // Le post-it pour retenir le projet en cours
 } Game;
@@ -90,7 +90,7 @@ int get_camp_list_number(Game* game); //nombre de camps de barbares pour calcule
 void start_turn(Game* game);
 
 //Fin du tour: déplacer les barbares, faire les combats si besoins, générer des barbares, soigner les villes
-void end_turn(Game* game);
+int end_turn(Game* game);
 
 int game_score(Game* game);
 

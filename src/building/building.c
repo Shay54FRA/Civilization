@@ -49,9 +49,7 @@ BuildList* create_buildlist(Building* build) { //Une ville commence tjrs avec un
 
 void destroy_buildlist(BuildList* lst) {
     if (lst != NULL) {
-        if (get_buildlist_next(lst) != NULL) {
-            destroy_buildlist(get_buildlist_next(lst));
-        }
+        destroy_buildlist(get_buildlist_next(lst));
         destroy_building(get_buildlist_data(lst));
         free(lst);
     }

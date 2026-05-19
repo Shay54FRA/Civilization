@@ -47,6 +47,7 @@ typedef struct _UnitList {
 
 Unit* create_unit(char type, Position pos);
 void destroy_unit(Unit* unit);
+void destroy_unit_list(UnitList* unit_list);
 
 int get_atk(Unit* unit);
 int get_pv(Unit* unit);

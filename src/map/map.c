@@ -95,7 +95,6 @@ Position get_starting_city_pos(Map* map) {
 
 void print_map_cli(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
-    
 
     int start_y = cursor.y - VIEW_RADIUS;
     int end_y = cursor.y + VIEW_RADIUS;
@@ -128,6 +127,7 @@ void print_map_cli(Map* m, Position cursor) {
                 if (tuile->city_on) symbol = 'V';
                 else if (tuile->unit) symbol = 'U';
                 else if (tuile->camp_on) symbol = 'C';
+                else if (tuile->barb_on) symbol = 'B';
 
                 // 2. Gestion des couleurs ncurses (couleurs définies dans mpa.h)
                 int current_color = COLOR_PLAINE;                
@@ -313,7 +313,7 @@ void reset_exploitation(Map* map) {
         for (int y = 0; y < map->height; y++) {
             Position pos = {x,y};
             Tile* tile = get_tile(map, pos);
-            tile->exploited = false;
+            if (tile != NULL) tile->exploited = false;
         }
     }
 }
@@ -322,7 +322,9 @@ void mark_exploited_tiles(TileList* tile_list) {
     TileList* to_check = tile_list;
     while(to_check != NULL) {
         Tile* tile = to_check->data;
-        tile->exploited = true;
+        if (tile != NULL) {
+            tile->exploited = true;
+        }
         to_check = to_check->next;
     }
 }
