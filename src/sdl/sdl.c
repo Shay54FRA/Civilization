@@ -196,24 +196,8 @@ void run_game_sdl(Game * game) {
 
                     //fin de tour
                     if (mx >= 170 && mx <= 300 && my >= 75 && my <= 105 && !show_arbre_tech) {
-                        // 1. Phase de Production (Calcul revenus + Avancement projets)
-                        give_all_bonuses(game);
-                        update_city_projects(game);
-
-                        // 2. Phase de Croissance (Vérification population/famine pour CHAQUE ville)
-                        CityList* curr_city = game->cityList;
-                        while (curr_city != NULL) {
-                            if (curr_city->city) {
-                                croissance_check(curr_city->city); // Appelle la macro/fonction de city.c
-                            }
-                            curr_city = curr_city->next;
-                        }
-
-                        // 3. Phase des Barbares (À connecter quand vos barbares bougeront)
-                        // move_all_barbarians(game); 
-
-                        // 4. Fin de tour & Passage au suivant
-                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur
+                        int game_result = end_turn(game);
+                        /* A compléter : traiter game_result pour savoir s'il y a victoire/défaite */
                         game->active_turn++;
                         snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees et population mise a jour !", game->active_turn);
                     }
