@@ -9,16 +9,12 @@
 #include <stdbool.h>
 #include <math.h>
 
-
-#define CROISSANCE_NEED ((int) ceil((20 + 10*city->population)/pow(1.5, city->basements_number)))
-#define CITY_STRENGTH 20 + 10*(city->walls_number > 0)
-#define MAX_HP (10*city->population*pow(2,city->walls_number))
-
 City* create_city(Position pos) {
-    Building* build = create_building('G', pos);
+    Building* build = create_building('G');
     City* city = malloc(sizeof(City));
     if (city == NULL || build == NULL) return NULL;
     city->food = 0;
+    city->pos = pos;
     city->population = 1;
     city->production = 0;
     city->strength = 20;
@@ -29,6 +25,7 @@ City* create_city(Position pos) {
     city->new_ressources = create_tuple_ressources();
     city->buildings = create_buildlist(build);
     city->can_produce_unit = false;
+    city->has_taken_damage = false;
     return city;
 }
 
@@ -40,6 +37,29 @@ void destroy_city(City* city) {
     free(city);
 }
 
+void kill_city(Game* game, City* city) {
+    if (game == NULL || city == NULL) return;
+    CityList* to_check = game->cityList;
+    CityList* previous = NULL;
+    while (to_check != NULL) {
+        if (to_check->city == city) { // On a trouvé la ville en question
+            Tile* tile = get_tile(game, city->pos);
+            if (tile != NULL) {
+                tile->city_on = false;
+                if (previous == NULL) {
+                    game->cityList = to_check->next;
+                } else {
+                    previous->next = to_check->next;
+                }
+                destroy_city(city);
+                free(to_check);
+                break;
+            }
+        }
+        previous = to_check;
+        to_check = to_check->next;
+    }
+}
 
 int get_population(City* city){
     if (city != NULL) {
@@ -108,29 +128,50 @@ int get_new_prod(City* city) {
     return city->new_ressources->ressource2;
 }
 
+City* get_city_on_tile(CityList* liste_city, Tile* tile) {
+    if (tile == NULL) return NULL;
+    if (!tile->city_on) return NULL;
+    CityList* to_check = liste_city;
+    Position pos = tile->pos;
+    while (to_check != NULL) {
+        City* city = to_check->city;
+        Position pos_to_check = city->pos;
+        if (pos_to_check.x == pos.x && pos_to_check.y == pos.y) {
+            return city;
+        }
+        to_check = to_check->next;
+    }
+    return NULL;
+}
+
 int get_distance_to_city(City* city, Position pos) {
     if (city != NULL) {
-        if (city->buildings != NULL) {
+        int dist = get_distance(city->pos, pos);
+        return dist;
+    }
+    return -1;
+        /*if (city->buildings != NULL) {
             if (city->buildings->data != NULL) {
-                int min = get_distance(city->buildings->data->pos, pos); // Par rapport au premier batîment
+                rep = city->buildings->data->pos;
+                int min = get_distance(rep, pos); // Par rapport au premier batîment
                 int dist;
                 BuildList* to_check = get_buildlist_next(city->buildings);
                 while (to_check != NULL) {
                     Building* bat = get_buildlist_data(to_check);
                     dist = get_distance(bat->pos, pos);
                     if (min > dist) {
+                        rep = bat->pos;
                         min = dist;
                     }
                     to_check = to_check->next;
                 }
-                return min;
+                return rep;
             }
         }
-    }
-    return -1;
+    }*/
 }
 
-bool start_project(City* city, Position pos, char type) {
+bool start_project(City* city, char type, Position pos) {
     if (city->project == NULL) {
         Project* project = malloc(sizeof(Project));
         project->pos = pos;
@@ -189,14 +230,6 @@ char* get_project_name(City* city){
     return NULL;
 }
 
-Position get_project_pos(City* city){
-    if (city != NULL) {
-        if (get_project(city) != NULL) return get_project(city)->pos;
-    }
-    Position pos_error = {-1,-1};
-    return pos_error;
-}
-
 int get_production_left(City* city) {
     if (city != NULL) {
         if (get_project(city) != NULL) return get_project(city)->production_cost;
@@ -229,4 +262,62 @@ City* get_city(CityList* lst){
 CityList* get_next_city(CityList* lst){
     if (lst != NULL) return lst->next;
     return NULL;
+}
+
+int max(int a, int b) {
+    if (a >= b) return a;
+    return b;
+}
+
+void heal_city(City* city) {
+    if (city->has_taken_damage) {
+        city->has_taken_damage = false; //On réinitialise pour le prochain tour
+    } else {
+        city->damage = max(0, city->damage - (MAX_HP/2));
+    }
+}
+
+void heal_cities(CityList* city_list) {
+    CityList* to_check = city_list;
+    while (to_check != NULL) {
+        if (to_check->city != NULL) {
+            heal_city(to_check->city);
+        }
+        to_check = to_check->next;
+    }
+}
+
+void update_food(CityList* city_list) {
+    CityList* to_check = city_list;
+    while (to_check != NULL) {
+        if (to_check->city != NULL) {
+            City* city = to_check->city;
+            city->food -= FOOD_NEEDS;
+        }
+        to_check = to_check->next;
+    }
+}
+
+bool check_famine(Game* game, City* city) {
+    if (city == NULL) return false;
+    if (city->food < 0) {
+        city->population -= 1;
+        if (city->population <= 0) {
+            kill_city(game, city);
+        }
+        return true;
+    }
+    return false;
+}
+
+void update_croissance(Game* game) {
+    CityList* to_check = game->cityList;
+    while (to_check != NULL) {
+        if (to_check->city != NULL) {
+            City* city = to_check->city;
+            croissance_check(city);
+            check_famine(game, city);
+        }
+        to_check = to_check->next;
+    }
 }

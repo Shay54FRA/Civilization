@@ -12,6 +12,7 @@ Tile* create_tile(Position pos, char biome) {
     new_tile->exploited = false;
     new_tile->city_on = false;
     new_tile->camp_on = false;
+    new_tile->barb_on = NULL;
     new_tile->unit = NULL;
     new_tile->biome = biome;
     return new_tile;
@@ -27,7 +28,10 @@ void destroy_tile(Tile* tile) {
 }
 
 Tile* get_tile(Map* map, Position pos) {
-    return map->map[pos.y][pos.x];
+    if (pos.x >= 0 && pos.y >= 0 && pos.x < map->length && pos.y < map->height) {
+        return map->map[pos.y][pos.x];
+    }
+    return NULL;
 }
 
 void print_tile(Tile* tile) {
@@ -96,4 +100,16 @@ void print_tilelist(TileList* tilelist){
             to_check = to_check->next;
         }
     }
+}
+
+int tile_number(TileList* tile_list) {
+    int rep = 0;
+    TileList* to_check = tile_list;
+    while (to_check != NULL) {
+        if (to_check->data != NULL) {
+            rep += 1;
+        }
+        to_check = to_check->next;
+    }
+    return rep;
 }

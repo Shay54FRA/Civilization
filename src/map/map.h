@@ -52,6 +52,9 @@ void destroy_map(Map* map);
 //void print_pos(Position pos);
 void print_tile(Tile* tile);
 
+Position* create_position(int x, int y);
+void destroy_position(Position* pos);
+
 
 Position get_starting_city_pos(Map* map); // Renvoie la position de la ville de départ
 
@@ -80,6 +83,7 @@ Position get_starting_city_pos(Map* map); // Renvoie la position de la ville de 
 int get_distance(Position pos1, Position pos2);
 void reset_exploitation(Map* map); // Remet toute les tuiles à false pour l'exploitation
 TileList* get_exploited_tiles(Map* map, Tile* tuile, int range); 
+void mark_exploited_tiles(TileList* tile_list);
 
 
 

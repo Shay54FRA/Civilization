@@ -47,6 +47,7 @@ typedef struct _UnitList {
 
 Unit* create_unit(char type, Position pos);
 void destroy_unit(Unit* unit);
+void destroy_unit_list(UnitList* unit_list);
 
 int get_atk(Unit* unit);
 int get_pv(Unit* unit);
@@ -59,6 +60,9 @@ Position get_unit_pos(Unit* unit);
 //Vérifier la condition de distance, créer la ville et l'ajouter à game
 void colonize(Game* game, Unit* colon);
 
+//La détruit tout en la retirant de la partie
+void kill_unit(Game* game, Unit* unit);
+
 
 Unit* get_unit(UnitList* lst);
 UnitList* get_unit_next(UnitList* lst);
@@ -67,5 +71,6 @@ void spawn_unit_from_project(Game* game, City* city);
 MoveResult move_unit_step(Game* game, Unit* unit, Position dest);
 void resolve_combat(Game* game, Unit* attacker, Unit* target, Tile* target_tile);
 void reset_all_pm(UnitList* lst);
+int get_terrain_cost(char biome);
 
 #endif

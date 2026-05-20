@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "technology.h"
 #include "../game/game.h"
+#include "../cli/cli.h"
+#include <ncurses.h>
 
 /*
 ========================================
@@ -13,7 +15,7 @@ void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game)
 {
     if (!tree || !game) return;
 
-    printf("\n========== ARBRE TECHNOLOGIQUE ==========\n");
+    printw("\n========== ARBRE TECHNOLOGIQUE ==========\n");
 
     for (int i = 0; i < tree->num_technologies; i++)
     {
@@ -23,12 +25,12 @@ void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game)
         if (tech->id == 0)
             continue;
 
-        printf("\n[%d] %s ", tech->id, tech->name);
+        printw("\n[%d] %s ", tech->id, tech->name);
 
         /* déjà débloquée */
         if (tech->is_unlocked)
         {
-            printf("✓");
+            printw("✓");
         }
         /* recherche en cours */
         else if (tech->id == active_research_id)
@@ -36,23 +38,23 @@ void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game)
             int progress = game->science;
             int cost = tech->science_cost;
 
-            printf(" ");
+            printw(" ");
 
             print_progress_bar(progress, cost, 15);
         }
         /* prérequis non validés */
         else if (!can_research_tech(game, tree, tech->id))
         {
-            printf("BLOQUÉE");
+            printw("BLOQUÉE");
         }
         /* recherchable */
         else
         {
-            printf("(%d science)", tech->science_cost);
+            printw("(%d science)", tech->science_cost);
         }
     }
 
-    printf("\n\n=========================================\n");
+    printw("\n\n=========================================\n");
 }
 
 
@@ -68,7 +70,7 @@ void print_available_techs_cli(Game* game)
 
     TechTree* tree = game->tech_tree;
 
-    printf("\nTechnologies recherchables :\n");
+    printw("\nTechnologies recherchables :\n");
 
     for (int i = 0; i < tree->num_technologies; i++)
     {
@@ -80,7 +82,7 @@ void print_available_techs_cli(Game* game)
         if (!tech->is_unlocked &&
             can_research_tech(game, tree, tech->id))
         {
-            printf(" -> [%d] %s (%d science)\n",
+            printw(" -> [%d] %s (%d science)\n",
                    tech->id,
                    tech->name,
                    tech->science_cost);
@@ -104,7 +106,7 @@ void show_technology_menu(Game* game)
 
     while (1)
     {
-        printf("\n===== MENU TECHNOLOGIES =====\n");
+        printw("\n===== MENU TECHNOLOGIES =====\n");
 
         int active_id = game->active_research_id;
 
@@ -112,8 +114,8 @@ void show_technology_menu(Game* game)
 
         print_available_techs_cli(game);
 
-        printf("\nChoisir une technologie (-1 pour quitter) : ");
-        scanf("%d", &choix);
+        printw("\nChoisir une technologie (-1 pour quitter) : ");
+        scanw("%d", &choix);
 
         if (choix == -1)
             break;

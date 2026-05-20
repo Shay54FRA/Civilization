@@ -1,4 +1,5 @@
 #include "../map/map.h"
+#include <stdbool.h>
 
 #ifndef GAME
 #define GAME
@@ -32,6 +33,7 @@ typedef struct _Game {
     bool poverty; //Etat de greve ou non
     int turns_10_cities; //Nombre de tours consécutifs avec +10 villes
     int turns_no_productions; //Nombre de tours consécutifs productions nulles
+    int barbs_number; //Nombre de barbares sur la carte
     TupleRessources* new_ressources;
     Position starting_point; //Utile pour placer les camps
     Map* map; //Carte de la partie
@@ -39,7 +41,6 @@ typedef struct _Game {
     CityList* cityList; // Liste des villes du joueur
     Configuration* configuration; // Configuration de la partie (nbr de camps barabares, taille map,...)
     BarbarianList* barbarianList;
-    CampList* campList;
     TechTree* tech_tree;
     int active_research_id;   // Le post-it pour retenir le projet en cours
 } Game;
@@ -81,6 +82,7 @@ char* get_name(char type); //donner le nom du batiment ou de l'unité portant ce
 int get_cost(char type); //donner le coût en production de l'unité ou du batiment portant ce type 
 int get_entretien_cost(char type); //coût d'entretien en or du batiment ou de l'unité
 int get_all_entretien_costs(Game* game); //somme de tous les coûts d'entretien de la partie
+int get_camp_list_number(Game* game); //nombre de camps de barbares pour calcule du bonus d'or
 
 //######## GAMEPLAY ########//
 
@@ -88,7 +90,7 @@ int get_all_entretien_costs(Game* game); //somme de tous les coûts d'entretien 
 void start_turn(Game* game);
 
 //Fin du tour: déplacer les barbares, faire les combats si besoins, générer des barbares, soigner les villes
-void end_turn(Game* game);
+int end_turn(Game* game);
 
 int game_score(Game* game);
 

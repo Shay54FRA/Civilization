@@ -5,7 +5,7 @@
 #include "../building/building.h"
 #include <stdlib.h>
 
-static int get_terrain_cost(char biome)
+int get_terrain_cost(char biome)
 {
     if (biome == 'E') return 999;
     if (biome == 'F' || biome == 'M') return 2;
@@ -55,6 +55,18 @@ void destroy_unit(Unit* unit)
 {
     if (!unit) return;
     free(unit);
+}
+
+void destroy_unit_list(UnitList* unit_list) {
+    UnitList* to_check = unit_list;
+    while (to_check != NULL) {
+        if (to_check->data != NULL) {
+            destroy_unit(to_check->data);
+        }
+        destroy_unit_list(to_check->next);
+        to_check = to_check->next;
+        free(to_check);
+    }
 }
 
 int get_atk(Unit* unit) { return unit ? unit->atk : 0; }
@@ -141,6 +153,30 @@ void resolve_combat(Game* game, Unit* attacker, Unit* target, Tile* target_tile)
     if (attacker->pv <= 0) {
         Tile* attacker_tile = get_tile(game->map, attacker->pos);
         if (attacker_tile) attacker_tile->unit = NULL;
+    }
+}
+
+void kill_unit(Game* game, Unit* unit) {
+    if (unit == NULL) return;
+    if (game == NULL) destroy_unit(unit); return;
+    UnitList* to_check = game->unitList;
+    UnitList* previous = NULL;
+    while (to_check != NULL) {
+        Unit* test_unit = to_check->data;
+        if (test_unit == unit) {
+            if (previous == NULL) {
+                game->unitList = to_check->next;
+            } else {
+                previous->next = to_check->next;
+            }
+            Tile* tile = get_tile(game->map, unit->pos);
+            tile->unit = NULL;
+            destroy_unit(unit);
+            free(to_check);
+            break;
+        }
+        previous = to_check;
+        to_check = to_check->next;
     }
 }
 

@@ -12,7 +12,8 @@ int main(void) {
     assert(get_food(city1) == 0);
     assert(get_project(city1) == NULL);
     assert(get_city_pv(city1) == 10);
-    assert(start_project(city1, pos, 'G'));
+    assert(start_project(city1, 'G', pos));
     print_buildlist(city1->buildings);
+    destroy_city(city1);
     return 0;
 }
