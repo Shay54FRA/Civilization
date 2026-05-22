@@ -22,7 +22,7 @@ int main(void) {
     Position target = get_nearest_target(game, barb);
     printf("Position de la cible : %d : %d\n", target.x, target.y);
     printf("Avant mouvement du barbare : %d : %d\n", barb->pos->x, barb->pos->y);
-    move_barbarian(game, barb, target);
+    move_all_barbarians(game);
     printf("Après mouvement du barbare : %d : %d\n", barb->pos->x, barb->pos->y);
 
     destroy_game(game);

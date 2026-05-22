@@ -4,7 +4,10 @@
 
 #include "map.h"
 #include "../tile/tile.h"
+#include "../unit/unit.h"
 #include <ncurses.h>
+
+#define INF 1e7
 
 Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camps de barbares et ville de départ
 
@@ -307,6 +310,89 @@ int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
     return (abs(q1 - q2) + abs(r1 - r2) + abs(s1 - s2)) / 2;
 }
 
+//Dijkstra qui permet de renvoyer la position sur laquel se déplacer
+Position dijkstra(Map* map, Position pos_start, Position pos_end) {
+    int width = map->length;
+    int height = map->height;
+    int dist[width][height];
+    bool visited[width][height];
+    Position parent[width][height];
+
+    // Initialisation de la grille
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            dist[x][y] = INF;
+            visited[x][y] = false;
+            parent[x][y] = (Position){-1, -1};
+        }
+    }
+
+    dist[pos_start.x][pos_start.y] = 0;
+    for (int count = 0; count < width * height; count++) {
+        // 1. Trouver le nœud non visité avec la distance minimale
+        int min_dist = INF;
+        Position u = {-1, -1};
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!visited[x][y] && dist[x][y] < min_dist) {
+                    min_dist = dist[x][y];
+                    u = (Position){x, y};
+                }
+            }
+        }
+
+        // Si on ne trouve plus de nœud accessible ou si on a atteint la destination
+        if (u.x == -1 || (u.x == pos_end.x && u.y == pos_end.y)) {
+            break;
+        }
+
+        visited[u.x][u.y] = true;
+        // 2. Mettre à jour les distances des 6 voisins hexagonaux
+        TileList* every_voisins = get_tiles_at_range(map, u, 1);
+        TileList* voisins = every_voisins;
+        while (voisins != NULL) {
+            Tile* tile = voisins->data;
+            if (tile != NULL) {
+                Position pos_voisin = tile->pos;
+                int v_x = pos_voisin.x;
+                int v_y = pos_voisin.y;
+                if (!visited[v_x][v_y]) {
+                    int weight = get_terrain_cost(tile->biome);
+                    if (tile->barb_on != NULL || tile->camp_on) {
+                        weight = 999;
+                    }
+                
+                    if (dist[u.x][u.y] + weight < dist[v_x][v_y]) {
+                        dist[v_x][v_y] = dist[u.x][u.y] + weight;
+                        parent[v_x][v_y] = u;
+                    }
+                }
+            }
+            voisins = voisins->next;
+        }
+        destroy_tilelist(every_voisins);
+    }
+
+    Position next_step = pos_start;
+
+    // On vérifie d'abord si la destination a bien un parent valide (chemin trouvé)
+    if (parent[pos_end.x][pos_end.y].x != -1) {
+        Position curr = pos_end;
+        // On remonte jusqu'à trouver la case juste après pos_start
+        while (curr.x != -1 && curr.y != -1) {
+            Position p = parent[curr.x][curr.y];
+            if (p.x == pos_start.x && p.y == pos_start.y) {
+                next_step = curr;
+                break;
+            }
+            curr = p;
+        }
+    }
+
+    return next_step;
+}
+
 void reset_exploitation(Map* map) {
     if (map == NULL) return;
     for (int x = 0; x < map->length; x++) {
@@ -329,22 +415,39 @@ void mark_exploited_tiles(TileList* tile_list) {
     }
 }
 
-TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
-    Position pos = tuile->pos;
+TileList* get_tiles_at_range(Map* map, Position pos, int range) {
     if (map != NULL) {
         TileList* rep = create_tilelist(NULL);
-        for (int x = pos.x-range; x<=pos.x+range; x++) {
-            for (int y = pos.y-range; y<=pos.y+range; y++) {
+        for (int x = pos.x - range; x <= pos.x + range; x++) {
+            for (int y = pos.y - range; y <= pos.y + range; y++) {
                 if (x >= 0 && x < map->length && y >= 0 && y < map->height) {
                     Tile* new_tile = map->map[y][x];
-                    Position new_pos = {x,y};
-                    if (get_distance(pos, new_pos) == range && !(new_tile->exploited)) {
-                        new_tile->exploited = true;
+                    Position new_pos = {x, y};
+                    if (get_distance(pos, new_pos) == range) {
                         append_tilelist(rep, new_tile);
                     }
                 }
             }
         }
+        return rep;
+    }
+    return NULL;
+}
+
+TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
+    Position pos = tuile->pos;
+    if (map != NULL) {
+        TileList* all_tiles = get_tiles_at_range(map, pos, range);
+        TileList* rep = create_tilelist(NULL);
+        TileList* current = all_tiles;
+        while (current != NULL) {
+            Tile* t = current->data;
+            if (t != NULL && !t->exploited) {
+                append_tilelist(rep, t);
+            }
+            current = current->next;
+        }
+        destroy_tilelist(all_tiles);
         return rep;
     }
     return NULL;

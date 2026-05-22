@@ -7,6 +7,7 @@
 #include "../map/map.h"
 #include "../game/game.h"
 #include "../tile/tile.h"
+#include "../barbarian/barbarian.h"
 
 // Gestion des unités et des technologies dans le CLI
 #include "../unit/unit.h"
@@ -88,6 +89,14 @@ static void print_tile_info(Game* game, Position cursor) {
 
     else if (tile->unit)
         printw("Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
+
+    else if (tile->barb_on) {
+        printw("Contenu : Barbare | %dpv - %datk - %ddef\n", tile->barb_on->pv, tile->barb_on->atk, tile->barb_on->def);
+    }
+
+    if (tile->camp_on) {
+        printw("Contenu : Camp de barbares");
+    }
 
     else
         printw("Contenu  : Vide\n");

@@ -58,15 +58,12 @@ void destroy_unit(Unit* unit)
 }
 
 void destroy_unit_list(UnitList* unit_list) {
-    UnitList* to_check = unit_list;
-    while (to_check != NULL) {
-        if (to_check->data != NULL) {
-            destroy_unit(to_check->data);
-        }
-        destroy_unit_list(to_check->next);
-        to_check = to_check->next;
-        free(to_check);
+    if (unit_list == NULL) return;
+    if (unit_list->data != NULL) {
+        destroy_unit(unit_list->data);
     }
+    destroy_unit_list(unit_list->next);
+    free(unit_list);
 }
 
 int get_atk(Unit* unit) { return unit ? unit->atk : 0; }
