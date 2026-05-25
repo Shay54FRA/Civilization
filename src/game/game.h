@@ -75,6 +75,7 @@ CampList* get_camplist(Game* game);
 
 //########## UTILS ##########//
 
+int get_unit_number(Game* game);
 int get_city_number(Game* game);
 int get_new_gold(Game* game);
 int get_new_science(Game* game);

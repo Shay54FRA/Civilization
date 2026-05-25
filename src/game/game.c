@@ -8,6 +8,7 @@
 #include "../configuration/configuration.h"
 #include "../barbarian/barbarian.h"
 #include <stdlib.h>
+#include <math.h>
 #include <stdio.h>
 
 TupleRessources* create_tuple_ressources(void) {
@@ -44,7 +45,7 @@ Game* create_game(Configuration* config) {
             game->turns_10_cities = 0;
             game->turns_no_productions = 0;
             game->cityList = NULL; //S'assurer que l'espace est libre
-            game->cityList = create_city_list(game, base_city); 
+            create_city_list(game, base_city); 
 
             Tile* tile_to_use = get_tile(game->map, pos);
             tile_to_use->city_on = true;
@@ -136,7 +137,7 @@ int get_city_number(Game* game) {
         int rep = 0;
         CityList* to_check = game->cityList;
         while (to_check != NULL) {
-            rep += 1;
+            if (to_check->city != NULL) rep += 1;
             to_check = to_check->next;
         }
         return rep;
@@ -214,7 +215,9 @@ int get_unit_number(Game* game) {
         int rep = 0;
         UnitList* to_check = game->unitList;
         while (to_check != NULL) {
-            rep += 1;
+            if (to_check->data != NULL) {
+                rep += 1;
+            }
             to_check = to_check->next;
         }
         return rep;
@@ -240,10 +243,12 @@ bool check_poor(Game* game) {
         int unit_number = get_unit_number(game);
         if (unit_number == 0) {
             game->poverty = true;
+        } else {
+            game->poverty = false;
+            int random_destroy_number = (rand() % unit_number);
+            kill_nth_unit(game, random_destroy_number);
         }
-        game->poverty = false;
-        int random_destroy_number = (rand() % unit_number);
-        // A compléter : boucle sur unitList pour la trouver et la "tuer" (pas simplement destroy)
+        game->gold = 0;
         return true;
     }
     game->poverty = false;
@@ -288,8 +293,8 @@ int end_game(Game* game) {
     if (game == NULL) return 0;
     if (game->configuration == NULL || game->tech_tree == NULL) return 0;
 
-    if (game->cityList == NULL) return 3; //Défaite aucune ville
-    if (game->active_turn > game->configuration->t) return 3; //Défaite nombre de tour max atteint
+    if (get_city_number(game) == 0) return 3; //Défaite aucune ville
+    if (game->active_turn >= game->configuration->t) return 3; //Défaite nombre de tour max atteint
     /* A compléter : défaite si prod nulle pdt 5 tours de suite */
 
     if (game->turns_10_cities >= 5) return 1; //Victoire territoriale
@@ -450,17 +455,17 @@ void give_all_bonuses(Game* game) {
         to_check = game->cityList;
         while (to_check != NULL) {
             city = to_check->city;
-            city->food += (int) ((1 + game->tech_tree->bonus_food_percent/100) * get_new_food(city));
+            city->food += (int) ((1 + game->tech_tree->bonus_food_percent/100) * get_new_food(city)) / pow(2, game->poverty);
 
             //Juste un = car on perd la prod non utilisé à la fin du tour
-            city->production = (int) ((1 + game->tech_tree->bonus_prod_percent/100) * get_new_prod(city));
+            city->production = (int) ((1 + game->tech_tree->bonus_prod_percent/100) * get_new_prod(city)) / pow(2, game->poverty);
 
             city->new_ressources->ressource1 = 0;
             city->new_ressources->ressource2 = 0;
             to_check = to_check->next;
         }
-        game->gold += (int) (1 + game->tech_tree->bonus_gold_percent/100) * get_new_gold(game);
-        game->science += (int) (1 + game->tech_tree->bonus_science_percent/100) * get_new_science(game);
+        game->gold += (int) ((1 + game->tech_tree->bonus_gold_percent/100) * get_new_gold(game)) / pow(2, game->poverty);
+        game->science += (int) ((1 + game->tech_tree->bonus_science_percent/100) * get_new_science(game)) / pow(2, game->poverty);
 
         game->new_ressources->ressource1 = 0;
         game->new_ressources->ressource2 = 0;

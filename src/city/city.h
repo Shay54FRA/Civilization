@@ -7,7 +7,7 @@
 #define CITY
 
 #define EXPLOITATION_RANGE ((city->population > 25) + (city->population > 9) + 1)
-#define FOOD_NEEDS (2*city->food)
+#define FOOD_NEEDS (2*city->population)
 #define CROISSANCE_NEED ((int) ceil((20 + 10*city->population)/pow(1.5, city->basements_number)))
 #define CITY_STRENGTH (20 + 10*(city->walls_number > 0))
 #define MAX_HP ((int) (10*city->population*pow(2,city->walls_number)))
@@ -108,7 +108,7 @@ bool start_project(City* city, char type, Position pos); //Renvoie si un projet 
 
 //########## INIT ##########//
 
-CityList* create_city_list(Game* game, City* city); // Création de l'élément
+void create_city_list(Game* game, City* city); // Création de l'élément
 void destroy_city_list(CityList*); // Destruction de l'élément, de la ville, et de son successeur
 
 //######### GETTERS #########//
