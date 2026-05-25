@@ -40,10 +40,10 @@ void print_building(Building* build) {
     }
 }
 
-BuildList* create_buildlist(Building* build) { //Une ville commence tjrs avec un grenier 
+BuildList* create_buildlist(Building* build, BuildList* next) { //Une ville commence tjrs avec un grenier 
     BuildList* rep = malloc(sizeof(BuildList));
     rep->data = build;
-    rep->next = NULL;
+    rep->next = next;
     return rep;
 }
 
@@ -56,14 +56,8 @@ void destroy_buildlist(BuildList* lst) {
 }
 
 void append_buildlist(BuildList* lst, Building* build) {
-    BuildList* to_add = create_buildlist(build);
-    BuildList* to_check = lst;
-    if (to_check != NULL) {
-        while(get_buildlist_next(to_check) != NULL) {
-            to_check = get_buildlist_next(to_check);
-        }
-        to_check->next = to_add;
-    }
+    if (build == NULL) return;
+    lst = create_buildlist(build, lst);
 }
 
 Building* get_buildlist_data(BuildList* lst){

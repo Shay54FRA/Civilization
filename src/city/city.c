@@ -43,7 +43,7 @@ void kill_city(Game* game, City* city) {
     CityList* previous = NULL;
     while (to_check != NULL) {
         if (to_check->city == city) { // On a trouvé la ville en question
-            Tile* tile = get_tile(game, city->pos);
+            Tile* tile = get_tile(game->map, city->pos);
             if (tile != NULL) {
                 tile->city_on = false;
                 if (previous == NULL) {
@@ -101,6 +101,10 @@ BuildList* get_buildings_list(City* city){
         return city->buildings;
     }
     return NULL;
+}
+
+bool build_type_exists(char type) {
+    return (type == 'C' || type == 'G' || type == 'B' || type == 'R' || type == 'M' || type == 'A');
 }
 
 bool croissance_check(City* city) {
@@ -171,16 +175,36 @@ int get_distance_to_city(City* city, Position pos) {
     }*/
 }
 
+Project* create_project(char type, Position pos) {
+    Project* project = malloc(sizeof(Project));
+    if (project == NULL) return NULL;
+    project->pos = pos;
+    project->type = type;
+    project->production_cost = get_cost(type);
+    return project;
+}
+
 bool start_project(City* city, char type, Position pos) {
     if (city->project == NULL) {
-        Project* project = malloc(sizeof(Project));
-        project->pos = pos;
-        project->type = type;
-        project->production_cost = get_cost(type);
-        city->project = project;
+        city->project = create_project(type, pos);
         return true;
     }
     return false;
+}
+
+void spawn_building_from_project(City* city) {
+    if (city == NULL) return;
+    if (city->project == NULL) return;
+    char type = city->project->type;
+    if (type == 'C') {        //La ville peut produire des unités
+        city->can_produce_unit == true;
+    } else if (type == 'R') { //La ville a une muraille
+        city->walls_number += 1;
+    } else if (type == 'G') { //Un grenier supplémentaire
+        city->basements_number += 1;
+    }
+    Building* build = create_building(city->project->type);
+    append_buildlist(city->buildings, build);
 }
 
 bool end_project(Game* game, City* city) {
@@ -191,8 +215,8 @@ bool end_project(Game* game, City* city) {
                 if (city->project->type == 'c' || city->project->type == 'g') {
                     spawn_unit_from_project(game, city);
                 }
-                else {
-                    /* A COMPLETER PLUS TARD */
+                else if (build_type_exists(city->project->type)) {
+                    spawn_building_from_project(city);
                 }
 
                 destroy_project(city);
@@ -237,13 +261,22 @@ int get_production_left(City* city) {
     return -1;
 }
 
-CityList* create_city_list(Game* game, City* city) {
+void create_city_list(Game* game, City* city) {
+    if (game == NULL || city == NULL) return;
     CityList* city_list = malloc(sizeof(CityList));
-    if (city_list != NULL) {
-        city_list->city = city;
-        city_list->next = game->cityList;
+    city_list->city = city;
+    city_list->next = NULL;
+    CityList* previous = NULL;
+    CityList* to_check = game->cityList;
+    if (to_check == NULL) {
+        game->cityList = city_list;
+    } else {
+        while (to_check != NULL) {
+            previous = to_check;
+            to_check = to_check->next;
+        }
+        previous->next = city_list;
     }
-    return city_list;
 }
 
 void destroy_city_list(CityList* city_list) {

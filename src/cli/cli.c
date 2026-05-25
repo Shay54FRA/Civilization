@@ -201,19 +201,23 @@ static void move_result_to_message(MoveResult result, char* buffer, size_t size)
 }
 
 void end_game_cli(Game* game, int end_code) {
+    if (game == NULL) return;
+    printw("\n=== FIN DE LA PARTIE ===\n\n");
     if (end_code == 1) {
-        printw("VICTOIRE TERRITORIALE ! Vous possédez plus de 10 villes depuis 5 tours.\n");
+        printw("----VICTOIRE TERRITORIALE ! \nVous possédez plus de 10 villes depuis 5 tours.\n");
     }
     else if (end_code == 2) {
-        printw("VICTOIRE TECHNOLOGIQUE ! Vous possédez toutes les technologies.\n");
+        printw("----VICTOIRE TECHNOLOGIQUE ! \nVous possédez toutes les technologies.\n");
     }
     else if (end_code == 3) {
-        printw("DEFAITE !\n");
+        printw("----DEFAITE !\n");
     }
     else {
         printw("ERREUR !\n");
     }
-    printw("SCORE : %d\n", game_score(game));
+    printw("\nSCORE : %d\n", game_score(game));
+    printw("\n\n\n cliquez sur n'importe quelle touche pour terminer");
+    getch();
 }
 
 void run_game_cli(Game* game) {
@@ -320,9 +324,9 @@ void run_game_cli(Game* game) {
                 break;
 
             case 'f':
-                printw("Passage au tour suivant...\n");
                 int game_result = end_turn(game);
                 if (game_result != 0) {
+                    clear();
                     end_game_cli(game, game_result);
                     running = 0;
                     break;

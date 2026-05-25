@@ -108,7 +108,7 @@ bool start_project(City* city, char type, Position pos); //Renvoie si un projet 
 
 //########## INIT ##########//
 
-CityList* create_city_list(Game* game, City* city); // Création de l'élément
+void create_city_list(Game* game, City* city); // Création de l'élément
 void destroy_city_list(CityList*); // Destruction de l'élément, de la ville, et de son successeur
 
 //######### GETTERS #########//

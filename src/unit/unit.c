@@ -101,7 +101,7 @@ void spawn_unit_from_project(Game* game, City* city)
     if (p_type == 'g' && !is_unit_unlocked(game->tech_tree, 'g'))
         return;
 
-    if (p_type == 'g' && !buildlist_contains(city->buildings, 'C'))
+    if (!buildlist_contains(city->buildings, 'C'))
         return;
 
     Tile* tile = get_tile(game->map, city->project->pos);
@@ -127,6 +127,17 @@ void spawn_unit_from_project(Game* game, City* city)
     game->unitList = node;
 
     tile->unit = new_unit;
+}
+
+void kill_nth_unit(Game* game, int n) {
+    if (game == NULL) return;
+    if (get_unit_number(game) <= n) return;
+    int current_unit_id = 0;
+    UnitList* to_check = game->unitList;
+    for (int ind = 0; ind < n; ind++) {
+        to_check = to_check->next;
+    }
+    kill_unit(game, to_check->data);
 }
 
 void resolve_combat(Game* game, Unit* attacker, Unit* target, Tile* target_tile)
@@ -167,7 +178,9 @@ void kill_unit(Game* game, Unit* unit) {
                 previous->next = to_check->next;
             }
             Tile* tile = get_tile(game->map, unit->pos);
-            tile->unit = NULL;
+            if (tile != NULL) {
+                tile->unit = NULL;
+            }
             destroy_unit(unit);
             free(to_check);
             break;

@@ -63,6 +63,9 @@ void colonize(Game* game, Unit* colon);
 //La détruit tout en la retirant de la partie
 void kill_unit(Game* game, Unit* unit);
 
+//Détruit la n ième unité de la liste
+void kill_nth_unit(Game* game, int n);
+
 
 Unit* get_unit(UnitList* lst);
 UnitList* get_unit_next(UnitList* lst);
