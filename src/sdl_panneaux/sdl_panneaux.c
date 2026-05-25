@@ -18,20 +18,28 @@ void get_move_message(MoveResult result, char* buffer, size_t size) {
     switch (result) {
         case MOVE_OK:
             snprintf(buffer, size, "Deplacement effectue !"); break;
+
         case MOVE_NO_UNIT:
             snprintf(buffer, size, "Aucune unite selectionnee"); break;
+
         case MOVE_NO_PM:
             snprintf(buffer, size, "Cette unite n'a plus de PM"); break;
+
         case MOVE_INVALID_TILE:
             snprintf(buffer, size, "Case invalide"); break;
+
         case MOVE_WATER:
             snprintf(buffer, size, "Impossible : eau infranchissable"); break;
+
         case MOVE_NOT_ADJACENT:
             snprintf(buffer, size, "Il faut se deplacer case par case"); break;
+
         case MOVE_NOT_ENOUGH_PM:
             snprintf(buffer, size, "Pas assez de PM"); break;
+
         case MOVE_ALLY_OCCUPIED:
             snprintf(buffer, size, "Case occupee par une unite alliee"); break;
+
         default:
             snprintf(buffer, size, "Action ou deplacement impossible"); break;
     }
@@ -50,11 +58,11 @@ void draw_panneau_message_action(SDL_Renderer* renderer, const char* message, in
 
 
 void draw_panneau_global(SDL_Renderer* renderer, Game* game) {
-    // Boîte noire semi-transparent (X=10, Y=10, Largeur=310, Hauteur=80)
-    boxRGBA(renderer, 10, 10, 310, 115, 0, 0, 0, 200);
+    // Boîte noire semi-transparent (X=10, Y=10, Largeur=310, Hauteur=155)
+    boxRGBA(renderer, 10, 10, 310, 155, 0, 0, 0, 200);
     
     // Bordure fine grise pour faire stylé
-    rectangleRGBA(renderer, 10, 10, 310, 115, 150, 150, 150, 255);
+    rectangleRGBA(renderer, 10, 10, 310, 155, 150, 150, 150, 255);
 
     char txt_tour[50];
     char txt_ressources[100];
@@ -66,19 +74,25 @@ void draw_panneau_global(SDL_Renderer* renderer, Game* game) {
     stringRGBA(renderer, 25, 25, txt_tour, 255, 255, 255, 255);
     stringRGBA(renderer, 25, 50, txt_ressources, 255, 215, 0, 255); // Écrit en couleur dorée
 
-    // Dessin du Bouton TECHNOLOGIES (Bleu)
-    boxRGBA(renderer, 20, 75, 150, 105, 30, 80, 150, 255);
+    // Dessin du Bouton Technologies (Bleu)
+    boxRGBA(renderer, 20, 75, 150, 105, 30, 80, 150, 255); // Bleu
     rectangleRGBA(renderer, 20, 75, 150, 105, 255, 255, 255, 200);
-    stringRGBA(renderer, 40, 85, "TECH [T]", 255, 255, 255, 255);
+    stringRGBA(renderer, 53, 86, "TECH [T]", 255, 255, 255, 255); // Ecriture dans le Bouton
+    // Calcul de la position idéale du texte (centré dans bouton) demandée à l'IA
 
-    // Dessin du Bouton FIN DE TOUR (Rouge)
-    boxRGBA(renderer, 170, 75, 300, 105, 150, 40, 40, 255);
+    // Dessin du Bouton d'Aide [H]
+    boxRGBA(renderer, 170, 75, 300, 105, 210, 105, 30, 255);
     rectangleRGBA(renderer, 170, 75, 300, 105, 255, 255, 255, 200);
-    stringRGBA(renderer, 195, 85, "FIN TOUR [F]", 255, 255, 255, 255);
+    stringRGBA(renderer, 203, 86, "AIDE [H]", 255, 255, 255, 255);
+
+    // Dessin du Bouton Fin de Tour (Rouge)
+    boxRGBA(renderer, 20, 115, 300, 145, 150, 40, 40, 255);
+    rectangleRGBA(renderer, 20, 115, 300, 145, 255, 255, 255, 200);
+    stringRGBA(renderer, 47, 126, "======= FIN TOUR [F] =======", 255, 255, 255, 255);
 }
 
 
-void draw_panneau_biome_flottant(SDL_Renderer* renderer, Game* game, Position selection) {
+void draw_panneau_biome_flottant(SDL_Renderer* renderer, Game* game, Position selection, int screenW) {
     if (selection.x == -1 || selection.y == -1) return;
 
     Tile* tuile = game->map->map[selection.y][selection.x];
@@ -87,7 +101,7 @@ void draw_panneau_biome_flottant(SDL_Renderer* renderer, Game* game, Position se
     // Positionnement fixe en haut à droite de la fenêtre
     int w = 260;
     int h = 120;
-    int x1 = 1280 - w - 10; // À 10 pixels du bord droit (Fenetre de 1280px)
+    int x1 = screenW - w - 10; // À 10 pixels du bord droit (Fenetre de 1280px)
     int y1 = 10; // À 10 pixels du haut de l'écran
 
     boxRGBA(renderer, x1, y1, x1 + w, y1 + h, 10, 15, 25, 230);
@@ -245,37 +259,51 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
 //Panneau qui permet de guider sur les actions possibles
 void draw_panneau_guide_actions(SDL_Renderer* renderer, Game* game) {
     int x1 = 10;
-    int y1 = 135; // Positionné sous le tableau global
-    int w = 420;
-    int h = 320; // Légèrement agrandi pour accueillir le texte
+    int y1 = 160; // Positionné sous le tableau global
+    int w = 560;
+    int h = 465; 
 
-    // Boîte noire translucide et bordure grise
-    boxRGBA(renderer, x1, y1, x1 + w, y1 + h, 0, 0, 0, 210);
+    // Boîte de fond bleu et bordure fine grise
+    boxRGBA(renderer, x1, y1, x1 + w, y1 + h, 15, 20, 30, 230);
     rectangleRGBA(renderer, x1, y1, x1 + w, y1 + h, 150, 150, 150, 255);
 
     // Titre principal
     stringRGBA(renderer, x1 + 15, y1 + 15, "=== ENCYCLOPEDIE DES ACTIONS ===", 0, 255, 255, 255);
 
     // CATEGORIE 1 : EXPANSION
-    stringRGBA(renderer, x1 + 15, y1 + 45, "[1] FONDATION & EXPANSION :", 100, 255, 100, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 65, "- Clic Ville + Touche [C] -> Colon", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 80, "  Cout: 50 Prod | Entretien: 0 Or", 200, 200, 200, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 95, "- Selection Colon + [V]   -> Fonder Ville", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 15, y1 + 45, "[1] UNITES & EXPANSION (Sur Centre-Ville) :", 100, 255, 100, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 65, "- Touche [C] : Planifier un Colon    (50 pr)", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 80, "- Touche [G] : Planifier un Guerrier (40 pr) [Req: Caserne]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 95, "- Touche [V] : Action Fonder Ville (Sur Colon selectionne)", 255, 255, 255, 255);
 
-    // CATEGORIE 2 : MILITAIRE
-    stringRGBA(renderer, x1 + 15, y1 + 125, "[2] ARMEE & DEFENSE :", 255, 100, 100, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 145, "- Clic Ville + Touche [G] -> Guerrier", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 160, "  Cout: 40 Prod | Entretien: 1 Or/t", 200, 200, 200, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 175, "  REQUIS : La ville doit avoir une Caserne", 255, 255, 100, 255);
+    // CATEGORIE 2 : BATIMENTS
+    stringRGBA(renderer, x1 + 15, y1 + 125, "[2] BATIMENTS URBAINS (Touches [1] a [6]) :", 255, 215, 0, 255);
+    
+    // En-têtes du mini-tableau pour guider l'œil
+    stringRGBA(renderer, x1 + 25,  y1 + 145, "  ID   Nom &  Cout     Effets / Bonus         Entretien & Req", 135, 206, 250, 255);
+    
+    stringRGBA(renderer, x1 + 25,  y1 + 165, "- [1] Grenier (30) : +3 Bouffe, Seuil/1.5    | 1 OR/t", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 180, "- [2] Atelier (40) : +3 Production           | 1 OR/t", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 195, "- [3] Biblio  (50) : +4 Science              | 1 OR/t [Ecriture]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 210, "- [4] Marche  (40) : +3 Or                   | 1 OR/t [Commerce]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 225, "- [5] Caserne (60) : Autorise les Guerriers  | 2 OR/t", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 240, "- [6] Muraille(80) : Sante Ville x2          | 2 OR/t [Maconnerie]", 255, 255, 255, 255);
 
-    // CATEGORIE 3 : CONTROLES
-    stringRGBA(renderer, x1 + 15, y1 + 205, "[3] MANEUVRE DES UNITES :", 255, 165, 0, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 225, "- Selectionner : Clic case + [M]", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 240, "- Deplacer     : Clic cible + [M]", 255, 255, 255, 255);
+    // CATEGORIE 3 : MILITAIRE
+    stringRGBA(renderer, x1 + 15, y1 + 270, "[3] MANEUVRE & SÉCURITÉ MILITAIRE :", 255, 165, 0, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 290, "- Clic sur l'unite + [M]  : Activer la selection", 200, 200, 200, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 305, "- Clic sur la cible + [M] : Valider le deplacement", 200, 200, 200, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 320, "- Combat : Automatique en tentant d'entrer sur une case ennemie", 255, 150, 150, 255);
+    
+    // Phrase des barbares sur 2 lignes pour éviter de dépasser du cadre
+    stringRGBA(renderer, x1 + 25, y1 + 335, "- Menace : Rasez les camps barbares pour gagner un bonus", 255, 150, 150, 255);
+    stringRGBA(renderer, x1 + 36, y1 + 350, "  d'Or egal a 5x le nombre de camps detruits jusque-la.", 255, 150, 150, 255);
 
-    // CATEGORIE 4 : FIN DE CYCLE
-    stringRGBA(renderer, x1 + 15, y1 + 275, "[4] APPLIQUER LES TOURS :", 0, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 295, "  Pressez [F] pour finir votre tour", 255, 100, 100, 255);
+    // CATEGORIE 4 : RACCOURCIS PANNEAUX
+    stringRGBA(renderer, x1 + 15, y1 + 380, "[4] ENCHAINEMENT DES TOURS & HUD :", 0, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 400, "- Touche [F] ou Bouton Rouge : Terminer le tour en cours", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 415, "- Touche [T] ou Bouton Bleu  : Consulter l'arbre technologique", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 15, y1 + 445, "Pressez [H] ou cliquez sur AIDE pour fermer ce guide.", 130, 180, 255, 255);
 }
 
 // Panneau de l'arbre technologique
