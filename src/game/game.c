@@ -487,4 +487,3 @@ int get_total_unit_maintenance(Game* game) {
 
     return total;
 }
-

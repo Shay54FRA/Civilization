@@ -132,7 +132,7 @@ void draw_hexagones(SDL_Renderer* renderer, int x, int y, int R, SDL_Color color
 
 void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position position_actuelle, int cameraX, int cameraY, 
                 SDL_Texture* tex_ville, SDL_Texture* tex_ville_mur, SDL_Texture* tex_guerrier, SDL_Texture* tex_colon, 
-                SDL_Texture* tex_camp, SDL_Texture* tex_barbare, SDL_Texture* tex_bat_const){
+                SDL_Texture* tex_camp, SDL_Texture* tex_barbare){
 
     // On regarde si la case actuellement sélectionnée contient une ville
     City* selected_city = NULL;
@@ -200,37 +200,42 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
                 SDL_RenderCopy(renderer, tex_camp, NULL, &dstRect);
             }
 
-            // Dessin du Centre Ville Principal
-            if (tuile->city_on && tex_ville) {
-                SDL_RenderCopy(renderer, tex_ville, NULL, &dstRect);
-            }
-            
-            // Dessin des Bâtiments Annexes (Murailles isolées ou Bâtiments terminés/en cours)
-            /*
-            else {
-                char b_type = get_building_type_at(game, tuile->pos);
-                char p_type = get_project_building_at(game, tuile->pos);
-
-                if (b_type == 'R') { 
-                    // C'est une muraille annexe ! Elle utilise le sprite ville comme demandé
-                    if (tex_ville) SDL_RenderCopy(renderer, tex_ville, NULL, &dstRect);
+            // Dessin de la ville (avec ou sans muraille)
+            if (tuile->city_on) {
+                City* city_ici = find_city_at_position(game, tuile->pos);
+                
+                // Si la ville existe et qu'elle contient le bâtiment 'R' (Muraille)
+                if (city_ici != NULL && buildlist_contains(get_buildings_list(city_ici), 'R') && tex_ville_mur) {
+                    SDL_RenderCopy(renderer, tex_ville_mur, NULL, &dstRect);
                 } 
-                else if (b_type != '\0' || p_type != '\0') {
-                    // C'est un autre bâtiment terminé OU un chantier en cours -> Sprite chantier !
-                    if (tex_bat_const) SDL_RenderCopy(renderer, tex_bat_const, NULL, &dstRect);
+                
+                // Sinon, ou si le sprite fortifié n'est pas chargé, sprite par défaut
+                else if (tex_ville) {
+                    SDL_RenderCopy(renderer, tex_ville, NULL, &dstRect);
                 }
             }
-            */
-
+            
             // Dessin de l'unité
             if (tuile->unit != NULL) {
                 SDL_Texture* tex_unit = NULL;
                 char type = tuile->unit->type;
-                if (type == 'g' || type == 'G') tex_unit = tex_guerrier;
-                else if (type == 'c' || type == 'C') tex_unit = tex_colon;
-                else if (type == 'b' || type == 'B') tex_unit = tex_barbare;
+
+                if (type == 'g' || type == 'G') {
+                    tex_unit = tex_guerrier;
+                }
+                else if (type == 'c' || type == 'C') {
+                    tex_unit = tex_colon;
+                }
                 
-                if (tex_unit) SDL_RenderCopy(renderer, tex_unit, NULL, &dstRect);
+                // si il y a une unité, alors on la dessine
+                if (tex_unit) {
+                    SDL_RenderCopy(renderer, tex_unit, NULL, &dstRect);
+                }
+            }
+
+            if (tuile->barb_on != NULL && tex_barbare) {
+                // si il y a un barbare, on le dessine
+                SDL_RenderCopy(renderer, tex_barbare, NULL, &dstRect);
             }
             
         }   
