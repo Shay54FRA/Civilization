@@ -9,7 +9,11 @@
 #include "../tile/tile.h"
 #include "../barbarian/barbarian.h"
 #include "../building/building.h"
+<<<<<<< HEAD
 #include "cli_panneaux.h"
+=======
+#include "../city/city.h"
+>>>>>>> 5093143 (menu des projets)
 
 // Gestion des unités et des technologies dans le CLI
 #include "../unit/unit.h"
