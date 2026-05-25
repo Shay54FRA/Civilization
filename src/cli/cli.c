@@ -9,6 +9,7 @@
 #include "../tile/tile.h"
 #include "../barbarian/barbarian.h"
 #include "../building/building.h"
+#include "cli_panneaux.h"
 
 // Gestion des unités et des technologies dans le CLI
 #include "../unit/unit.h"
@@ -16,10 +17,30 @@
 #include "../technology/technology.h"
 #include "../technology/technology_cli.h"
 
-void init_ncurses_interface() {
+WINDOW *win_map, *win_info, *win_hud; //Permet de créer plusieurs fenêtres ncurses en même temps
+
+void init_ncurses_interface(void) {
     initscr(); //lance l'affichage ncurses           
-    cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                    
-    // curs_set(0);          
+    cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                              
+
+    // Calcul des tailles (Exemple : 70% largeur pour map, 30% pour infos)
+    int h = LINES, w = COLS;
+    // RÈGLE : change "10" ici pour ajuster la hauteur du bas
+    // Plus ce nombre est grand, plus win_info est haute, 
+    // et plus win_map/win_hud seront petites.
+    int footer_height = 10; 
+    int top_height = h - footer_height;
+
+    // Utilisation des variables calculées
+    win_map = newwin(top_height, (w * 7) / 10, 0, 0);
+    win_hud = newwin(top_height, (w * 3) / 10, 0, (w * 7) / 10);
+    win_info = newwin(footer_height, w, top_height, 0);
+
+    box(win_map, 0, 0);
+    box(win_hud, 0, 0);
+    box(win_info, 0, 0);
+    
+    refresh();
 
     if (has_colors()) {
         start_color();
@@ -40,132 +61,6 @@ void init_ncurses_interface() {
 // Taille maximale du message affiché dans le HUD
 #define MSG_SIZE 256
 
-
-void print_pos(Position pos) {
-    printw("Position : (%d, %d)", pos.x, pos.y);
-}
-
-
-// Renvoie le nom lisible d’un biome
-static const char* biome_name(char biome) {
-    switch (biome) {
-        case 'E': return "Eau";
-        case 'P': return "Plaine";
-        case 'F': return "Foret";
-        case 'M': return "Montagne";
-        case 'D': return "Desert";
-        case 'T': return "Toundra";
-        default: return "Inconnu";
-    }
-}
-
-
-// Renvoie le coût de déplacement selon le terrain
-static int terrain_move_cost(char biome) {
-    if (biome == 'E') return -1;
-    if (biome == 'F' || biome == 'M') return 2;
-    return 1;
-}
-
-// Affiche les informations de la case sélectionnée
-static void print_tile_info(Game* game, Position cursor) {
-    Tile* tile = get_tile(game->map, cursor);
-
-    if (!tile) return;
-
-    int cost = terrain_move_cost(tile->biome);
-
-    printw("\n=== CASE SELECTIONNEE ===\n");
-
-    printw("Position : (%d, %d)\n", cursor.x, cursor.y);
-    printw("Terrain  : %s\n", biome_name(tile->biome));
-
-    if (cost == -1)
-        printw("Cout PM  : Infranchissable\n");
-    else
-        printw("Cout PM  : %d\n", cost);
-
-    if (tile->city_on)
-        printw("Contenu  : Ville\n");
-
-    else if (tile->unit)
-        printw("Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
-
-    else if (tile->barb_on) {
-        printw("Contenu  : Barbare | %dpv - %datk - %ddef\n", tile->barb_on->pv, tile->barb_on->atk, tile->barb_on->def);
-    }
-
-    else if (tile->camp_on) {
-        printw("Contenu  : Camp de barbares\n");
-    }
-
-    else
-        printw("Contenu  : Vide\n");
-}
-
-
-// Affiche les statistiques de l’unité sélectionnée
-static void print_selected_unit_info(Unit* selected_unit) {
-    printw("\n=== UNITE SELECTIONNEE ===\n");
-
-    if (!selected_unit) {
-        printw("Aucune unite selectionnee.\n");
-        return;
-    }
-
-    printw("Type : %s [%c]\n", get_name(selected_unit->type), selected_unit->type);
-
-    printw("PV   : %d / %d\n", selected_unit->pv, selected_unit->max_pv);
-
-    printw("PM   : %d / %d\n", selected_unit->pm, selected_unit->max_pm);
-
-    printw("ATK  : %d\n", selected_unit->atk);
-    printw("DEF  : %d\n", selected_unit->def);
-
-    printw("Pos  : (%d, %d)\n", selected_unit->pos.x, selected_unit->pos.y);
-}
-
-static void show_city_info_cli(Game* game, Position pos) {
-    if (game == NULL) return;
-    Tile* tile = get_tile(game->map, pos);
-    if (tile == NULL) return;
-    City* city = get_city_on_tile(game->cityList, tile);
-    if (city == NULL) {
-        printw("Aucune ville séléctionné !\n");
-        return;
-    }
-    while(1) {
-        printw("\n==== VILLE ====\n\n");
-        printw("PV : %d / %d\n", get_city_pv(city), MAX_HP);
-        printw("Population : %d villageois\n", city->population);
-        printw("Force de défense : %d\n", city->strength);
-        printw("Nourriture : %d\n", city->food);
-        printw("Production : %d\n", city->production);
-
-        printw("\n--- Projet ---\n\n");
-        if (city->project == NULL) {
-            printw("Aucun projet en cours ! Les points de productions sont perdus à chaque tour.\n");
-        } else {
-            printw("Type : %s\n", get_name(city->project->type));
-            printw("Production nécéssaire restante : %d\n", city->project->production_cost);
-        }
-
-        printw("\n--- Batîments ---\n\n");
-        BuildList* to_check = city->buildings;
-        while(to_check != NULL) {
-            Building* build = to_check->data;
-            if (build != NULL) {
-                printw("%s\n", get_name(build->type));
-            }
-            to_check = to_check->next;
-        }
-
-        printw("\nAppuyez sur n'importe quel touche pour quitter");
-        getch();
-        return;
-
-    }
-}
 
 // Convertit le résultat d’un déplacement en message joueur
 static void move_result_to_message(MoveResult result, char* buffer, size_t size) {
@@ -200,23 +95,23 @@ static void move_result_to_message(MoveResult result, char* buffer, size_t size)
     }
 }
 
-void end_game_cli(Game* game, int end_code) {
+void end_game_cli(WINDOW* win,Game* game, int end_code) {
     if (game == NULL) return;
-    printw("\n=== FIN DE LA PARTIE ===\n\n");
+    wprintw(win,"\n=== FIN DE LA PARTIE ===\n\n");
     if (end_code == 1) {
-        printw("----VICTOIRE TERRITORIALE ! \nVous possédez plus de 10 villes depuis 5 tours.\n");
+        wprintw(win,"----VICTOIRE TERRITORIALE ! \nVous possédez plus de 10 villes depuis 5 tours.\n");
     }
     else if (end_code == 2) {
-        printw("----VICTOIRE TECHNOLOGIQUE ! \nVous possédez toutes les technologies.\n");
+        wprintw(win,"----VICTOIRE TECHNOLOGIQUE ! \nVous possédez toutes les technologies.\n");
     }
     else if (end_code == 3) {
-        printw("----DEFAITE !\n");
+        wprintw(win,"----DEFAITE !\n");
     }
     else {
-        printw("ERREUR !\n");
+        wprintw(win,"ERREUR !\n");
     }
-    printw("\nSCORE : %d\n", game_score(game));
-    printw("\n\n\n cliquez sur n'importe quelle touche pour terminer");
+    wprintw(win,"\nSCORE : %d\n", game_score(game));
+    wprintw(win,"\n\n\n cliquez sur n'importe quelle touche pour terminer");
     getch();
 }
 
@@ -236,25 +131,34 @@ void run_game_cli(Game* game) {
 
     while (running) {
 
-        // Affichage
-        clear(); //permet de clear le terminal
-        print_map_cli(game->map, cursor);
+        //BOXE 1 : Affichage map
+        werase(win_map);
+        box(win_map, 0, 0);
+        mvwprintw(win_map, 0, 2, " CARTE ");
+        wprintw(win_map,"\n");
+        print_map_cli(win_map,game->map, cursor);
+        wrefresh(win_map);
         
-        // Menu des stats
-        printw("\n--- TOUR %d | Or: %d | Science: %d ---\n", 
-                game->active_turn, game->gold, game->science);
+        //BOXE 2 : Affichage des infos générales
+        werase(win_info);
+        box(win_info, 0, 0);
+        mvwprintw(win_info, 0, 2, " Infos générales ");
+        print_stats(win_info,game); // Affichage des stats ()
+        wprintw(win_info,"Message : %s\n", last_message); // Affichage du dernier message d’action
+        print_action_help(win_info); // Affichage des commandes
+        wrefresh(win_info);
 
-        // Affichage du dernier message d’action
-        printw("Message : %s\n", last_message);
-
-        // Affichage des informations de la case et de l’unité sélectionnée
-        print_tile_info(game, cursor);
-        print_selected_unit_info(selected_unit);
-
-        printw("\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [g] Info ville | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
-        printw("> ");
-
-        refresh(); // CRUCIAL : Affiche tout l'écran d'un coup
+        //BOXE 3 : Affichage info case/unité sélectionné
+        werase(win_hud);
+        box(win_hud, 0, 0);
+        mvwprintw(win_hud, 0, 2, " Infos case ");
+        print_tile_info(win_hud,game, cursor);
+        print_selected_unit_info(win_hud,selected_unit);
+        Tile* tile_sous_curseur = get_tile(game->map, cursor);
+        if (tile_sous_curseur != NULL && tile_sous_curseur->city_on) {
+            show_city_info_cli(win_hud,game,cursor); //Affichage automatique des infos de la ville
+        }
+        wrefresh(win_hud);
         
         // Récupération de l'ordre
         command = getch(); // Remplaçant de scanf, lit la touche instantanément
@@ -319,15 +223,16 @@ void run_game_cli(Game* game) {
 
             case 'g':
                 clear();
-                show_city_info_cli(game, cursor);
+                show_city_info_cli(win_info,game, cursor);
                 snprintf(last_message, MSG_SIZE, "menu ville");
                 break;
 
             case 'f':
+                wprintw(win_info,"Passage au tour suivant...\n");
                 int game_result = end_turn(game);
                 if (game_result != 0) {
                     clear();
-                    end_game_cli(game, game_result);
+                    end_game_cli(win_info,game, game_result);
                     running = 0;
                     break;
                 }

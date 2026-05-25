@@ -19,7 +19,14 @@ int main(void){
     Configuration* config = create_configuration(20, 30, 1000, 100, 3, 0);
     Game* game = create_game(config);
 
-    print_map_cli(game->map, game->starting_point);
+    initscr(); 
+    cbreak();
+    WINDOW* win = stdscr;
+    
+
+    print_map_cli(win,game->map, game->starting_point);
+
+    endwin();
     
     give_all_bonuses(game);
     printf("Gold : %d\n", game->gold);

@@ -12,20 +12,20 @@ int main(void) {
     Map* ma_carte = create_map(10, 10, 42, 5);
     Position cursor = {0, 0}; // Position initiale de la caméra
 
-    // Démarrage de l'interface (fonction provenant de cli.)
-    init_ncurses_interface();
+    // // Démarrage de l'interface 
+    // init_ncurses_interface(); (fonction définie dans cli.c)
 
 
-    print_map_cli(ma_carte, cursor);
+    // print_map_cli(ma_carte, cursor);
     
-    printw("\nAppuyez sur n'importe quelle touche pour quitter le test...");
-    refresh(); // Très important pour afficher l'interface
+    // printw("\nAppuyez sur n'importe quelle touche pour quitter le test...");
+    // refresh(); // Très important pour afficher l'interface
 
-    // Attends que j'appuies sur une touche quelconque avant de fermer la fen^tre
-    getch();
+    // // Attends que j'appuies sur une touche quelconque avant de fermer la fen^tre
+    // getch();
 
-    // On éteint l'interface proprement avant de quitter
-    endwin();
+    // // Ferme la fenêtre
+    // endwin();
 
     destroy_map(ma_carte);
 
