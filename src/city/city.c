@@ -53,7 +53,7 @@ void kill_city(Game* game, City* city) {
                 }
                 destroy_city(city);
                 free(to_check);
-                break;
+                return;
             }
         }
         previous = to_check;
