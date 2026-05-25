@@ -13,7 +13,7 @@ int main(void) {
 
     Building* build2 = create_building('G');
 
-    BuildList* liste = create_buildlist(build2);
+    BuildList* liste = create_buildlist(build2, NULL);
     assert(liste != NULL);
     assert(get_buildlist_data(liste) == build2);
     assert(get_buildlist_next(liste) == NULL);
