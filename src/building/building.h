@@ -27,7 +27,7 @@ void destroy_building(Building* build);
 char get_building_type(Building* build);
 void print_building(Building* build); 
 
-BuildList* create_buildlist(Building* build);
+BuildList* create_buildlist(Building* build, BuildList* next);
 void destroy_buildlist(BuildList* lst);
 void append_buildlist(BuildList* lst, Building* build);
 Building* get_buildlist_data(BuildList* lst);
