@@ -1,6 +1,7 @@
 #include "../map/map.h"
 #include "../game/game.h"
 #include <stdbool.h>
+#include <math.h>
 
 #ifndef CITY
 #define CITY
@@ -9,7 +10,7 @@
 #define FOOD_NEEDS (2*city->population)
 #define CROISSANCE_NEED ((int) ceil((20 + 10*city->population)/pow(1.5, city->basements_number)))
 #define CITY_STRENGTH (20 + 10*(city->walls_number > 0))
-#define MAX_HP (10*city->population*pow(2,city->walls_number))
+#define MAX_HP ((int) (10*city->population*pow(2,city->walls_number)))
 
 typedef struct _BuildList BuildList;
 
