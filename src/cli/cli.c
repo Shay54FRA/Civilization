@@ -139,6 +139,8 @@ static void show_city_info_cli(Game* game, Position pos) {
         printw("PV : %d / %d\n", get_city_pv(city), MAX_HP);
         printw("Population : %d villageois\n", city->population);
         printw("Force de défense : %d\n", city->strength);
+        printw("Nourriture : %d\n", city->food);
+        printw("Production : %d\n", city->production);
 
         printw("\n--- Projet ---\n\n");
         if (city->project == NULL) {
