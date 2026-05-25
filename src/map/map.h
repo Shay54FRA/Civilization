@@ -82,8 +82,10 @@ Position get_starting_city_pos(Map* map); // Renvoie la position de la ville de 
 
 int get_distance(Position pos1, Position pos2);
 void reset_exploitation(Map* map); // Remet toute les tuiles à false pour l'exploitation
+TileList* get_tiles_at_range(Map* map, Position pos, int range);
 TileList* get_exploited_tiles(Map* map, Tile* tuile, int range); 
 void mark_exploited_tiles(TileList* tile_list);
+Position dijkstra(Map* map, Position pos_start, Position pos_end);
 
 
 

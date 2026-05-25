@@ -36,8 +36,11 @@ Position* get_barb_pos(Barbarian* barb);
 Position get_nearest_target(Game* game, Barbarian* barb); 
 /* Pour les villes on prendra le min de la distance avec chacun des batiments de la ville */
 
-//Calculer la direction nécéssaire pour se rapprocher et l'applique
+//Réalise le déplacement naïf
 void move_barbarian(Game* game, Barbarian* barb, Position pos_cible); 
+
+//Calculer la direction nécéssaire pour se rapprocher et l'applique
+void action_barbarian(Game* game, Barbarian* barb, Position pos_cible);
 
 //Attaque du barbare
 int barbarian_attack(Game* game, Barbarian* barb, Position pos);

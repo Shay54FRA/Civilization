@@ -5,6 +5,7 @@
 #include "../map/map.h"
 #include "../tile/tile.h"
 #include "../configuration/configuration.h"
+#include <ncurses.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +45,7 @@ void kill_barbarian(Game* game, Barbarian* barb) {
             game->barbs_number -= 1;
             destroy_barbarian(barb);
             free(to_check);
-            break;
+            return;
         }
         previous = to_check;
         to_check = to_check->next;
@@ -121,8 +122,22 @@ Position get_nearest_target(Game* game, Barbarian* barb) {
 
 void move_barbarian(Game* game, Barbarian* barb, Position pos_cible) {
     if (game == NULL || barb == NULL || pos_cible.x < 0 || pos_cible.y < 0) return;
-    int to_reach = get_distance(pos_cible, *(get_barb_pos(barb)));
+    Tile* old_tile = get_tile(game->map, *get_barb_pos(barb));
+    Tile* new_tile = get_tile(game->map, pos_cible);
+    old_tile->barb_on = NULL;
+    new_tile->barb_on = barb;
+
+    barb->pos->x = pos_cible.x;
+    barb->pos->y = pos_cible.y;
+} 
+
+void action_barbarian(Game* game, Barbarian* barb, Position pos_cible) {
+    if (game == NULL || barb == NULL || pos_cible.x < 0 || pos_cible.y < 0) return;
+
     /* Idée 1 : tester le déplacement dans toute les directions */
+    /*
+    int to_reach = get_distance(pos_cible, *(get_barb_pos(barb)));
+    
     int test_dist;
     while (get_barb_pm(barb) > 0) {
         TileList* neighbors = get_exploited_tiles(game->map, get_tile(game->map, *(get_barb_pos(barb))), 1);
@@ -172,15 +187,38 @@ void move_barbarian(Game* game, Barbarian* barb, Position pos_cible) {
             break;
         }
     }
+    */
+    Position next_move = dijkstra(game->map, *get_barb_pos(barb), pos_cible);
+
+    int next_step = get_terrain_cost(get_tile(game->map, next_move)->biome);
+    while (get_barb_pm(barb) >= next_step) {
+        barb->pm -= next_step;
+        if (next_move.x == pos_cible.x && next_move.y == pos_cible.y) { // Combat, après un combat le tour du barbare s'arrête
+            int fight = barbarian_attack(game, barb, pos_cible);
+            if (fight == 1) {
+                move_barbarian(game, barb, next_move);
+            }
+            return;
+        } else { //Pas combat
+            move_barbarian(game, barb, next_move);
+        }
+        next_move = dijkstra(game->map, *get_barb_pos(barb), pos_cible);
+        next_step = get_terrain_cost(get_tile(game->map, next_move)->biome);
+
+        if ((next_move.x == get_barb_pos(barb)->x && next_move.y == get_barb_pos(barb)->y) || next_move.x == -1) {
+            break;
+        }
+    }
 }
 
 int barbarian_attack(Game* game, Barbarian* barb, Position pos) {
     if (game == NULL || barb == NULL) return -1;
     Tile* fighting_tile = get_tile(game->map, pos);
+    if (fighting_tile == NULL) return -1;
 
     //Cas 1 : On affronte une unité
     Unit* unit = fighting_tile->unit;
-    if (fighting_tile->unit != NULL) {
+    if (unit != NULL) {
         int dmg_to_target = barb->atk - unit->def;
         if (dmg_to_target < 1) dmg_to_target = 1;
 
@@ -190,12 +228,18 @@ int barbarian_attack(Game* game, Barbarian* barb, Position pos) {
         unit->pv -= dmg_to_target;
         barb->pv -= dmg_to_attacker;
 
-        if (barb->pv <= 0) {
+        if (barb->pv <= 0 && unit->pv <= 0) { //Entretue
+            kill_barbarian(game, barb);
+            kill_unit(game, unit);
+            return 0;
+        }
+
+        if (barb->pv <= 0) { // Le barbare uniquement meurt
             kill_barbarian(game, barb);
             return -1;
         }
 
-        if (unit->pv <= 0) {
+        if (unit->pv <= 0) { // L'unité uniquement meurt
             kill_unit(game, unit);
             return 1;
         }
@@ -214,6 +258,12 @@ int barbarian_attack(Game* game, Barbarian* barb, Position pos) {
         city->damage += dmg_to_target;
         city->has_taken_damage = true;
         barb->pv -= dmg_to_attacker;
+
+        if (get_city_pv(city) <= 0 && barb->pv <= 0) {
+            kill_barbarian(game, barb);
+            kill_city(game, city);
+            return 0;
+        }
 
         if (barb->pv <= 0) {
             kill_barbarian(game, barb);
@@ -234,12 +284,12 @@ void move_all_barbarians(Game* game) {
     if (game == NULL) return;
     BarbarianList* barb_list = game->barbarianList;
     while (barb_list != NULL) {
-        if (barb_list->data != NULL) {
-            Barbarian* barb = barb_list->data;
-            Position target_pos = get_nearest_target(game, barb);
-            move_barbarian(game, barb, target_pos);
-        }
+        Barbarian* barb = barb_list->data;
         barb_list = barb_list->next;
+        if (barb != NULL) {
+            Position target_pos = get_nearest_target(game, barb);
+            action_barbarian(game, barb, target_pos);
+        }
     }
 }
 
@@ -259,9 +309,10 @@ void spawn_all_barbarians(Game* game) {
         for (int y = 0; y < game->map->height; y++) {
             Position pos = {x,y};
             Tile* tile = get_tile(game->map, pos);
-            if (tile->camp_on && (tile->barb_on == NULL) && (tile->unit == NULL) && (game->barbs_number <= MAX_BARBS)) {
+            if (tile->camp_on && (tile->barb_on == NULL) && (tile->unit == NULL) && (game->barbs_number < MAX_BARBS)) {
                 game->barbs_number++;
                 Barbarian* new_barb = create_barbarian(pos);
+                tile->barb_on = new_barb;
                 game->barbarianList = create_barb_list(new_barb, game->barbarianList); // On le met au début de la liste
             }
         }
