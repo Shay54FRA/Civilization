@@ -73,7 +73,7 @@ void run_game_sdl(Game * game) {
     Unit* selected_unit = NULL;
     char last_message[100] = "Bienvenue dans Civ PP2ix !";
     int show_arbre_tech = 0; // arbre techno initialement pas affiché
-
+    bool show_guide_actions = false ; //fermé initialement
 
     // Chargement de tous les sprites (SDL2_gfxPrimitives)
     SDL_Texture* tex_ville = load_sprite(renderer, "src/sprites/ville.bmp");
@@ -107,6 +107,16 @@ void run_game_sdl(Game * game) {
                     if (event.key.keysym.sym == SDLK_t) {
                         show_arbre_tech = !show_arbre_tech;
                         snprintf(last_message, sizeof(last_message), "Menu arbre technologique");
+                    }
+
+                    // Activer / Masquer le guide d'actions (Touche H)
+                    if (event.key.keysym.sym == SDLK_h) {
+                        show_guide_actions = !show_guide_actions;
+                        if (show_guide_actions) {
+                            snprintf(last_message, sizeof(last_message), "Affichage du guide d'aide active.");
+                        } else {
+                            snprintf(last_message, sizeof(last_message), "Guide masque. Appuyez sur [H] pour le revoir.");
+                        }
                     }
 
                     // Passer le tour au clavier (touche F)
@@ -305,8 +315,19 @@ void run_game_sdl(Game * game) {
                         break;
                     }
 
+                    //guide d'actions / aide
+                    else if (mx >= 170 && mx <= 300 && my >= 75 && my <= 105 && !show_arbre_tech) {
+                            show_guide_actions = !show_guide_actions;
+                            if (show_guide_actions) {
+                                snprintf(last_message, sizeof(last_message), "Affichage du guide d'aide active.");
+                            } else {
+                                snprintf(last_message, sizeof(last_message), "Guide d'aide masque.");
+                            }
+                            break;
+                    }
+
                     //fin de tour
-                    if (mx >= 170 && mx <= 300 && my >= 75 && my <= 105 && !show_arbre_tech) {
+                    else if (mx >= 20 && mx <= 300 && my >= 115 && my <= 145 && !show_arbre_tech) {
 
                         // On termine le tour actuel
                         end_turn(game);
@@ -334,7 +355,7 @@ void run_game_sdl(Game * game) {
                     }
 
                     // clic sur le terrain (Seulement si l'arbre techno est fermé)
-                    if (!show_arbre_tech) {
+                    else if (!show_arbre_tech) {
                         Position nouvelle_selection = position_hexagone(mx, my, R, h, cameraX, cameraY, game);
 
                         if (nouvelle_selection.x == position_actuelle.x && nouvelle_selection.y == position_actuelle.y) {
@@ -376,6 +397,10 @@ void run_game_sdl(Game * game) {
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
     SDL_RenderClear(renderer); 
 
+    // Récupère la taille de fenêtre pour un affichage qui s'adapte en fct de la taille de la fenêtre
+    int current_w, current_h;
+    SDL_GetRendererOutputSize(renderer, &current_w, &current_h);
+
     //Dessin de la map avec la caméra
     draw_map_sdl(renderer, game, R, h, position_actuelle, cameraX, cameraY,
                 tex_ville, tex_ville_mur, tex_guerrier, tex_colon, tex_camp, tex_barbare);
@@ -383,26 +408,23 @@ void run_game_sdl(Game * game) {
     //Dessin du tableau d'affichage global
     draw_panneau_global(renderer, game);
     
-    //Affichage du panneau de guide d'actions pour la ville uniquement si on clique sur une ville
-    if (position_actuelle.x != -1 && position_actuelle.y != -1) {
-            City* selected_city = find_city_at_position(game, position_actuelle);
-            if (selected_city != NULL) {
-                draw_panneau_guide_actions(renderer, game); 
-            }
-        }
+    //Affichage du panneau de guide d'actions
+    if (show_guide_actions && !show_arbre_tech) {
+        draw_panneau_guide_actions(renderer, game); 
+    }
 
     //dessin panneau des messages 
-    draw_panneau_message_action(renderer,last_message,width);
+    draw_panneau_message_action(renderer,last_message,current_w);
 
     //dessin du panneau qui donne les infos du biome
-    draw_panneau_biome_flottant(renderer, game, position_actuelle);
+    draw_panneau_biome_flottant(renderer, game, position_actuelle, current_w);
 
     // Dessin du panneau de la tuile illuminee en bas, qui s'affiche dynamiquement
-    draw_panneau_tuile_illuminee(renderer, game, position_actuelle, width, height, selected_unit);
+    draw_panneau_tuile_illuminee(renderer, game, position_actuelle, current_w, current_h, selected_unit);
 
     // Si l'arbre techno est ouvert, on l'affiche par-dessus tout le reste
     if (show_arbre_tech) {
-        draw_panneau_arbre_tech(renderer, game, width, height);
+        draw_panneau_arbre_tech(renderer, game, current_w, current_h);
     }
 
     SDL_RenderPresent(renderer);
