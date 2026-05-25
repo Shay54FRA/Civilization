@@ -248,6 +248,7 @@ bool check_poor(Game* game) {
             int random_destroy_number = (rand() % unit_number);
             kill_nth_unit(game, random_destroy_number);
         }
+        game->gold = 0;
         return true;
     }
     game->poverty = false;

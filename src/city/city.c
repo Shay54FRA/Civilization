@@ -338,6 +338,7 @@ bool check_famine(Game* game, City* city) {
         if (city->population <= 0) {
             kill_city(game, city);
         }
+        city->food = 0;
         return true;
     }
     return false;
