@@ -8,6 +8,7 @@
 #include "../game/game.h"
 #include "../tile/tile.h"
 #include "../barbarian/barbarian.h"
+#include "../building/building.h"
 
 // Gestion des unités et des technologies dans le CLI
 #include "../unit/unit.h"
@@ -91,11 +92,11 @@ static void print_tile_info(Game* game, Position cursor) {
         printw("Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
 
     else if (tile->barb_on) {
-        printw("Contenu : Barbare | %dpv - %datk - %ddef\n", tile->barb_on->pv, tile->barb_on->atk, tile->barb_on->def);
+        printw("Contenu  : Barbare | %dpv - %datk - %ddef\n", tile->barb_on->pv, tile->barb_on->atk, tile->barb_on->def);
     }
 
-    if (tile->camp_on) {
-        printw("Contenu : Camp de barbares");
+    else if (tile->camp_on) {
+        printw("Contenu  : Camp de barbares\n");
     }
 
     else
@@ -124,6 +125,47 @@ static void print_selected_unit_info(Unit* selected_unit) {
     printw("Pos  : (%d, %d)\n", selected_unit->pos.x, selected_unit->pos.y);
 }
 
+static void show_city_info_cli(Game* game, Position pos) {
+    if (game == NULL) return;
+    Tile* tile = get_tile(game->map, pos);
+    if (tile == NULL) return;
+    City* city = get_city_on_tile(game->cityList, tile);
+    if (city == NULL) {
+        printw("Aucune ville séléctionné !\n");
+        return;
+    }
+    while(1) {
+        printw("\n==== VILLE ====\n\n");
+        printw("PV : %d / %d\n", get_city_pv(city), MAX_HP);
+        printw("Population : %d villageois\n", city->population);
+        printw("Force de défense : %d\n", city->strength);
+        printw("Nourriture : %d\n", city->food);
+        printw("Production : %d\n", city->production);
+
+        printw("\n--- Projet ---\n\n");
+        if (city->project == NULL) {
+            printw("Aucun projet en cours ! Les points de productions sont perdus à chaque tour.\n");
+        } else {
+            printw("Type : %s\n", get_name(city->project->type));
+            printw("Production nécéssaire restante : %d\n", city->project->production_cost);
+        }
+
+        printw("\n--- Batîments ---\n\n");
+        BuildList* to_check = city->buildings;
+        while(to_check != NULL) {
+            Building* build = to_check->data;
+            if (build != NULL) {
+                printw("%s\n", get_name(build->type));
+            }
+            to_check = to_check->next;
+        }
+
+        printw("\nAppuyez sur n'importe quel touche pour quitter");
+        getch();
+        return;
+
+    }
+}
 
 // Convertit le résultat d’un déplacement en message joueur
 static void move_result_to_message(MoveResult result, char* buffer, size_t size) {
@@ -205,7 +247,7 @@ void run_game_cli(Game* game) {
         print_tile_info(game, cursor);
         print_selected_unit_info(selected_unit);
 
-        printw("\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
+        printw("\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [g] Info ville | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
         printw("> ");
 
         refresh(); // CRUCIAL : Affiche tout l'écran d'un coup
@@ -269,6 +311,12 @@ void run_game_cli(Game* game) {
                 clear(); //clear le terminal
                 show_technology_menu(game);
                 snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
+                break;
+
+            case 'g':
+                clear();
+                show_city_info_cli(game, cursor);
+                snprintf(last_message, MSG_SIZE, "menu ville");
                 break;
 
             case 'f':
