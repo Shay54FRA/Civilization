@@ -7,6 +7,9 @@
 
 #define EXPLOITATION_RANGE ((city->population > 25) + (city->population > 9) + 1)
 #define FOOD_NEEDS (2*city->food)
+#define CROISSANCE_NEED ((int) ceil((20 + 10*city->population)/pow(1.5, city->basements_number)))
+#define CITY_STRENGTH (20 + 10*(city->walls_number > 0))
+#define MAX_HP (10*city->population*pow(2,city->walls_number))
 
 typedef struct _BuildList BuildList;
 
@@ -14,7 +17,7 @@ typedef struct _BuildList BuildList;
 
 typedef struct _Project {
     char type; //Minuscule pour unité, Majuscule pour batiment
-    Position pos;//Egal à l'emplacement de la caserne si unité / le projet est immobile
+    Position pos; //Position si jamais le projet est une unité
     int production_cost;
 } Project;
 
@@ -26,8 +29,10 @@ typedef struct _City {
     int strength;
     int basements_number;
     int walls_number;
+    Position pos;
     TupleRessources* new_ressources;
     bool can_produce_unit;
+    bool has_taken_damage;
     Project* project;
     BuildList* buildings;
 } City;
@@ -63,8 +68,11 @@ BuildList* get_buildings_list(City* city); //Liste chaînée des bâtiments de l
 int get_new_food(City* city);
 int get_new_prod(City* city);
 
-//Renvoie le min de la distance avec les différents batiments de la ville
+//Renvoie la position du min de la distance avec les différents batiments de la ville
 int get_distance_to_city(City* city, Position pos);
+
+//Renvoie la ville sur la tuile en question
+City* get_city_on_tile(CityList* liste_city, Tile* tile);
 
 bool end_project(Game* game, City* city);
 //Si PV <= 0 ou population <= 0 : la sortir de la CityList et la destroy
@@ -72,24 +80,28 @@ void end_city(CityList* citylist, City* city);
 
 bool croissance_check(City* city);
 
+//Par tour une ville récupère la moitié de ses PV si elle n'a pas subi de dégâts pendant ce tour
+void heal_city(City* city);
+
+void kill_city(Game* game, City* city);
+
 //===============|PROJECT|===============//
 
 
 //########## INIT ##########//
 
-Project* create_project(Position pos, char type);
+Project* create_project(char type, Position pos);
 void destroy_project(City* city);
 
 //######### GETTERS #########//
 
 char get_project_type(City* city); //Récupère le char d'identification
 char* get_project_name(City* city);
-Position get_project_pos(City* city);
 int get_production_left(City* city); //Coût de prod restant du projet de la ville
 
 //########## UTILS ##########//
 
-bool start_project(City* city, Position pos, char type); //Renvoie si un projet a été créé ou non (si un projet était déjà actif)
+bool start_project(City* city, char type, Position pos); //Renvoie si un projet a été créé ou non (si un projet était déjà actif)
 
 //==============|CITYLIST|==============//
 
@@ -106,5 +118,13 @@ CityList* get_next_city(CityList* lst);
 //########## UTILS ##########//
 
 void append_city_list(CityList* to_append, CityList* to_add);
+
+void heal_cities(CityList* city_list);
+
+void update_food(CityList* city_list);
+
+bool check_famine(Game* game, City* city);
+
+void update_croissance(Game* game);
 
 #endif

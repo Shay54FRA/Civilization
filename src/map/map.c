@@ -4,6 +4,10 @@
 
 #include "map.h"
 #include "../tile/tile.h"
+#include "../unit/unit.h"
+#include <ncurses.h>
+
+#define INF 1e7
 
 Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camps de barbares et ville de départ
 
@@ -22,25 +26,33 @@ Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camp
             Position pos = {j, i}; // X = Colonnes (largeur), Y = Lignes (hauteur)
             //Initialisation biome
             int alea = rand() % 100;
-            if (alea < 40) {      m->map[i][j] = create_tile(pos, 'P');} // 40% Plaine
-            else if (alea < 50) { m->map[i][j] = create_tile(pos, 'F');} // 10% Forêt
-            else if (alea < 60) { m->map[i][j] = create_tile(pos, 'M');} // 10% Montagne
-            else if (alea < 70) { m->map[i][j] = create_tile(pos, 'E');} // 10% Eau
-            else if (alea < 80) { m->map[i][j] = create_tile(pos, 'D');} // 10% Désert
-            else{                 m->map[i][j] = create_tile(pos, 'T');} // 20% Toundra
+            if (alea < 19) {      m->map[i][j] = create_tile(pos, 'P');} // 19% Plaine
+            else if (alea < 38) { m->map[i][j] = create_tile(pos, 'F');} // 16.5% Forêt
+            else if (alea < 54.5) { m->map[i][j] = create_tile(pos, 'M');} // 16.5% Montagne
+            else if (alea < 69.5) { m->map[i][j] = create_tile(pos, 'E');} // 15% Eau
+            else if (alea < 86) { m->map[i][j] = create_tile(pos, 'D');} // 16.5% Désert
+            else{                 m->map[i][j] = create_tile(pos, 'T');} // 16.5% Toundra
         }
     }
+
+    smooth_map(m); // 1er passage
+    smooth_map(m); // 2eme
+    smooth_map(m); // 3eme
+    smooth_map(m); // 4e
+    smooth_map(m); // 5e
+    smooth_map(m); // 6e
+
 
     // 2. PLACEMENT DE LA VILLE INITIALE
     Position start_pos = {-1, -1};
     int ville_placee = 0; 
     
     while (ville_placee == 0) {
-        int rx = rand() % width; //Méthode pas ouf de parcours aléatoire de la map pour trouver une plaine.
-        int ry = rand() % height; // Mais il y a 40% de plaine donc ça devrait en trouver une rapidement
+        int rx = rand() % width; //Méthode pas ouf de parcours aléatoire de la map pour trouver une plaine mais ça passe.
+        int ry = rand() % height; //
         
         if (m->map[ry][rx]->biome == 'P') { // Si c'est une Plaine
-            m->map[ry][rx]->city_on = true; // On valide sur la tuile
+            m->map[ry][rx]->city_on = true;
             start_pos.x = rx;
             start_pos.y = ry;               // On garde la pos en mémoire car les barbares doivent être assez éloignés de la ville de départ
             ville_placee = 1;               
@@ -59,7 +71,7 @@ Map* create_map(int width, int height, int seed, int nb_camps){ //Ajout des camp
         if (t->biome != 'E' && !t->city_on && !t->camp_on) {
             // Règle 2: Au moins 5 tuiles de distance (Tchebychev) de la ville de départ
             if (get_distance(start_pos, p) >= 5) {
-                t->camp_on = true; // On valide sur la tuile
+                t->camp_on = true;
                 camps_places++;
             }
         }
@@ -82,11 +94,10 @@ Position get_starting_city_pos(Map* map) {
 }
 
 // Le champ de vision de la carte
-#define VIEW_RADIUS 8
+#define VIEW_RADIUS 3
 
 void print_map_cli(Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
-    
 
     int start_y = cursor.y - VIEW_RADIUS;
     int end_y = cursor.y + VIEW_RADIUS;
@@ -100,14 +111,14 @@ void print_map_cli(Map* m, Position cursor) {
             
             // Pour faire un effet hexagone, on décale les lignes impaires
             if (y % 2 != 0) {
-                printf("     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
+                printw("     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
             }
 
             for (int x = start_x; x <= end_x; x++) {
                 
                 // Si la caméra regarde dans le vide (hors carte)
                 if (x < 0 || x >= m->length || y < 0 || y >= m->height) {
-                    printf("     "); // 5 espaces
+                    printw("     "); // 5 espaces
                     continue;
                 }
 
@@ -119,31 +130,19 @@ void print_map_cli(Map* m, Position cursor) {
                 if (tuile->city_on) symbol = 'V';
                 else if (tuile->unit) symbol = 'U';
                 else if (tuile->camp_on) symbol = 'C';
+                else if (tuile->barb_on) symbol = 'B';
 
-                // 2. Gestion des couleurs des cases (couleurs définies dans map.h)
-
-                    // '\x1b['   : début commande de style (couleur, police...)
-                    // '31'      : texte en rouge
-                    // ';1'      : texte en gras
-                    // 'm'       : fin ordre de style
-                    // '\x1b[30m' : permet de reset le style, je le mets à chaque fin de printf par sécurité ( COLOR RESET = "\x1b[30m" )
-
-                const char* bg = ""; // Background color
-                const char* fg = "\x1b[30;1m"; // Couleur du texte par défaut noir et gras
-                
-                if (tuile->city_on){
-                    bg = COLOR_VILLE;
-                    fg = "\x1b[31;1m"; // Texte en rouge et gras
-                }
-
+                // 2. Gestion des couleurs ncurses (couleurs définies dans mpa.h)
+                int current_color = COLOR_PLAINE;                
+                if (tuile->city_on){ current_color = COLOR_VILLE;}
                 else {
                     switch(tuile->biome) {
-                        case 'E': bg = BG_EAU; break;
-                        case 'P': bg = BG_PLAINE; break;
-                        case 'F': bg = BG_FORET; break;
-                        case 'M': bg = BG_MONTAGNE; break;
-                        case 'D': bg = BG_DESERT; break;
-                        case 'T': bg = BG_TOUNDRA; break;
+                        case 'E': current_color = COLOR_EAU; break;
+                        case 'P': current_color = COLOR_PLAINE; break;
+                        case 'F': current_color = COLOR_FORET; break;
+                        case 'M': current_color = COLOR_MONTAGNE; break;
+                        case 'D': current_color = COLOR_DESERT; break;
+                        case 'T': current_color = COLOR_TOUNDRA; break;
                     }
                 }
 
@@ -152,12 +151,18 @@ void print_map_cli(Map* m, Position cursor) {
                 if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case---
 
                     if (cursor.x == x && cursor.y == y) { //Case actuelle encadrée en rouge
-                        printf("%s\x1b[31;1m+-------+%s ", bg,COLOR_RESET);
+                        attron(COLOR_PAIR(COLOR_CURSEUR)); // attron change la couleur d'écriture
+                        printw("+-------+");
+                        attroff(COLOR_PAIR(COLOR_CURSEUR)); // attron change la couleur d'écriture
+                        printw(" ");
                     }
 
                     else {
                         // Bloc de couleur uni
-                        printf("%s         %s ", bg,COLOR_RESET);
+                        attron(COLOR_PAIR(current_color));
+                        printw("         ");
+                        attroff(COLOR_PAIR(current_color));
+                        printw(" ");
                     }
                 }
                 
@@ -165,20 +170,103 @@ void print_map_cli(Map* m, Position cursor) {
                 
                 else if (line == 1) { // --- Ligne du MILIEU (avec la lettre) ---
                     if (cursor.x == x && cursor.y == y) { 
-                        printf("%s\x1b[31;1m|%s   %c   \x1b[31;1m|%s ", bg, fg, symbol,COLOR_RESET); // Bordure rouge '|' et lettre au centre
+                        attron(COLOR_PAIR(COLOR_CURSEUR)); printw("|"); attroff(COLOR_PAIR(COLOR_CURSEUR)); // Bordure rouge '|' et lettre au centre
+                        attron(COLOR_PAIR(current_color)); printw("   %c   ", symbol); attroff(COLOR_PAIR(current_color));
+                        attron(COLOR_PAIR(COLOR_CURSEUR)); printw("|"); attroff(COLOR_PAIR(COLOR_CURSEUR));
+                        printw(" ");
                     }
                     else {
-                        printf("%s%s    %c    %s ", bg, fg, symbol,COLOR_RESET); // Affichage case sur 9 de large
+                        attron(COLOR_PAIR(current_color));
+                        printw("    %c    ", symbol); // 4 espaces, char, 4 espaces, affichage sur 9 cases de large
+                        attroff(COLOR_PAIR(current_color));
+                        printw(" ");
                     }
                 }
             }
-            printf("\n"); // On passe à la ligne suivante du terminal
+            printw("\n"); // On passe à la ligne suivante du terminal
         }
-        printf("\n"); // On ajoute un espace vertical entre chaque rangée de cases
+        printw("\n"); // On ajoute un espace vertical entre chaque rangée de cases
     }
-    printf("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
+    printw("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
 
+char int_to_biome(int k){
+    switch (k)
+    {
+    case 0: return 'E';
+    case 1: return 'P';
+    case 2: return 'F';
+    case 3: return 'M';
+    case 4: return 'D';
+    case 5: return 'T';
+    default: return 'P'; //J'évite les warning "non-void function does not return a value in all control paths"
+    }
+}
+
+int biome_to_int(char k){
+    switch (k)
+    {
+    case 'E': return 0;
+    case 'P': return 1;
+    case 'F': return 2;
+    case 'M': return 3;
+    case 'D': return 4;
+    case 'T': return 5;
+    default: return 1; //J'évite les warning "non-void function does not return a value in all control paths"
+    }
+}
+
+
+void smooth_map(Map* m) { // Principe d'automate cellulaire très simple
+    if (m == NULL) return;
+
+    // 1. On crée une grille temporaire pour stocker les nouveaux biomes
+    char temp_biomes[m->height][m->length];
+
+    // 2. On parcourt toute la carte
+    for (int y = 0; y < m->height; y++) {
+        for (int x = 0; x < m->length; x++) {
+
+            // On a 6 biomes : P,F,M,E,D,T
+            int counts[6] = {0}; // Tableau de compteurs des 6 biomes possibles
+            
+            // 3. On inspecte les 8 voisins (et la case elle-même)
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    int nx = x + dx;
+                    int ny = y + dy;
+                    
+                    // On vérifie qu'on ne sort pas des limites de la carte
+                    if (nx >= 0 && nx < m->length && ny >= 0 && ny < m->height) {
+                        char biome_voisin = m->map[ny][nx]->biome;
+                        counts[biome_to_int(biome_voisin)]++;
+                        }
+                    }
+                }
+
+            // 4. On cherche quel est le biome majoritaire autour de cette case
+            char biome_majoritaire = m->map[y][x]->biome; // Par défaut, on garde le biome actuel
+            int max_count = 0;
+
+            for (int i = 0; i < 6; i++) {
+                if (counts[i] > max_count) {
+                    max_count = counts[i];
+                    biome_majoritaire = int_to_biome(i);
+                }
+            }
+
+            // On sauvegarde le résultat dans notre grille temporaire
+            temp_biomes[y][x] = biome_majoritaire;
+        }
+    }
+
+    // 5. Une fois que toute la carte a été calculée, on applique les modifications
+    for (int y = 0; y < m->height; y++) {
+        for (int x = 0; x < m->length; x++) {
+            m->map[y][x]->biome = temp_biomes[y][x];
+        }
+    }
+}
 
 void destroy_map(Map* m) {
     if (m != NULL) {
@@ -195,13 +283,19 @@ void destroy_map(Map* m) {
     }
 }
 
-
-
-/*
-void print_pos(Position pos) {
-    printf("Position : (%d, %d)", pos.x, pos.y);
+Position* create_position(int x, int y) {
+    Position* pos = malloc(sizeof(Position));
+    if (pos == NULL) return NULL;
+    pos->x = x;
+    pos->y = y;
+    return pos;
 }
-*/
+
+void destroy_position(Position* pos) {
+    if (pos != NULL) {
+        free(pos);
+    }
+}
 
 int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
     //On convertit les points dans un système de coordonnées approprié
@@ -216,33 +310,144 @@ int get_distance(Position pos1, Position pos2){ //Distance de Tchebychev
     return (abs(q1 - q2) + abs(r1 - r2) + abs(s1 - s2)) / 2;
 }
 
+//Dijkstra qui permet de renvoyer la position sur laquel se déplacer
+Position dijkstra(Map* map, Position pos_start, Position pos_end) {
+    int width = map->length;
+    int height = map->height;
+    int dist[width][height];
+    bool visited[width][height];
+    Position parent[width][height];
+
+    // Initialisation de la grille
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            dist[x][y] = INF;
+            visited[x][y] = false;
+            parent[x][y] = (Position){-1, -1};
+        }
+    }
+
+    dist[pos_start.x][pos_start.y] = 0;
+    for (int count = 0; count < width * height; count++) {
+        // 1. Trouver le nœud non visité avec la distance minimale
+        int min_dist = INF;
+        Position u = {-1, -1};
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!visited[x][y] && dist[x][y] < min_dist) {
+                    min_dist = dist[x][y];
+                    u = (Position){x, y};
+                }
+            }
+        }
+
+        // Si on ne trouve plus de nœud accessible ou si on a atteint la destination
+        if (u.x == -1 || (u.x == pos_end.x && u.y == pos_end.y)) {
+            break;
+        }
+
+        visited[u.x][u.y] = true;
+        // 2. Mettre à jour les distances des 6 voisins hexagonaux
+        TileList* every_voisins = get_tiles_at_range(map, u, 1);
+        TileList* voisins = every_voisins;
+        while (voisins != NULL) {
+            Tile* tile = voisins->data;
+            if (tile != NULL) {
+                Position pos_voisin = tile->pos;
+                int v_x = pos_voisin.x;
+                int v_y = pos_voisin.y;
+                if (!visited[v_x][v_y]) {
+                    int weight = get_terrain_cost(tile->biome);
+                    if (tile->barb_on != NULL || tile->camp_on) {
+                        weight = 999;
+                    }
+                
+                    if (dist[u.x][u.y] + weight < dist[v_x][v_y]) {
+                        dist[v_x][v_y] = dist[u.x][u.y] + weight;
+                        parent[v_x][v_y] = u;
+                    }
+                }
+            }
+            voisins = voisins->next;
+        }
+        destroy_tilelist(every_voisins);
+    }
+
+    Position next_step = pos_start;
+
+    // On vérifie d'abord si la destination a bien un parent valide (chemin trouvé)
+    if (parent[pos_end.x][pos_end.y].x != -1) {
+        Position curr = pos_end;
+        // On remonte jusqu'à trouver la case juste après pos_start
+        while (curr.x != -1 && curr.y != -1) {
+            Position p = parent[curr.x][curr.y];
+            if (p.x == pos_start.x && p.y == pos_start.y) {
+                next_step = curr;
+                break;
+            }
+            curr = p;
+        }
+    }
+
+    return next_step;
+}
+
 void reset_exploitation(Map* map) {
     if (map == NULL) return;
     for (int x = 0; x < map->length; x++) {
         for (int y = 0; y < map->height; y++) {
             Position pos = {x,y};
             Tile* tile = get_tile(map, pos);
-            tile->exploited = false;
+            if (tile != NULL) tile->exploited = false;
         }
     }
 }
 
-TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
-    Position pos = tuile->pos;
+void mark_exploited_tiles(TileList* tile_list) {
+    TileList* to_check = tile_list;
+    while(to_check != NULL) {
+        Tile* tile = to_check->data;
+        if (tile != NULL) {
+            tile->exploited = true;
+        }
+        to_check = to_check->next;
+    }
+}
+
+TileList* get_tiles_at_range(Map* map, Position pos, int range) {
     if (map != NULL) {
         TileList* rep = create_tilelist(NULL);
-        for (int x = pos.x-range; x<=pos.x+range; x++) {
-            for (int y = pos.y-range; y<=pos.y+range; y++) {
+        for (int x = pos.x - range; x <= pos.x + range; x++) {
+            for (int y = pos.y - range; y <= pos.y + range; y++) {
                 if (x >= 0 && x < map->length && y >= 0 && y < map->height) {
                     Tile* new_tile = map->map[y][x];
-                    Position new_pos = {x,y};
-                    if (get_distance(pos, new_pos) == range && !(new_tile->exploited)) {
-                        new_tile->exploited = true;
+                    Position new_pos = {x, y};
+                    if (get_distance(pos, new_pos) == range) {
                         append_tilelist(rep, new_tile);
                     }
                 }
             }
         }
+        return rep;
+    }
+    return NULL;
+}
+
+TileList* get_exploited_tiles(Map* map, Tile* tuile, int range) {
+    Position pos = tuile->pos;
+    if (map != NULL) {
+        TileList* all_tiles = get_tiles_at_range(map, pos, range);
+        TileList* rep = create_tilelist(NULL);
+        TileList* current = all_tiles;
+        while (current != NULL) {
+            Tile* t = current->data;
+            if (t != NULL && !t->exploited) {
+                append_tilelist(rep, t);
+            }
+            current = current->next;
+        }
+        destroy_tilelist(all_tiles);
         return rep;
     }
     return NULL;

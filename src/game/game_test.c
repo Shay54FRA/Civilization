@@ -19,19 +19,13 @@ int main(void){
     Configuration* config = create_configuration(20, 30, 1000, 100, 3, 0);
     Game* game = create_game(config);
 
-    City* city = create_city(game->starting_point);
-    CityList* liste_villes = malloc(sizeof(CityList));
-    liste_villes->city = city;
-    liste_villes->next = NULL;
-    game->cityList = liste_villes;
-
     print_map_cli(game->map, game->starting_point);
     
     give_all_bonuses(game);
     printf("Gold : %d\n", game->gold);
     printf("Science : %d\n", game->science);
-    printf("Food : %d\n", city->food);
-    printf("Prod : %d\n", city->production);
+    printf("Food : %d\n", game->cityList->city->food);
+    printf("Prod : %d\n", game->cityList->city->production);
 
     destroy_game(game);
 

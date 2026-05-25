@@ -4,17 +4,14 @@
 #include <assert.h>
 
 
-int main(void) {
-    Position pos = {0,0};   
-    Building* build1 = create_building('C', pos);
+int main(void) {   
+    Building* build1 = create_building('C');
     assert(build1 != NULL);
     assert(get_building_type(build1) == 'C');
-    assert(get_building_pos(build1).x == 0);
-    assert(get_building_pos(build1).y == 0);
     printf("Etat de build1 -> ");
     print_building(build1);
 
-    Building* build2 = create_building('G', pos);
+    Building* build2 = create_building('G');
 
     BuildList* liste = create_buildlist(build2);
     assert(liste != NULL);

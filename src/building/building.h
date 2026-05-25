@@ -15,7 +15,6 @@ R : Rempart/Muraille = Double PV ville                       ||      2      ||  
 
 typedef struct _Building {
     char type;
-    Position pos; //Pas de pointeur parce que la position d'un batîment ne changera jamais (normalement !?)
 } Building;
 
 typedef struct _BuildList { 
@@ -23,10 +22,9 @@ typedef struct _BuildList {
     struct _BuildList* next;
 } BuildList;
 
-Building* create_building(char type, Position pos);
+Building* create_building(char type);
 void destroy_building(Building* build);
 char get_building_type(Building* build);
-Position get_building_pos(Building* build);
 void print_building(Building* build); 
 
 BuildList* create_buildlist(Building* build);

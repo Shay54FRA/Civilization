@@ -249,17 +249,12 @@ void run_game_sdl(Game * game) {
 
                     //fin de tour
                     if (mx >= 170 && mx <= 300 && my >= 75 && my <= 105 && !show_arbre_tech) {
+
                         // On termine le tour actuel
-                        end_turn(game);
-
-                        // On initialise le nouveau tour (Calcule l'or, science, nourriture, projets, croissance et famine)
-                        start_turn(game);
-
-                        // Maintenance de l'interface graphique
-                        reset_all_pm(game->unitList); // Réinitialise les mouvements du joueur pour le nouveau tour
-                        game->active_turn++;          // Passage officiel au tour suivant
-
-                        snprintf(last_message, sizeof(last_message), "Tour %d : Revenus percus, production allouee et tuiles rafraichies !", game->active_turn);
+                        int game_result = end_turn(game);
+                        /* A compléter : traiter game_result pour savoir s'il y a victoire/défaite */
+                        game->active_turn++;
+                        snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees et population mise a jour !", game->active_turn);
                     }
 
                     // clic sur le terrain (Seulement si l'arbre techno est fermé)

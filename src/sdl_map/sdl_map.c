@@ -14,7 +14,9 @@
 
 // Fonction pour trouver la ville correspondente en fct de la position sur la carte
 City* find_city_at_position(Game* game, Position pos) {
-    CityList* current = game->cityList; 
+    Tile* tile = get_tile(game->map, pos);
+    return get_city_on_tile(game->cityList, tile); //Fonction simplifiant grandement ce travail
+    /*CityList* current = game->cityList; 
 
     while (current != NULL) {
 
@@ -39,11 +41,12 @@ City* find_city_at_position(Game* game, Position pos) {
         current = get_next_city(current);
     }
     return NULL;
+    */
 }
 
 
 // Détecte si un bâtiment est construit sur une case précise
-char get_building_type_at(Game* game, Position pos) {
+/*char get_building_type_at(Game* game, Position pos) {
     CityList* c_list = game->cityList;
     while (c_list != NULL) {
 
@@ -65,10 +68,11 @@ char get_building_type_at(Game* game, Position pos) {
         c_list = get_next_city(c_list);
     }
     return '\0'; // Aucun bâtiment ici
-}
+}*/
 
 
 // Détecte si un projet de bâtiment en construction cible cette case
+/*
 char get_project_building_at(Game* game, Position pos) {
     CityList* c_list = game->cityList;
     while (c_list != NULL) {
@@ -83,6 +87,7 @@ char get_project_building_at(Game* game, Position pos) {
     }
     return '\0';
 }
+*/
 
 SDL_Color get_biome_color(char biome) {
     switch (biome) {
@@ -156,7 +161,7 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
                     Building* b = get_buildlist_data(blist);
 
                     if (b != NULL) {
-                        Position city_center = get_building_pos(b);
+                        Position city_center = selected_city->pos;
 
                         if (get_distance(city_center, tuile->pos) <= 2) { 
                             Sint16 vx_exploit[6] = {x, x + h, x + h, x, x - h, x - h};
@@ -201,6 +206,7 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
             }
             
             // Dessin des Bâtiments Annexes (Murailles isolées ou Bâtiments terminés/en cours)
+            /*
             else {
                 char b_type = get_building_type_at(game, tuile->pos);
                 char p_type = get_project_building_at(game, tuile->pos);
@@ -214,6 +220,7 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
                     if (tex_bat_const) SDL_RenderCopy(renderer, tex_bat_const, NULL, &dstRect);
                 }
             }
+            */
 
             // Dessin de l'unité
             if (tuile->unit != NULL) {
