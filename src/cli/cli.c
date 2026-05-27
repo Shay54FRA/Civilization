@@ -18,9 +18,13 @@
 #include "../technology/technology_cli.h"
 
 WINDOW *win_map, *win_info, *win_hud; //Permet de créer plusieurs fenêtres ncurses en même temps
+WINDOW *in_map, *in_info, *in_hud; //Je crée des sous-fenêtres pour écrire dedans
 
 void setup_windows(void) { //Je crée cette fonction pour refresh l'affichage des fenêtres CLI si elles sont bug et qu'on change la taille du terminal avec ./civ
     // 1. Détruire les anciennes fenêtres si elles existent (pour libérer la mémoire)
+    if (in_map != NULL) delwin(in_map);
+    if (in_hud != NULL) delwin(in_hud);
+    if (in_info != NULL) delwin(in_info);
     if (win_map != NULL) delwin(win_map);
     if (win_hud != NULL) delwin(win_hud);
     if (win_info != NULL) delwin(win_info);
@@ -34,12 +38,13 @@ void setup_windows(void) { //Je crée cette fonction pour refresh l'affichage de
     win_map = newwin(top_height, (w * 7) / 10, 0, 0);
     win_hud = newwin(top_height, (w * 3) / 10, 0, (w * 7) / 10);
     win_info = newwin(footer_height, w, top_height, 0);
+    
+    // 4. Créer les sous-fenêtres de CONTENU (décalées de 1 en X et Y pour éviter d'écrire sur les bordures)
+    // derwin(parent, hauteur, largeur, position_y, position_x)
+    in_map = derwin(win_map, top_height - 2, ((w * 7) / 10) - 2, 1, 1);
+    in_hud = derwin(win_hud, top_height - 2, ((w * 3) / 10) - 2, 1, 1);
+    in_info = derwin(win_info, footer_height - 2, w - 2, 1, 1);
 
-    box(win_map, 0, 0);
-    box(win_hud, 0, 0);
-    box(win_info, 0, 0);
-
-    refresh();
 }
 
 void init_ncurses_interface(void) {
@@ -58,6 +63,8 @@ void init_ncurses_interface(void) {
 
     if (has_colors()) {
         start_color();
+        use_default_colors();
+
         init_pair(COLOR_EAU, COLOR_BLACK, COLOR_BLUE); //Les couleurs de bg et fg sont forcément définies par pairs avec ncurses
         init_pair(COLOR_PLAINE, COLOR_BLACK, COLOR_GREEN);
         init_pair(COLOR_FORET, COLOR_WHITE, COLOR_GREEN);
@@ -65,7 +72,7 @@ void init_ncurses_interface(void) {
         init_pair(COLOR_DESERT, COLOR_BLACK, COLOR_YELLOW);
         init_pair(COLOR_TOUNDRA, COLOR_BLACK, COLOR_CYAN);
         init_pair(COLOR_VILLE, COLOR_WHITE, COLOR_MAGENTA);
-        init_pair(COLOR_CURSEUR, COLOR_RED, COLOR_BLACK);
+        init_pair(COLOR_CURSEUR, COLOR_RED, -1); // -1 = transparent
     }
 }
 
@@ -146,29 +153,34 @@ void run_game_cli(Game* game) {
         werase(win_map);
         box(win_map, 0, 0);
         mvwprintw(win_map, 0, 2, " CARTE ");
-        wprintw(win_map,"\n");
-        print_map_cli(win_map,game->map, cursor);
+        wmove(in_map, 0, 0); //Réinitialise position curseur
+        print_map_cli(in_map,game->map, cursor);
+        touchwin(win_map); //Juste par sécurité
         wrefresh(win_map);
         
         //BOXE 2 : Affichage des infos générales
         werase(win_info);
         box(win_info, 0, 0);
         mvwprintw(win_info, 0, 2, " Infos générales ");
-        print_stats(win_info,game); // Affichage des stats ()
-        wprintw(win_info,"Message : %s\n", last_message); // Affichage du dernier message d’action
-        print_action_help(win_info); // Affichage des commandes
+        wmove(in_info, 0, 0); //Réinitialise position curseur
+        print_stats(in_info,game); // Affichage des stats ()
+        wprintw(in_info,"Message : %s\n", last_message); // Affichage du dernier message d’action
+        print_action_help(in_info); // Affichage des commandes
+        touchwin(win_info); //Juste par sécurité
         wrefresh(win_info);
 
         //BOXE 3 : Affichage info case/unité sélectionné
         werase(win_hud);
         box(win_hud, 0, 0);
         mvwprintw(win_hud, 0, 2, " Infos case ");
-        print_tile_info(win_hud,game, cursor);
-        print_selected_unit_info(win_hud,selected_unit);
+        wmove(in_hud, 0, 0); //Réinitialise position curseur
+        print_tile_info(in_hud,game, cursor);
+        print_selected_unit_info(in_hud,selected_unit);
         Tile* tile_sous_curseur = get_tile(game->map, cursor);
         if (tile_sous_curseur != NULL && tile_sous_curseur->city_on) {
             show_city_info_cli(win_hud,game,cursor); //Affichage automatique des infos de la ville
         }
+        touchwin(win_hud); //Juste par sécurité
         wrefresh(win_hud);
         
 
