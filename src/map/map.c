@@ -94,7 +94,8 @@ Position get_starting_city_pos(Map* map) {
 }
 
 // Le champ de vision de la carte
-#define VIEW_RADIUS 4
+#define VIEW_RADIUS_X 6
+#define VIEW_RADIUS_Y 4
 
 void print_map_cli(WINDOW* win,Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
@@ -105,30 +106,30 @@ void print_map_cli(WINDOW* win,Map* m, Position cursor) {
     int end_y = 0;
 
     
-    if(cursor.y < VIEW_RADIUS){
+    if(cursor.y < VIEW_RADIUS_Y){
         start_y = 0;
-        end_y = 2*VIEW_RADIUS;
+        end_y = 2*VIEW_RADIUS_Y;
     }
-    else if(cursor.y > (m->height-VIEW_RADIUS) ){
-        start_y = m->height-2*VIEW_RADIUS-1 ;;
+    else if(cursor.y > (m->height-VIEW_RADIUS_Y) ){
+        start_y = m->height-2*VIEW_RADIUS_Y-1 ;;
         end_y = m->height - 1;
     }
     else{ //(cursor.y >= VIEW_RADIUS || cursor.y <= m->height-VIEW_RADIUS)
-        start_y = cursor.y - VIEW_RADIUS;
-        end_y = cursor.y + VIEW_RADIUS;
+        start_y = cursor.y - VIEW_RADIUS_Y;
+        end_y = cursor.y + VIEW_RADIUS_Y;
     }
 
-    if(cursor.x<VIEW_RADIUS){
+    if(cursor.x<VIEW_RADIUS_X){
         start_x = 0;
-        end_x = 2*VIEW_RADIUS;
+        end_x = 2*VIEW_RADIUS_X;
     }
-    else if(cursor.x > (m->length-VIEW_RADIUS) ){
-        start_x = m->length-2*VIEW_RADIUS-1 ;
+    else if(cursor.x > (m->length-VIEW_RADIUS_X) ){
+        start_x = m->length-2*VIEW_RADIUS_X-1 ;
         end_x = m->length - 1;
     }
     else{ //(cursor.x >= VIEW_RADIUS || cursor.x <= m->length-VIEW_RADIUS)
-        start_x = cursor.x - VIEW_RADIUS;
-        end_x = cursor.x + VIEW_RADIUS;
+        start_x = cursor.x - VIEW_RADIUS_X;
+        end_x = cursor.x + VIEW_RADIUS_X;
     }
 
     for (int y = start_y; y <= end_y; y++) {

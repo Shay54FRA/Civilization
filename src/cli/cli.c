@@ -31,7 +31,7 @@ void setup_windows(void) { //Je crée cette fonction pour refresh l'affichage de
 
     // 2. Récupérer les NOUVELLES dimensions du terminal
     int h = LINES, w = COLS;
-    int footer_height = 13; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
+    int footer_height = 11; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
     int top_height = h - footer_height;
 
     // 3. Recréer les fenêtres aux bonnes dimensions
