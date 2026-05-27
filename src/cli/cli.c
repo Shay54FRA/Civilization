@@ -46,11 +46,11 @@ void init_ncurses_interface(void) {
     initscr(); //lance l'affichage ncurses           
     cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                              
     keypad(stdscr, TRUE); //Permet de détecter le changement de taille du terminal ainsi que d'ajouter des touches comme les flèches du claiver par exemple.
-    // --- TEST DE SÉCURITÉ ---
-    // Si le terminal fait moins de 20 lignes ou 80 colonnes, on bloque
+    
+    // Vérifier que le terminal est assez grand avant de lancer l'affichage CLI pour éviter trop de bugs graphiques
     if (LINES < 30 || COLS < 80) {
         endwin(); // On ferme proprement ncurses
-        printf("Erreur : Terminal trop petit ! Veuillez agrandir la fenêtre (min 80x20).\n");
+        printf("Erreur : Terminal trop petit ! Veuillez agrandir la fenêtre \n");
         exit(1); 
     }
 
