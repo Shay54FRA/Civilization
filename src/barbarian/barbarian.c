@@ -36,7 +36,8 @@ void kill_barbarian(Game* game, Barbarian* barb) {
     while (to_check != NULL) {
         if (to_check->data == barb) { // On a trouvé le barbare en question
             Tile* tile = get_tile(game->map, *(barb->pos));
-            tile->barb_on = NULL;
+            if (tile != NULL)
+                tile->barb_on = NULL;
             if (previous == NULL) {
                 game->barbarianList = to_check->next;
             } else {
@@ -328,4 +329,27 @@ void reset_all_barbs_pm(BarbarianList* barb_list) {
         }
         to_check = to_check->next;
     }
+}
+
+Barbarian* get_barbarian_at(Game* game, Position pos)
+{
+    if (game == NULL) return NULL;
+
+    BarbarianList* current = game->barbarianList;
+
+    // Les barbares ne sont pas stockés directement dans les tuiles :
+    // on parcourt donc leur liste pour voir si l'un d'eux occupe la position demandée.
+    while (current != NULL) {
+        Barbarian* barb = current->data;
+
+        if (barb != NULL && barb->pos != NULL &&
+            barb->pos->x == pos.x &&
+            barb->pos->y == pos.y) {
+            return barb;
+        }
+
+        current = current->next;
+    }
+
+    return NULL;
 }

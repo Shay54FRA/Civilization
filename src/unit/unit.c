@@ -3,6 +3,7 @@
 #include "../tile/tile.h"
 #include "../technology/technology.h"
 #include "../building/building.h"
+#include "../barbarian/barbarian.h"
 #include <stdlib.h>
 
 int get_terrain_cost(char biome)
@@ -222,12 +223,70 @@ MoveResult move_unit_step(Game* game, Unit* unit, Position dest)
     if (unit->pm < cost)
         return MOVE_NOT_ENOUGH_PM;
 
-    /*
-     * Ici, dest_tile->unit représente une unité du joueur.
-     * Les barbares sont dans leur propre module, donc on ne combat pas ici.
-     */
     if (dest_tile->unit != NULL)
         return MOVE_ALLY_OCCUPIED;
+
+    /*
+     * Les unités du joueur sont stockées directement dans les tuiles,
+     * mais les barbares sont gérés dans une liste séparée.
+     * Avant de faire un déplacement classique, on vérifie donc si la case cible
+     * contient un barbare : dans ce cas, le déplacement devient une attaque.
+     */
+    Barbarian* barb = get_barbarian_at(game, dest);
+
+    if (barb != NULL) {
+        if (unit->atk <= 0)
+            return MOVE_ATTACK_FORBIDDEN;
+
+        int dmg_to_target = unit->atk - barb->def;
+        if (dmg_to_target < 1)
+            dmg_to_target = 1;
+
+        int dmg_to_attacker = barb->atk - unit->def;
+        if (dmg_to_attacker < 0)
+            dmg_to_attacker = 0;
+
+        barb->pv -= dmg_to_target;
+        unit->pv -= dmg_to_attacker;
+
+        // Attaquer consomme les points de mouvement nécessaires pour atteindre la case.
+        unit->pm -= cost;
+
+        /*
+         * Si les deux combattants meurent, on les retire tous les deux.
+         * L'unité ne peut évidemment pas occuper la case après le combat.
+         */
+        if (barb->pv <= 0 && unit->pv <= 0) {
+            kill_barbarian(game, barb);
+            kill_unit(game, unit);
+            return MOVE_ATTACKER_DEAD;
+        }
+
+        // Si seule l'unité meurt, le barbare reste en place.
+        if (unit->pv <= 0) {
+            kill_unit(game, unit);
+            return MOVE_ATTACKER_DEAD;
+        }
+
+        /*
+         * Si le barbare meurt et que l'unité survit, l'unité prend sa place :
+         * c'est le même comportement qu'un déplacement vers une case libérée.
+         */
+        if (barb->pv <= 0) {
+            kill_barbarian(game, barb);
+
+            Tile* current_tile = get_tile(game->map, unit->pos);
+            if (current_tile) current_tile->unit = NULL;
+
+            dest_tile->unit = unit;
+            unit->pos = dest;
+
+            return MOVE_COMBAT_WIN;
+        }
+
+        // Le barbare a survécu : l'unité a attaqué mais ne se déplace pas.
+        return MOVE_COMBAT_BLOCKED;
+    }
 
     Tile* current_tile = get_tile(game->map, unit->pos);
     if (current_tile) current_tile->unit = NULL;
