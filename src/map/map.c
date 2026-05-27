@@ -94,8 +94,8 @@ Position get_starting_city_pos(Map* map) {
 }
 
 // Le champ de vision de la carte
-#define VIEW_RADIUS_X 6
-#define VIEW_RADIUS_Y 4
+#define VIEW_RADIUS_X 4
+#define VIEW_RADIUS_Y 3
 
 void print_map_cli(WINDOW* win,Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;

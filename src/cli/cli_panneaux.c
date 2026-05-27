@@ -166,7 +166,7 @@ void print_stats(WINDOW* win,Game* game) {
 
 void print_action_help(WINDOW* win) {
 
-    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
+    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | \n[v] Fonder ville | [t] Technologies | [r] Projets de ville | [f] Fin de tour | [x] Quitter\n");
     wprintw(win,"> ");
 
 }

@@ -9,11 +9,8 @@
 #include "../tile/tile.h"
 #include "../barbarian/barbarian.h"
 #include "../building/building.h"
-<<<<<<< HEAD
 #include "cli_panneaux.h"
-=======
 #include "../city/city.h"
->>>>>>> 5093143 (menu des projets)
 
 // Gestion des unités et des technologies dans le CLI
 #include "../unit/unit.h"
@@ -137,6 +134,51 @@ void end_game_cli(WINDOW* win,Game* game, int end_code) {
     getch();
 }
 
+void show_city_project_menu(Game* game, City* city) {
+    if (city == NULL) return;
+    if (city->project != NULL) return;
+    char choix;
+    while (1) {
+        printw("\n===== CHOIX DU PROJET =====\n");
+        if (city->can_produce_unit)  {
+            printw("\n---- UNIT ----\n\n");
+            printw("-> %s [c] - %d production - %d or/tour [ 10pv - 0atk - 1déf - 2pm]\n", get_name('c'), get_cost('c'), get_entretien_cost('c'));
+            if (is_unit_unlocked(game->tech_tree, 'g')) {
+                printw("-> %s [c] - %d production - %d or/tour [ 15pv - 3atk - 2déf - 3pm]\n", get_name('g'), get_cost('g'), get_entretien_cost('g'));
+            }
+        }
+        printw("\n---- BUILDING ----\n\n");
+        printw("-> %s [G] - %d production - %d or/tour : +3 food/tour et coût en nourriture de croissance/1.5\n", get_name('G'), get_cost('G'), get_entretien_cost('G'));
+        printw("-> %s [A] - %d production - %d or/tour : +3 prod/tour\n", get_name('A'), get_cost('A'), get_entretien_cost('A'));
+        printw("-> %s [C] - %d production - %d or/tour : Débloque la possibilité de fonder des unités\n", get_name('C'), get_cost('C'), get_entretien_cost('C'));
+        if (is_building_unlocked(game->tech_tree, 'B')) {
+            printw("-> %s [B] - %d production - %d or/tour : +4 science/tour\n", get_name('B'), get_cost('B'), get_entretien_cost('B'));
+        }
+        if (is_building_unlocked(game->tech_tree, 'M')) {
+            printw("-> %s [M] - %d production - %d or/tour : +3 gold/tour\n", get_name('M'), get_cost('M'), get_entretien_cost('M'));
+        }
+        if (is_building_unlocked(game->tech_tree, 'R')) {
+            printw("-> %s [R] - %d production - %d or/tour : pv x2 et force de la ville +10\n", get_name('R'), get_cost('R'), get_entretien_cost('R'));
+        }
+
+        printw("\n\n\n\n\nPour commencer un projet entrez n'importe lequel des boutons encadrés [..], et n'importe quel autre pour quitter : ");
+        choix = getch();
+        if (city->can_produce_unit) {
+            if (choix == 'c') {
+                start_project(city, choix, city->pos);
+            }
+            if (choix == 'g' && is_unit_unlocked(game->tech_tree, 'g')) {
+                start_project(city, choix, city->pos);
+            }
+        }
+        if (choix == 'M' && is_building_unlocked(game->tech_tree, 'M')) start_project(city, choix, city->pos);
+        else if (choix == 'B' && is_building_unlocked(game->tech_tree, 'B')) start_project(city, choix, city->pos);
+        else if (choix == 'R' && is_building_unlocked(game->tech_tree, 'R')) start_project(city, choix, city->pos);
+        else if (choix == 'G' || choix == 'C' || choix == 'A') start_project(city, choix, city->pos);
+        return;
+    }
+}
+
 void run_game_cli(Game* game) {
     init_ncurses_interface(); // DÉMARRAGE DE NCURSES
 
@@ -253,6 +295,24 @@ void run_game_cli(Game* game) {
                 show_technology_menu(game);
                 snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
                 break;
+
+            case 'r':
+                Tile* tile = get_tile(game->map, cursor);
+                if (!tile->city_on) {
+                    snprintf(last_message, MSG_SIZE, "Tu n'es pas sur une ville !");
+                    break;
+                } else {
+                    City* city = get_city_on_tile(game->cityList, tile);
+                    if (city->project != NULL) {
+                        snprintf(last_message, MSG_SIZE, "Un projet est déjà lancé !");
+                        break;
+                    } else {
+                        clear();
+                        show_city_project_menu(game, city);
+                        snprintf(last_message, MSG_SIZE, "Retour menu ville");
+                        break;
+                    }
+                }
 
             case 'f':
                 wprintw(win_info,"Passage au tour suivant...\n");
