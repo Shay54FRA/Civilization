@@ -238,12 +238,6 @@ void run_game_cli(Game* game) {
                 snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
                 break;
 
-            case 'g':
-                clear();
-                show_city_info_cli(win_info,game, cursor);
-                snprintf(last_message, MSG_SIZE, "menu ville");
-                break;
-
             case 'f':
                 wprintw(win_info,"Passage au tour suivant...\n");
                 int game_result = end_turn(game);

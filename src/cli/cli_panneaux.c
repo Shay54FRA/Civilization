@@ -124,7 +124,6 @@ void show_city_info_cli(WINDOW* win,Game* game, Position pos) {
         to_check = to_check->next;
     }
 
-    wprintw(win,"\nAppuyez sur n'importe quel touche pour quitter");
     return;
 
 }
@@ -165,7 +164,7 @@ void print_stats(WINDOW* win,Game* game) {
 
 void print_action_help(WINDOW* win) {
 
-    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [g] Info ville | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
+    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
     wprintw(win,"> ");
 
 }
