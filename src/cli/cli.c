@@ -27,7 +27,7 @@ void setup_windows(void) { //Je crée cette fonction pour refresh l'affichage de
 
     // 2. Récupérer les NOUVELLES dimensions du terminal
     int h = LINES, w = COLS;
-    int footer_height = 10; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
+    int footer_height = 13; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
     int top_height = h - footer_height;
 
     // 3. Recréer les fenêtres aux bonnes dimensions
@@ -68,9 +68,6 @@ void init_ncurses_interface(void) {
         init_pair(COLOR_CURSEUR, COLOR_RED, COLOR_BLACK);
     }
 }
-
-// Le champ de vision de la carte
-#define VIEW_RADIUS 6
 
 // Taille maximale du message affiché dans le HUD
 #define MSG_SIZE 256
