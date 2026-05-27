@@ -99,6 +99,7 @@ void show_city_info_cli(WINDOW* win,Game* game, Position pos) {
         wprintw(win,"Aucune ville séléctionné !\n");
         return;
     }
+    wattron(win,COLOR_PAIR(COLOR_VILLE));
     wprintw(win,"\n==== VILLE ====\n\n");
     wprintw(win,"PV : %d / %d\n", get_city_pv(city), MAX_HP);
     wprintw(win,"Population : %d villageois\n", city->population);
@@ -124,6 +125,7 @@ void show_city_info_cli(WINDOW* win,Game* game, Position pos) {
         to_check = to_check->next;
     }
 
+    wattroff(win,COLOR_PAIR(COLOR_VILLE)); //On reset la couleur de fond
     return;
 
 }

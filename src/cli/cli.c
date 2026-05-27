@@ -178,7 +178,7 @@ void run_game_cli(Game* game) {
         print_selected_unit_info(in_hud,selected_unit);
         Tile* tile_sous_curseur = get_tile(game->map, cursor);
         if (tile_sous_curseur != NULL && tile_sous_curseur->city_on) {
-            show_city_info_cli(win_hud,game,cursor); //Affichage automatique des infos de la ville
+            show_city_info_cli(in_hud,game,cursor); //Affichage automatique des infos de la ville
         }
         touchwin(win_hud); //Juste par sécurité
         wrefresh(win_hud);

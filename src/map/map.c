@@ -181,7 +181,7 @@ void print_map_cli(WINDOW* win,Map* m, Position cursor) {
                     if (cursor.x == x && cursor.y == y) { //Case actuelle encadrée en rouge
                         wattron(win,COLOR_PAIR(COLOR_CURSEUR)); // wattron change la couleur d'écriture
                         wprintw(win,"+-------+");
-                        wattroff(win,COLOR_PAIR(COLOR_CURSEUR)); // wattron change la couleur d'écriture
+                        wattroff(win,COLOR_PAIR(COLOR_CURSEUR));
                         wprintw(win," ");
                     }
 
