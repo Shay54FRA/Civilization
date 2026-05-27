@@ -323,7 +323,7 @@ void run_game_cli(Game* game) {
                 snprintf(last_message, MSG_SIZE, "menu ville");
                 break;
 
-            case 'f':
+            case 'f':{
                 int game_result = end_turn(game);
                 if (game_result != 0) {
                     clear();
@@ -334,6 +334,7 @@ void run_game_cli(Game* game) {
                 game->active_turn++;
                 snprintf(last_message, MSG_SIZE, "Tour suivant.");
                 break;
+            }
                 
             case 'x':
                 running = 0; break;

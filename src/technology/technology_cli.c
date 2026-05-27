@@ -45,7 +45,7 @@ void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game)
         /* prérequis non validés */
         else if (!can_research_tech(game, tree, tech->id))
         {
-            printw("BLOQUÉE");
+            printw("BLOQUEE");
         }
         /* recherchable */
         else
