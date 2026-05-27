@@ -182,6 +182,37 @@ static void remove_unit_from_game(Game* game, Unit* unit) {
     }
 }
 
+static int chebyshev_distance(Position a, Position b) {
+    int dx = abs(a.x - b.x);
+    int dy = abs(a.y - b.y);
+
+    return dx > dy ? dx : dy;
+}
+
+static bool can_found_city_here(Game* game, Position pos) {
+    if (game == NULL) return false;
+
+    CityList* current = game->cityList;
+
+    /*
+     * La distance entre 2 villes est au moins de 4 cases d'écart
+     * On utilise la distance de Tchebychev :
+     * deux positions sont trop proches si max(|dx|, |dy|) < 4.
+     */
+    while (current != NULL) {
+        City* city = current->city;
+
+        if (city != NULL && chebyshev_distance(city->pos, pos) < 4) {
+            return false;
+        }
+
+        current = current->next;
+    }
+
+    return true;
+}
+
+
 void colonize(Game* game, Unit* colon) {
     if (game == NULL || game->map == NULL || colon == NULL) return;
     if (colon->type != 'c') return;
@@ -189,6 +220,8 @@ void colonize(Game* game, Unit* colon) {
     Tile* tile = get_tile(game->map, colon->pos);
     if (tile == NULL) return;
     if (tile->city_on) return;
+    /* Un colon ne peut pas fonder une ville trop près d'une autre. */
+    if (!can_found_city_here(game, colon->pos)) return;
 
     City* city = create_city(colon->pos);
     if (city == NULL) return;
