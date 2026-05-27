@@ -19,19 +19,18 @@
 
 WINDOW *win_map, *win_info, *win_hud; //Permet de créer plusieurs fenêtres ncurses en même temps
 
-void init_ncurses_interface(void) {
-    initscr(); //lance l'affichage ncurses           
-    cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                              
+void setup_windows(void) { //Je crée cette fonction pour refresh l'affichage des fenêtres CLI si elles sont bug et qu'on change la taille du terminal avec ./civ
+    // 1. Détruire les anciennes fenêtres si elles existent (pour libérer la mémoire)
+    if (win_map != NULL) delwin(win_map);
+    if (win_hud != NULL) delwin(win_hud);
+    if (win_info != NULL) delwin(win_info);
 
-    // Calcul des tailles (Exemple : 70% largeur pour map, 30% pour infos)
+    // 2. Récupérer les NOUVELLES dimensions du terminal
     int h = LINES, w = COLS;
-    // RÈGLE : change "10" ici pour ajuster la hauteur du bas
-    // Plus ce nombre est grand, plus win_info est haute, 
-    // et plus win_map/win_hud seront petites.
-    int footer_height = 10; 
+    int footer_height = 10; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
     int top_height = h - footer_height;
 
-    // Utilisation des variables calculées
+    // 3. Recréer les fenêtres aux bonnes dimensions
     win_map = newwin(top_height, (w * 7) / 10, 0, 0);
     win_hud = newwin(top_height, (w * 3) / 10, 0, (w * 7) / 10);
     win_info = newwin(footer_height, w, top_height, 0);
@@ -39,8 +38,23 @@ void init_ncurses_interface(void) {
     box(win_map, 0, 0);
     box(win_hud, 0, 0);
     box(win_info, 0, 0);
-    
+
     refresh();
+}
+
+void init_ncurses_interface(void) {
+    initscr(); //lance l'affichage ncurses           
+    cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                              
+    keypad(stdscr, TRUE); //Permet de détecter le changement de taille du terminal ainsi que d'ajouter des touches comme les flèches du claiver par exemple.
+    // --- TEST DE SÉCURITÉ ---
+    // Si le terminal fait moins de 20 lignes ou 80 colonnes, on bloque
+    if (LINES < 30 || COLS < 80) {
+        endwin(); // On ferme proprement ncurses
+        printf("Erreur : Terminal trop petit ! Veuillez agrandir la fenêtre (min 80x20).\n");
+        exit(1); 
+    }
+
+    setup_windows();
 
     if (has_colors()) {
         start_color();
@@ -120,7 +134,7 @@ void run_game_cli(Game* game) {
 
 
     int running = 1;
-    char command;
+    int command; //Je remplace le char par un int car getch() renvoie un entier pour les touches spéciales comme KEY_RESIZE
     Position cursor = {0, 0}; // Position initiale de la caméra
 
     // Unité actuellement sélectionnée
@@ -160,11 +174,17 @@ void run_game_cli(Game* game) {
         }
         wrefresh(win_hud);
         
-        // Récupération de l'ordre
+
         command = getch(); // Remplaçant de scanf, lit la touche instantanément
 
         // Logique de commande
         switch (command) {
+            case KEY_RESIZE: //touche spéciale qui détecte si on change la taille de notre terminal. Et si c'est le cas, on redimensionne automatiquement les fenêtres CLI avec setup_windows()
+                clear();
+                refresh();
+                setup_windows();
+                snprintf(last_message,MSG_SIZE,"Fen^tre redimensionnée !");
+                break;
             case 'z': if (cursor.y > 0) cursor.y--; break;
             case 's': if (cursor.y < game->map->height - 1) cursor.y++; break;
             case 'q': if (cursor.x > 0) cursor.x--; break;
