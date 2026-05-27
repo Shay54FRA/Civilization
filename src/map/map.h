@@ -1,7 +1,10 @@
 #include <stdbool.h>
 
+
 #ifndef MAP
 #define MAP
+
+#include <ncurses.h>
 
 /*
 La map apparaîtra sur l'interface graphique avec des hexagones,
@@ -38,7 +41,7 @@ typedef struct _Map {
 } Map;
 
 Map* create_map(int width, int height, int seed, int nb_camps);
-void print_map_cli(Map* m, Position cursor);
+void print_map_cli(WINDOW* win,Map* m, Position cursor);
 void smooth_map(Map* m);
 
 /*
@@ -50,7 +53,7 @@ Explication de la fonction smooth.
 */
 void destroy_map(Map* map);
 //void print_pos(Position pos);
-void print_tile(Tile* tile);
+void print_tile(WINDOW* win,Tile* tile);
 
 Position* create_position(int x, int y);
 void destroy_position(Position* pos);

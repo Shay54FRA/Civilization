@@ -9,6 +9,7 @@
 #include "../tile/tile.h"
 #include "../barbarian/barbarian.h"
 #include "../building/building.h"
+#include "cli_panneaux.h"
 
 // Gestion des unités et des technologies dans le CLI
 #include "../unit/unit.h"
@@ -16,13 +17,54 @@
 #include "../technology/technology.h"
 #include "../technology/technology_cli.h"
 
-void init_ncurses_interface() {
+WINDOW *win_map, *win_info, *win_hud; //Permet de créer plusieurs fenêtres ncurses en même temps
+WINDOW *in_map, *in_info, *in_hud; //Je crée des sous-fenêtres pour écrire dedans
+
+void setup_windows(void) { //Je crée cette fonction pour refresh l'affichage des fenêtres CLI si elles sont bug et qu'on change la taille du terminal avec ./civ
+    // 1. Détruire les anciennes fenêtres si elles existent (pour libérer la mémoire)
+    if (in_map != NULL) delwin(in_map);
+    if (in_hud != NULL) delwin(in_hud);
+    if (in_info != NULL) delwin(in_info);
+    if (win_map != NULL) delwin(win_map);
+    if (win_hud != NULL) delwin(win_hud);
+    if (win_info != NULL) delwin(win_info);
+
+    // 2. Récupérer les NOUVELLES dimensions du terminal
+    int h = LINES, w = COLS;
+    int footer_height = 11; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
+    int top_height = h - footer_height;
+
+    // 3. Recréer les fenêtres aux bonnes dimensions
+    win_map = newwin(top_height, (w * 7) / 10, 0, 0);
+    win_hud = newwin(top_height, (w * 3) / 10, 0, (w * 7) / 10);
+    win_info = newwin(footer_height, w, top_height, 0);
+    
+    // 4. Créer les sous-fenêtres de CONTENU (décalées de 1 en X et Y pour éviter d'écrire sur les bordures)
+    // derwin(parent, hauteur, largeur, position_y, position_x)
+    in_map = derwin(win_map, top_height - 2, ((w * 7) / 10) - 2, 1, 1);
+    in_hud = derwin(win_hud, top_height - 2, ((w * 3) / 10) - 2, 1, 1);
+    in_info = derwin(win_info, footer_height - 2, w - 2, 1, 1);
+
+}
+
+void init_ncurses_interface(void) {
     initscr(); //lance l'affichage ncurses           
-    cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                    
-    // curs_set(0);          
+    cbreak();  // rend l'affichage interactif. Quand on tape "d", ça nous déplace direct vers la droite par exemple en utilisant getch() au lieu de scanf()                              
+    keypad(stdscr, TRUE); //Permet de détecter le changement de taille du terminal ainsi que d'ajouter des touches comme les flèches du claiver par exemple.
+    
+    // Vérifier que le terminal est assez grand avant de lancer l'affichage CLI pour éviter trop de bugs graphiques
+    if (LINES < 30 || COLS < 80) {
+        endwin(); // On ferme proprement ncurses
+        printf("Erreur : Terminal trop petit ! Veuillez agrandir la fenêtre \n");
+        exit(1); 
+    }
+
+    setup_windows();
 
     if (has_colors()) {
         start_color();
+        use_default_colors();
+
         init_pair(COLOR_EAU, COLOR_BLACK, COLOR_BLUE); //Les couleurs de bg et fg sont forcément définies par pairs avec ncurses
         init_pair(COLOR_PLAINE, COLOR_BLACK, COLOR_GREEN);
         init_pair(COLOR_FORET, COLOR_WHITE, COLOR_GREEN);
@@ -30,142 +72,13 @@ void init_ncurses_interface() {
         init_pair(COLOR_DESERT, COLOR_BLACK, COLOR_YELLOW);
         init_pair(COLOR_TOUNDRA, COLOR_BLACK, COLOR_CYAN);
         init_pair(COLOR_VILLE, COLOR_WHITE, COLOR_MAGENTA);
-        init_pair(COLOR_CURSEUR, COLOR_RED, COLOR_BLACK);
+        init_pair(COLOR_CURSEUR, COLOR_RED, -1); // -1 = transparent
     }
 }
-
-// Le champ de vision de la carte
-#define VIEW_RADIUS 6
 
 // Taille maximale du message affiché dans le HUD
 #define MSG_SIZE 256
 
-
-void print_pos(Position pos) {
-    printw("Position : (%d, %d)", pos.x, pos.y);
-}
-
-
-// Renvoie le nom lisible d’un biome
-static const char* biome_name(char biome) {
-    switch (biome) {
-        case 'E': return "Eau";
-        case 'P': return "Plaine";
-        case 'F': return "Foret";
-        case 'M': return "Montagne";
-        case 'D': return "Desert";
-        case 'T': return "Toundra";
-        default: return "Inconnu";
-    }
-}
-
-
-// Renvoie le coût de déplacement selon le terrain
-static int terrain_move_cost(char biome) {
-    if (biome == 'E') return -1;
-    if (biome == 'F' || biome == 'M') return 2;
-    return 1;
-}
-
-// Affiche les informations de la case sélectionnée
-static void print_tile_info(Game* game, Position cursor) {
-    Tile* tile = get_tile(game->map, cursor);
-
-    if (!tile) return;
-
-    int cost = terrain_move_cost(tile->biome);
-
-    printw("\n=== CASE SELECTIONNEE ===\n");
-
-    printw("Position : (%d, %d)\n", cursor.x, cursor.y);
-    printw("Terrain  : %s\n", biome_name(tile->biome));
-
-    if (cost == -1)
-        printw("Cout PM  : Infranchissable\n");
-    else
-        printw("Cout PM  : %d\n", cost);
-
-    if (tile->city_on)
-        printw("Contenu  : Ville\n");
-
-    else if (tile->unit)
-        printw("Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
-
-    else if (tile->barb_on) {
-        printw("Contenu  : Barbare | %dpv - %datk - %ddef\n", tile->barb_on->pv, tile->barb_on->atk, tile->barb_on->def);
-    }
-
-    else if (tile->camp_on) {
-        printw("Contenu  : Camp de barbares\n");
-    }
-
-    else
-        printw("Contenu  : Vide\n");
-}
-
-
-// Affiche les statistiques de l’unité sélectionnée
-static void print_selected_unit_info(Unit* selected_unit) {
-    printw("\n=== UNITE SELECTIONNEE ===\n");
-
-    if (!selected_unit) {
-        printw("Aucune unite selectionnee.\n");
-        return;
-    }
-
-    printw("Type : %s [%c]\n", get_name(selected_unit->type), selected_unit->type);
-
-    printw("PV   : %d / %d\n", selected_unit->pv, selected_unit->max_pv);
-
-    printw("PM   : %d / %d\n", selected_unit->pm, selected_unit->max_pm);
-
-    printw("ATK  : %d\n", selected_unit->atk);
-    printw("DEF  : %d\n", selected_unit->def);
-
-    printw("Pos  : (%d, %d)\n", selected_unit->pos.x, selected_unit->pos.y);
-}
-
-static void show_city_info_cli(Game* game, Position pos) {
-    if (game == NULL) return;
-    Tile* tile = get_tile(game->map, pos);
-    if (tile == NULL) return;
-    City* city = get_city_on_tile(game->cityList, tile);
-    if (city == NULL) {
-        printw("Aucune ville séléctionné !\n");
-        return;
-    }
-    while(1) {
-        printw("\n==== VILLE ====\n\n");
-        printw("PV : %d / %d\n", get_city_pv(city), MAX_HP);
-        printw("Population : %d villageois\n", city->population);
-        printw("Force de défense : %d\n", city->strength);
-        printw("Nourriture : %d\n", city->food);
-        printw("Production : %d\n", city->production);
-
-        printw("\n--- Projet ---\n\n");
-        if (city->project == NULL) {
-            printw("Aucun projet en cours ! Les points de productions sont perdus à chaque tour.\n");
-        } else {
-            printw("Type : %s\n", get_name(city->project->type));
-            printw("Production nécéssaire restante : %d\n", city->project->production_cost);
-        }
-
-        printw("\n--- Batîments ---\n\n");
-        BuildList* to_check = city->buildings;
-        while(to_check != NULL) {
-            Building* build = to_check->data;
-            if (build != NULL) {
-                printw("%s\n", get_name(build->type));
-            }
-            to_check = to_check->next;
-        }
-
-        printw("\nAppuyez sur n'importe quel touche pour quitter");
-        getch();
-        return;
-
-    }
-}
 
 // Convertit le résultat d’un déplacement en message joueur
 static void move_result_to_message(MoveResult result, char* buffer, size_t size) {
@@ -200,23 +113,23 @@ static void move_result_to_message(MoveResult result, char* buffer, size_t size)
     }
 }
 
-void end_game_cli(Game* game, int end_code) {
+void end_game_cli(WINDOW* win,Game* game, int end_code) {
     if (game == NULL) return;
-    printw("\n=== FIN DE LA PARTIE ===\n\n");
+    wprintw(win,"\n=== FIN DE LA PARTIE ===\n\n");
     if (end_code == 1) {
-        printw("----VICTOIRE TERRITORIALE ! \nVous possédez plus de 10 villes depuis 5 tours.\n");
+        wprintw(win,"----VICTOIRE TERRITORIALE ! \nVous possédez plus de 10 villes depuis 5 tours.\n");
     }
     else if (end_code == 2) {
-        printw("----VICTOIRE TECHNOLOGIQUE ! \nVous possédez toutes les technologies.\n");
+        wprintw(win,"----VICTOIRE TECHNOLOGIQUE ! \nVous possédez toutes les technologies.\n");
     }
     else if (end_code == 3) {
-        printw("----DEFAITE !\n");
+        wprintw(win,"----DEFAITE !\n");
     }
     else {
-        printw("ERREUR !\n");
+        wprintw(win,"ERREUR !\n");
     }
-    printw("\nSCORE : %d\n", game_score(game));
-    printw("\n\n\n cliquez sur n'importe quelle touche pour terminer");
+    wprintw(win,"\nSCORE : %d\n", game_score(game));
+    wprintw(win,"\n\n\n cliquez sur n'importe quelle touche pour terminer");
     getch();
 }
 
@@ -225,7 +138,7 @@ void run_game_cli(Game* game) {
 
 
     int running = 1;
-    char command;
+    int command; //Je remplace le char par un int car getch() renvoie un entier pour les touches spéciales comme KEY_RESIZE
     Position cursor = {0, 0}; // Position initiale de la caméra
 
     // Unité actuellement sélectionnée
@@ -236,31 +149,51 @@ void run_game_cli(Game* game) {
 
     while (running) {
 
-        // Affichage
-        clear(); //permet de clear le terminal
-        print_map_cli(game->map, cursor);
+        //BOXE 1 : Affichage map
+        werase(win_map);
+        box(win_map, 0, 0);
+        mvwprintw(win_map, 0, 2, " CARTE ");
+        wmove(in_map, 0, 0); //Réinitialise position curseur
+        print_map_cli(in_map,game->map, cursor);
+        touchwin(win_map); //Juste par sécurité
+        wrefresh(win_map);
         
-        // Menu des stats
-        printw("\n--- TOUR %d | Or: %d | Science: %d ---\n", 
-                game->active_turn, game->gold, game->science);
+        //BOXE 2 : Affichage des infos générales
+        werase(win_info);
+        box(win_info, 0, 0);
+        mvwprintw(win_info, 0, 2, " Infos générales ");
+        wmove(in_info, 0, 0); //Réinitialise position curseur
+        print_stats(in_info,game); // Affichage des stats ()
+        wprintw(in_info,"Message : %s\n", last_message); // Affichage du dernier message d’action
+        print_action_help(in_info); // Affichage des commandes
+        touchwin(win_info); //Juste par sécurité
+        wrefresh(win_info);
 
-        // Affichage du dernier message d’action
-        printw("Message : %s\n", last_message);
-
-        // Affichage des informations de la case et de l’unité sélectionnée
-        print_tile_info(game, cursor);
-        print_selected_unit_info(selected_unit);
-
-        printw("\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [g] Info ville | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
-        printw("> ");
-
-        refresh(); // CRUCIAL : Affiche tout l'écran d'un coup
+        //BOXE 3 : Affichage info case/unité sélectionné
+        werase(win_hud);
+        box(win_hud, 0, 0);
+        mvwprintw(win_hud, 0, 2, " Infos case ");
+        wmove(in_hud, 0, 0); //Réinitialise position curseur
+        print_tile_info(in_hud,game, cursor);
+        print_selected_unit_info(in_hud,selected_unit);
+        Tile* tile_sous_curseur = get_tile(game->map, cursor);
+        if (tile_sous_curseur != NULL && tile_sous_curseur->city_on) {
+            show_city_info_cli(in_hud,game,cursor); //Affichage automatique des infos de la ville
+        }
+        touchwin(win_hud); //Juste par sécurité
+        wrefresh(win_hud);
         
-        // Récupération de l'ordre
+
         command = getch(); // Remplaçant de scanf, lit la touche instantanément
 
         // Logique de commande
         switch (command) {
+            case KEY_RESIZE: //touche spéciale qui détecte si on change la taille de notre terminal. Et si c'est le cas, on redimensionne automatiquement les fenêtres CLI avec setup_windows()
+                clear();
+                refresh();
+                setup_windows();
+                snprintf(last_message,MSG_SIZE,"Fen^tre redimensionnée !");
+                break;
             case 'z': if (cursor.y > 0) cursor.y--; break;
             case 's': if (cursor.y < game->map->height - 1) cursor.y++; break;
             case 'q': if (cursor.x > 0) cursor.x--; break;
@@ -317,17 +250,12 @@ void run_game_cli(Game* game) {
                 snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
                 break;
 
-            case 'g':
-                clear();
-                show_city_info_cli(game, cursor);
-                snprintf(last_message, MSG_SIZE, "menu ville");
-                break;
-
             case 'f':
+                wprintw(win_info,"Passage au tour suivant...\n");
                 int game_result = end_turn(game);
                 if (game_result != 0) {
                     clear();
-                    end_game_cli(game, game_result);
+                    end_game_cli(win_info,game, game_result);
                     running = 0;
                     break;
                 }
