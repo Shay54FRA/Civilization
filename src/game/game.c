@@ -299,6 +299,7 @@ int end_turn(Game* game) {
     spawn_all_barbarians(game);
 
     //PHASE DE FIN DE TOUR
+    heal_cities(game->cityList);
     reset_exploitation(game->map);
     reset_all_barbs_pm(game->barbarianList);
     reset_all_pm(game->unitList);
@@ -311,8 +312,12 @@ int end_turn(Game* game) {
 }
 
 int game_score(Game* game) {
-    //A compléter
-    return 1000000;
+    int tech_number = game->tech_tree->num_unlocked;
+    int total_pop = get_total_pop(game->cityList);
+    int city_number = get_city_number(game);
+    int bonus_turn = (game->configuration->t - game->active_turn);
+    if (bonus_turn < 0) bonus_turn = 0;
+    return 100 * tech_number + 20 * total_pop + 50 * city_number + 10 * bonus_turn;
 }
 
 int end_game(Game* game) {

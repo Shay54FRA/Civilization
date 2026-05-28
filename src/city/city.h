@@ -68,6 +68,8 @@ BuildList* get_buildings_list(City* city); //Liste chaînée des bâtiments de l
 
 int get_new_food(City* city);
 int get_new_prod(City* city);
+bool build_type_exists(char type);
+int get_total_pop(CityList* city_list);
 
 //Renvoie la position du min de la distance avec les différents batiments de la ville
 int get_distance_to_city(City* city, Position pos);

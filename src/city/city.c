@@ -107,6 +107,19 @@ bool build_type_exists(char type) {
     return (type == 'C' || type == 'G' || type == 'B' || type == 'R' || type == 'M' || type == 'A');
 }
 
+int get_total_pop(CityList* city_list) {
+    int rep = 0;
+    CityList* to_check = city_list;
+    while (to_check != NULL) {
+        City* city = to_check->city;
+        if (city != NULL) {
+            rep += city->population;
+        }
+        to_check = to_check->next;
+    }
+    return rep;
+}
+
 bool croissance_check(City* city) {
     if (CROISSANCE_NEED <= get_food(city)) {
         city->population += 1;
