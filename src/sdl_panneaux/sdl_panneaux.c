@@ -469,7 +469,7 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
     boxRGBA(renderer, legend_x, legend_y + 115, legend_x + 18, legend_y + 133, 80, 80, 80, 230);
     stringRGBA(renderer, legend_x + 30, legend_y + 120, "Bloquee", 220, 220, 220, 255);
 
-     // Résumé rapide des effets pour aider le joueur à choisir sa recherche
+    // Résumé rapide des effets pour aider le joueur à choisir sa recherche
     int info_x = x2 - 420;
     int info_y = y1 + 105;
 
