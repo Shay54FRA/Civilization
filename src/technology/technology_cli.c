@@ -2,6 +2,7 @@
 #include "technology.h"
 #include "../game/game.h"
 #include "../cli/cli.h"
+#include "../map/map.h"
 #include <ncurses.h>
 
 /*
@@ -30,7 +31,7 @@ void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game)
         /* déjà débloquée */
         if (tech->is_unlocked)
         {
-            printw("✓");
+            printw("OK");
         }
         /* recherche en cours */
         else if (tech->id == active_research_id)
@@ -142,11 +143,11 @@ void print_progress_bar(int current, int total, int width)
 
     // Choix couleur selon progression
     if (ratio < 0.3f)
-        printw("\x1b[31m"); // rouge
+        attron(COLOR_PAIR(COLOR_ROUGE)); // rouge
     else if (ratio < 0.7f)
-        printw("\x1b[33m"); // jaune
+        attron(COLOR_PAIR(COLOR_JAUNE)); // jaune
     else
-        printw("\x1b[32m"); // vert
+        attron(COLOR_PAIR(COLOR_VERT)); // vert
 
     printw("[");
 
@@ -158,5 +159,14 @@ void print_progress_bar(int current, int total, int width)
             printw("-");
     }
 
-    printw("]\x1b[0m %d / %d", current, total);
+    printw("]");
+    
+    if (ratio < 0.3f)
+        attroff(COLOR_PAIR(COLOR_ROUGE));
+    else if (ratio < 0.7f)
+        attroff(COLOR_PAIR(COLOR_JAUNE));
+    else
+        attroff(COLOR_PAIR(COLOR_VERT));
+
+    printw(" %d / %d", current, total);
 }

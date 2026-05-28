@@ -16,7 +16,7 @@ TechTree* create_tech_tree(void)
     TechTree* tree = malloc(sizeof(TechTree));
     if (!tree) return NULL;
 
-    tree->num_technologies = 9;
+    tree->num_technologies = 11;
 
     tree->technologies =
         calloc(tree->num_technologies, sizeof(Technology));
@@ -26,7 +26,7 @@ TechTree* create_tech_tree(void)
         return NULL;
     }
 
-    tree->num_unlocked = 0;
+    tree->num_unlocked = 1;
 
     /* BONUS GLOBAUX */
     tree->bonus_food_forest = 0;
@@ -35,6 +35,7 @@ TechTree* create_tech_tree(void)
     tree->bonus_prod_percent = 0;
     tree->bonus_science_percent = 0;
     tree->bonus_pm_units = 0;
+    tree->bonus_fog_range = 0;
 
     memset(tree->unlocked_buildings_global, 0,
            sizeof(tree->unlocked_buildings_global));
@@ -172,6 +173,36 @@ TechTree* create_tech_tree(void)
     t->bonus.unlocked_buildings[0] = 'M';
     t->bonus.unlocked_buildings_count = 1;
 
+    // ---------------------------------------------------
+    // Mirador
+    // ---------------------------------------------------
+    t = &tree->technologies[9];
+
+    t->id = 9;
+    strcpy(t->name, "Mirador");
+    t->science_cost = 40;
+    t->num_prerequisites = 1;
+    t->prerequisites[0] = 0;
+
+    t->bonus.unlocked_buildings[0] = 'P';
+    t->bonus.unlocked_buildings_count = 1;
+
+
+    // ---------------------------------------------------
+    // Expédition
+    // ---------------------------------------------------
+    t = &tree->technologies[10];
+
+    t->id = 10;
+    strcpy(t->name, "Expedition");
+    t->science_cost = 80;
+    t->num_prerequisites = 1;
+    t->prerequisites[0] = 9;
+
+    t->bonus.unlocked_units_count = 1;
+    t->bonus.unlocked_units[0] = 'e';
+    t->bonus.bonus_fog_range = 1;
+
     return tree;
 }
 
@@ -239,7 +270,7 @@ int set_active_research(Game* game, int tech_id)
 
 int update_research(Game* game)
 {
-    if (game->active_research_id == -1)
+    if (!game || game->active_research_id == -1)
         return -1;
 
     Technology* tech =
@@ -260,15 +291,17 @@ int update_research(Game* game)
     tree->bonus_science_percent += tech->bonus.bonus_science_percent;
     tree->bonus_food_forest += tech->bonus.bonus_food_forest;
     tree->bonus_pm_units += tech->bonus.bonus_pm_units;
+    tree->bonus_fog_range += tech->bonus.bonus_fog_range;
     tree->num_unlocked += 1;
 
-    if (tech->bonus.bonus_pm_units > 0) {
+    if (tech->bonus.bonus_pm_units > 0 || tech->bonus.bonus_fog_range > 0) {
         UnitList* current = game->unitList;
 
         while (current != NULL) {
             if (current->data != NULL) {
                 current->data->max_pm += tech->bonus.bonus_pm_units;
                 current->data->pm += tech->bonus.bonus_pm_units;
+                current->data->fog_range += tech->bonus.bonus_fog_range;
             }
 
             current = current->next;

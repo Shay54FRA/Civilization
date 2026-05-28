@@ -30,6 +30,7 @@ typedef struct _Unit {
     int atk;
     int def;
     int cost_per_turn;
+    int fog_range;
 
     int pv;
     int max_pv;

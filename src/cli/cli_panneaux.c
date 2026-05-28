@@ -42,6 +42,12 @@ void print_tile_info(WINDOW* win,Game* game, Position cursor) {
 
     wprintw(win,"\n=== CASE SELECTIONNEE ===\n");
 
+    // Brouillard complet
+    if (tile->fog_level == 0) {
+        wprintw(win, "\nBrouillard : Aucune info sur la case !\n");
+        return;
+    }
+
     wprintw(win,"Position : (%d, %d)\n", cursor.x, cursor.y);
     wprintw(win,"Terrain  : %s\n", biome_name(tile->biome));
 
@@ -55,6 +61,10 @@ void print_tile_info(WINDOW* win,Game* game, Position cursor) {
 
     else if (tile->unit)
         wprintw(win,"Contenu  : Unite %s [%c]\n", get_name(tile->unit->type), tile->unit->type);
+
+    else if (tile->fog_level == 1) {
+        wprintw(win, "Contenu  : Brouillard trop fort !");
+    }
 
     else if (tile->barb_on) {
         wprintw(win,"Contenu  : Barbare | %dpv - %datk - %ddef\n", tile->barb_on->pv, tile->barb_on->atk, tile->barb_on->def);

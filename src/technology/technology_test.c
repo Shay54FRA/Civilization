@@ -9,10 +9,11 @@ int main(void) {
     TechTree* tree = create_tech_tree();
     assert(tree != NULL); 
 
-    Game test_game;
+    Game test_game = {0};
     test_game.science = 0; 
     test_game.active_research_id = -1; // Aucun projet en cours au départ
     test_game.tech_tree = tree;
+    test_game.unitList = NULL;
 
     // 2. Test des prérequis
     assert(can_research_tech(&test_game, tree, 2) == 1); // L'Agriculture (ID 2) nécessite le Départ (déjà débloqué)
@@ -55,6 +56,13 @@ int main(void) {
     assert(is_unit_unlocked(tree, 'g') == 1);
     // Mais on n'a pas encore l'Écriture, donc la Bibliothèque ('B') doit rester bloquée :
     assert(is_building_unlocked(tree, 'B') == 0);
+
+    // Test Equitation (ID 5) pour les PM
+    set_active_research(&test_game, 5);
+    test_game.science = 100;
+    update_research(&test_game);
+    assert(tree->technologies[5].is_unlocked == 1);
+    assert(tree->bonus_pm_units == 1);
     
     printf("-> Tous les tests unitaire (y compris penalite et optimisation) ont REUSSI !\n");
 

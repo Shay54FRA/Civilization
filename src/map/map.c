@@ -154,15 +154,21 @@ void print_map_cli(WINDOW* win,Map* m, Position cursor) {
                 
                 // 1. Choix du symbole à afficher sur la case
                 char symbol = ' ';
-                // symbol = tuile->biome; //J'ai enlevé la lettre du biome
-                if (tuile->city_on) symbol = 'V';
-                else if (tuile->unit ) symbol = 'U';
-                else if (tuile->camp_on) symbol = 'C';
-                else if (tuile->barb_on) symbol = 'B';
+                
+                // Affichage d'un symbole seulement si la case est visible
+                if (tuile->fog_level > 1) {
+                    if (tuile->city_on) symbol = 'V';
+                    else if (tuile->unit ) symbol = 'U';
+                    else if (tuile->camp_on) symbol = 'C';
+                    else if (tuile->barb_on) symbol = 'B';
+                } else if (tuile->fog_level == 1) {
+                    symbol = '?';
+                }
 
                 // 2. Gestion des couleurs ncurses (couleurs définies dans mpa.h)
                 int current_color = COLOR_PLAINE;                
                 if (tuile->city_on){ current_color = COLOR_VILLE;}
+                else if (tuile->fog_level == 0) current_color = COLOR_BROUILLARD;
                 else {
                     switch(tuile->biome) {
                         case 'E': current_color = COLOR_EAU; break;
@@ -308,6 +314,22 @@ void destroy_map(Map* m) {
         free(m->map);
         
         free(m);
+    }
+}
+
+void mark_seen_tiles(Map* map, Position pos, int range) {
+    if (map == NULL) return;
+    for (int i = 0; i <= range; i++) {
+        TileList* tile_list = get_tiles_at_range(map, pos, i);
+        TileList* to_check = tile_list;
+        while (to_check != NULL) {
+            Tile* tile = to_check->data;
+            if (tile != NULL) {
+                tile->fog_level = 2;
+            }
+            to_check = to_check->next;
+        }
+        destroy_tilelist(tile_list);
     }
 }
 

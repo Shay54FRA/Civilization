@@ -13,6 +13,7 @@ typedef struct _Tile {
     Barbarian* barb_on;
     bool exploited; // Utilisé pour l'exploitation
     Unit* unit;
+    int fog_level; // 0 si brouillard complet, 1 pour déjà visité et 2 pour visible
 } Tile;
 
 typedef struct _TileList {

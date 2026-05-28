@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
+#include <locale.h>
 
 #include "cli.h"
 #include "../map/map.h"
@@ -73,7 +74,11 @@ void init_ncurses_interface(void) {
         init_pair(COLOR_DESERT, COLOR_BLACK, COLOR_YELLOW);
         init_pair(COLOR_TOUNDRA, COLOR_BLACK, COLOR_CYAN);
         init_pair(COLOR_VILLE, COLOR_WHITE, COLOR_MAGENTA);
+        init_pair(COLOR_BROUILLARD, COLOR_WHITE, 8);
         init_pair(COLOR_CURSEUR, COLOR_RED, -1); // -1 = transparent
+        init_pair(COLOR_ROUGE, COLOR_RED, -1);
+        init_pair(COLOR_JAUNE, COLOR_YELLOW, -1);
+        init_pair(COLOR_VERT, COLOR_GREEN, -1);
     }
 }
 
@@ -144,7 +149,10 @@ void show_city_project_menu(Game* game, City* city) {
             printw("\n---- UNIT ----\n\n");
             printw("-> %s [c] - %d production - %d or/tour [ 10pv - 0atk - 1déf - 2pm]\n", get_name('c'), get_cost('c'), get_entretien_cost('c'));
             if (is_unit_unlocked(game->tech_tree, 'g')) {
-                printw("-> %s [c] - %d production - %d or/tour [ 15pv - 3atk - 2déf - 3pm]\n", get_name('g'), get_cost('g'), get_entretien_cost('g'));
+                printw("-> %s [g] - %d production - %d or/tour [ 15pv - 3atk - 2déf - 3pm]\n", get_name('g'), get_cost('g'), get_entretien_cost('g'));
+            }
+            if (is_unit_unlocked(game->tech_tree, 'e')) {
+                printw("-> %s [e] - %d production - %d or/tour [ 10pv - 0atk - 2déf - 4pm - 4 vision range]\n", get_name('e'), get_cost('e'), get_entretien_cost('e'));
             }
         }
         printw("\n---- BUILDING ----\n\n");
@@ -160,6 +168,9 @@ void show_city_project_menu(Game* game, City* city) {
         if (is_building_unlocked(game->tech_tree, 'R')) {
             printw("-> %s [R] - %d production - %d or/tour : pv x2 et force de la ville +10\n", get_name('R'), get_cost('R'), get_entretien_cost('R'));
         }
+        if (is_building_unlocked(game->tech_tree, 'P')) {
+            printw("-> %s [P] - %d production - %d or/tour : +2 rayon de vision\n", get_name('P'), get_cost('P'), get_entretien_cost('P'));
+        }
 
         printw("\n\n\n\n\nPour commencer un projet entrez n'importe lequel des boutons encadrés [..], et n'importe quel autre pour quitter : ");
         choix = getch();
@@ -170,10 +181,14 @@ void show_city_project_menu(Game* game, City* city) {
             if (choix == 'g' && is_unit_unlocked(game->tech_tree, 'g')) {
                 start_project(city, choix, city->pos);
             }
+            if (choix == 'e' && is_unit_unlocked(game->tech_tree, 'e')) {
+                start_project(city, choix, city->pos);
+            }
         }
         if (choix == 'M' && is_building_unlocked(game->tech_tree, 'M')) start_project(city, choix, city->pos);
         else if (choix == 'B' && is_building_unlocked(game->tech_tree, 'B')) start_project(city, choix, city->pos);
         else if (choix == 'R' && is_building_unlocked(game->tech_tree, 'R')) start_project(city, choix, city->pos);
+        else if (choix == 'P' && is_building_unlocked(game->tech_tree, 'P')) start_project(city, choix, city->pos);
         else if (choix == 'G' || choix == 'C' || choix == 'A') start_project(city, choix, city->pos);
         return;
     }
@@ -200,6 +215,7 @@ void run_game_cli(Game* game) {
         box(win_map, 0, 0);
         mvwprintw(win_map, 0, 2, " CARTE ");
         wmove(in_map, 0, 0); //Réinitialise position curseur
+        update_fog(game);
         print_map_cli(in_map,game->map, cursor);
         touchwin(win_map); //Juste par sécurité
         wrefresh(win_map);
@@ -319,7 +335,6 @@ void run_game_cli(Game* game) {
                 wprintw(win_info,"Passage au tour suivant...\n");
                 int game_result = end_turn(game);
                 if (game_result != 0) {
-                    clear();
                     end_game_cli(win_info,game, game_result);
                     running = 0;
                     break;
