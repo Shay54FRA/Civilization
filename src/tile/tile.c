@@ -34,10 +34,10 @@ Tile* get_tile(Map* map, Position pos) {
     return NULL;
 }
 
-void print_tile(Tile* tile) {
+void print_tile(WINDOW* win,Tile* tile) {
     if (tile != NULL) {
         print_pos(tile->pos);
-        printf(", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->exploited != false, tile->biome);
+        wprintw(win,", Unité dessus : %d, Exploité : %d, Biome : %c\n", tile->unit != NULL, tile->exploited != false, tile->biome);
     }
 }
 
@@ -91,12 +91,12 @@ void merge_and_destroy_tilelists(TileList* kept_tilelist, TileList* tilelist_to_
     destroy_tilelist(tilelist_to_free);
 }
 
-void print_tilelist(TileList* tilelist){
+void print_tilelist(WINDOW* win,TileList* tilelist){
     TileList* to_check = tilelist;
     if (to_check != NULL) {
-        printf("Liste de tuiles : \n");
+        wprintw(win,"Liste de tuiles : \n");
         while (to_check != NULL) {
-            print_tile(to_check->data);
+            print_tile(win,to_check->data);
             to_check = to_check->next;
         }
     }

@@ -249,7 +249,6 @@ int update_research(Game* game)
         return -1;
 
     tech->is_unlocked = 1;
-
     game->science = 0;
     game->active_research_id = -1;
 

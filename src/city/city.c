@@ -23,7 +23,7 @@ City* create_city(Position pos) {
     city->damage = 0; //Au lieu de stocker les pv actuels on stocks les dégâts reçus
     city->project = NULL;
     city->new_ressources = create_tuple_ressources();
-    city->buildings = create_buildlist(build);
+    city->buildings = create_buildlist(build, NULL);
     city->can_produce_unit = false;
     city->has_taken_damage = false;
     return city;
@@ -105,6 +105,19 @@ BuildList* get_buildings_list(City* city){
 
 bool build_type_exists(char type) {
     return (type == 'C' || type == 'G' || type == 'B' || type == 'R' || type == 'M' || type == 'A');
+}
+
+int get_total_pop(CityList* city_list) {
+    int rep = 0;
+    CityList* to_check = city_list;
+    while (to_check != NULL) {
+        City* city = to_check->city;
+        if (city != NULL) {
+            rep += city->population;
+        }
+        to_check = to_check->next;
+    }
+    return rep;
 }
 
 bool croissance_check(City* city) {
@@ -197,7 +210,7 @@ void spawn_building_from_project(City* city) {
     if (city->project == NULL) return;
     char type = city->project->type;
     if (type == 'C') {        //La ville peut produire des unités
-        city->can_produce_unit == true;
+        city->can_produce_unit = true;
     } else if (type == 'R') { //La ville a une muraille
         city->walls_number += 1;
     } else if (type == 'G') { //Un grenier supplémentaire

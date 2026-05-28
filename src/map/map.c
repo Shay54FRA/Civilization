@@ -94,15 +94,43 @@ Position get_starting_city_pos(Map* map) {
 }
 
 // Le champ de vision de la carte
-#define VIEW_RADIUS 3
+#define VIEW_RADIUS_X 4
+#define VIEW_RADIUS_Y 3
 
-void print_map_cli(Map* m, Position cursor) {
+void print_map_cli(WINDOW* win,Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
 
-    int start_y = cursor.y - VIEW_RADIUS;
-    int end_y = cursor.y + VIEW_RADIUS;
-    int start_x = cursor.x - VIEW_RADIUS;
-    int end_x = cursor.x + VIEW_RADIUS;
+    int start_x = 0;
+    int end_x = 0;
+    int start_y = 0;
+    int end_y = 0;
+
+    
+    if(cursor.y < VIEW_RADIUS_Y){
+        start_y = 0;
+        end_y = 2*VIEW_RADIUS_Y;
+    }
+    else if(cursor.y > (m->height-VIEW_RADIUS_Y) ){
+        start_y = m->height-2*VIEW_RADIUS_Y-1 ;;
+        end_y = m->height - 1;
+    }
+    else{ //(cursor.y >= VIEW_RADIUS || cursor.y <= m->height-VIEW_RADIUS)
+        start_y = cursor.y - VIEW_RADIUS_Y;
+        end_y = cursor.y + VIEW_RADIUS_Y;
+    }
+
+    if(cursor.x<VIEW_RADIUS_X){
+        start_x = 0;
+        end_x = 2*VIEW_RADIUS_X;
+    }
+    else if(cursor.x > (m->length-VIEW_RADIUS_X) ){
+        start_x = m->length-2*VIEW_RADIUS_X-1 ;
+        end_x = m->length - 1;
+    }
+    else{ //(cursor.x >= VIEW_RADIUS || cursor.x <= m->length-VIEW_RADIUS)
+        start_x = cursor.x - VIEW_RADIUS_X;
+        end_x = cursor.x + VIEW_RADIUS_X;
+    }
 
     for (int y = start_y; y <= end_y; y++) {
         
@@ -111,14 +139,14 @@ void print_map_cli(Map* m, Position cursor) {
             
             // Pour faire un effet hexagone, on décale les lignes impaires
             if (y % 2 != 0) {
-                printw("     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
+                wprintw(win,"     "); // On décale de 5 espaces car nos cases font 9 de large + 1 espace de séparation
             }
 
             for (int x = start_x; x <= end_x; x++) {
                 
                 // Si la caméra regarde dans le vide (hors carte)
                 if (x < 0 || x >= m->length || y < 0 || y >= m->height) {
-                    printw("     "); // 5 espaces
+                    wprintw(win,"");
                     continue;
                 }
 
@@ -128,7 +156,7 @@ void print_map_cli(Map* m, Position cursor) {
                 char symbol = ' ';
                 // symbol = tuile->biome; //J'ai enlevé la lettre du biome
                 if (tuile->city_on) symbol = 'V';
-                else if (tuile->unit) symbol = 'U';
+                else if (tuile->unit ) symbol = 'U';
                 else if (tuile->camp_on) symbol = 'C';
                 else if (tuile->barb_on) symbol = 'B';
 
@@ -151,18 +179,18 @@ void print_map_cli(Map* m, Position cursor) {
                 if (line == 0 || line == 2) { // --- Lignes du HAUT et du BAS d'une case---
 
                     if (cursor.x == x && cursor.y == y) { //Case actuelle encadrée en rouge
-                        attron(COLOR_PAIR(COLOR_CURSEUR)); // attron change la couleur d'écriture
-                        printw("+-------+");
-                        attroff(COLOR_PAIR(COLOR_CURSEUR)); // attron change la couleur d'écriture
-                        printw(" ");
+                        wattron(win,COLOR_PAIR(COLOR_CURSEUR)); // wattron change la couleur d'écriture
+                        wprintw(win,"+-------+");
+                        wattroff(win,COLOR_PAIR(COLOR_CURSEUR));
+                        wprintw(win," ");
                     }
 
                     else {
                         // Bloc de couleur uni
-                        attron(COLOR_PAIR(current_color));
-                        printw("         ");
-                        attroff(COLOR_PAIR(current_color));
-                        printw(" ");
+                        wattron(win,COLOR_PAIR(current_color));
+                        wprintw(win,"         ");
+                        wattroff(win,COLOR_PAIR(current_color));
+                        wprintw(win," ");
                     }
                 }
                 
@@ -170,24 +198,24 @@ void print_map_cli(Map* m, Position cursor) {
                 
                 else if (line == 1) { // --- Ligne du MILIEU (avec la lettre) ---
                     if (cursor.x == x && cursor.y == y) { 
-                        attron(COLOR_PAIR(COLOR_CURSEUR)); printw("|"); attroff(COLOR_PAIR(COLOR_CURSEUR)); // Bordure rouge '|' et lettre au centre
-                        attron(COLOR_PAIR(current_color)); printw("   %c   ", symbol); attroff(COLOR_PAIR(current_color));
-                        attron(COLOR_PAIR(COLOR_CURSEUR)); printw("|"); attroff(COLOR_PAIR(COLOR_CURSEUR));
-                        printw(" ");
+                        wattron(win,COLOR_PAIR(COLOR_CURSEUR)); wprintw(win,"|"); wattroff(win,COLOR_PAIR(COLOR_CURSEUR)); // Bordure rouge '|' et lettre au centre
+                        wattron(win,COLOR_PAIR(current_color)); wprintw(win,"   %c   ", symbol); wattroff(win,COLOR_PAIR(current_color));
+                        wattron(win,COLOR_PAIR(COLOR_CURSEUR)); wprintw(win,"|"); wattroff(win,COLOR_PAIR(COLOR_CURSEUR));
+                        wprintw(win," ");
                     }
                     else {
-                        attron(COLOR_PAIR(current_color));
-                        printw("    %c    ", symbol); // 4 espaces, char, 4 espaces, affichage sur 9 cases de large
-                        attroff(COLOR_PAIR(current_color));
-                        printw(" ");
+                        wattron(win,COLOR_PAIR(current_color));
+                        wprintw(win,"    %c    ", symbol); // 4 espaces, char, 4 espaces, affichage sur 9 cases de large
+                        wattroff(win,COLOR_PAIR(current_color));
+                        wprintw(win," ");
                     }
                 }
             }
-            printw("\n"); // On passe à la ligne suivante du terminal
+            wprintw(win,"\n"); // On passe à la ligne suivante du terminal
         }
-        printw("\n"); // On ajoute un espace vertical entre chaque rangée de cases
+        wprintw(win,"\n"); // On ajoute un espace vertical entre chaque rangée de cases
     }
-    printw("=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
+    // wprintw(win,"=== CAMERA - POSITION : (%d, %d) ===\n\n", cursor.x, cursor.y);
 }
 
 char int_to_biome(int k){
