@@ -24,6 +24,7 @@ typedef struct _TechBonus{
     // Bonus passifs spécifiques
     int bonus_food_forest;        // ex: 1 pour la Chasse (+1 Nourriture sur Forêt)
     int bonus_pm_units;           // ex: 1 pour l'Équitation (+1 Point de Mouvement)
+    int bonus_fog_range;
 } TechBonus;
 
 /*
@@ -63,6 +64,8 @@ typedef struct _TechTree {
     
     int bonus_food_forest;
     int bonus_pm_units;
+
+    int bonus_fog_range;
 } TechTree;
 
 // --- Fonctions principales ---

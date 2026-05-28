@@ -83,6 +83,9 @@ Position get_starting_city_pos(Map* map); // Renvoie la position de la ville de 
 #define COLOR_VILLE 7
 #define COLOR_CURSEUR 8
 #define COLOR_BROUILLARD 9
+#define COLOR_ROUGE 10
+#define COLOR_JAUNE 11
+#define COLOR_VERT 12
 
 int get_distance(Position pos1, Position pos2);
 void reset_exploitation(Map* map); // Remet toute les tuiles à false pour l'exploitation

@@ -11,6 +11,8 @@ B : Bibliothèque     = +4 science/tour                       ||      1      || 
 M : Marché           = +3 gold/tour                          ||      1      ||    40    || Commerce 
 C : Caserne          = Produire des unités                   ||      2      ||    60    ||     -
 R : Rempart/Muraille = Double PV ville                       ||      2      ||    80    || Maçonnerie
+------------------------------------ Extension Brouillard de guerre -------------------------------------
+P : Phare            = Ville +2 rayon de vision              ||      0      ||    100   ||     -
 */
 
 typedef struct _Building {

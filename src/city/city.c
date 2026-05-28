@@ -105,7 +105,7 @@ BuildList* get_buildings_list(City* city){
 }
 
 bool build_type_exists(char type) {
-    return (type == 'C' || type == 'G' || type == 'B' || type == 'R' || type == 'M' || type == 'A');
+    return (type == 'C' || type == 'G' || type == 'B' || type == 'R' || type == 'M' || type == 'A' || type == 'P');
 }
 
 int get_total_pop(CityList* city_list) {
@@ -216,6 +216,8 @@ void spawn_building_from_project(City* city) {
         city->walls_number += 1;
     } else if (type == 'G') { //Un grenier supplémentaire
         city->basements_number += 1;
+    } else if (type == 'P') {
+        city->has_phare = true;
     }
     Building* build = create_building(city->project->type);
     append_buildlist(city->buildings, build);
@@ -226,10 +228,11 @@ bool end_project(Game* game, City* city) {
         if (city->project != NULL) {
             city->project->production_cost -= get_production(city);
             if (city->project->production_cost <= 0) {
-                if (city->project->type == 'c' || city->project->type == 'g') {
+                char type = city->project->type;
+                if (type == 'c' || type == 'g' || type == 'e') {
                     spawn_unit_from_project(game, city);
                 }
-                else if (build_type_exists(city->project->type)) {
+                else if (build_type_exists(type)) {
                     spawn_building_from_project(city);
                 }
 

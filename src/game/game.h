@@ -88,9 +88,6 @@ void update_fog(Game* game);
 
 //######## GAMEPLAY ########//
 
-//Incrémenter tour, attribuer les bonus, les dépenses d'entretien, famine, reset des pm, et check de croissance
-void start_turn(Game* game);
-
 //Fin du tour: déplacer les barbares, faire les combats si besoins, générer des barbares, soigner les villes
 int end_turn(Game* game);
 

@@ -9,7 +9,8 @@
 int get_terrain_cost(char biome)
 {
     if (biome == 'E') return 999;
-    if (biome == 'F' || biome == 'M') return 2;
+    if (biome == 'F') return 2;
+    if (biome == 'M') return 3;
     return 1;
 }
 
@@ -39,6 +40,16 @@ Unit* create_unit(char type, Position pos)
         u->max_pm = 3;
         u->pm = 3;
         u->fog_range = 2;
+        u->cost_per_turn = 1;
+    }
+    else if (type == 'e') { // Eclaireur
+        u->max_pv = 10;
+        u->pv = 10;
+        u->atk = 0;
+        u->def = 2;
+        u->max_pm = 4;
+        u->pm = 4;
+        u->fog_range = 4;
         u->cost_per_turn = 1;
     }
     else {
@@ -105,7 +116,7 @@ void spawn_unit_from_project(Game* game, City* city)
     if (p_type == 'g' && !is_unit_unlocked(game->tech_tree, 'g'))
         return;
 
-    if (!buildlist_contains(city->buildings, 'C'))
+    if (p_type == 'g' && !buildlist_contains(city->buildings, 'C'))
         return;
 
     Tile* tile = get_tile(game->map, city->project->pos);
@@ -116,6 +127,7 @@ void spawn_unit_from_project(Game* game, City* city)
     if (!new_unit) return;
 
     if (game->tech_tree) {
+        new_unit->fog_range += game->tech_tree->bonus_fog_range;
         new_unit->max_pm += game->tech_tree->bonus_pm_units;
         new_unit->pm = new_unit->max_pm;
     }

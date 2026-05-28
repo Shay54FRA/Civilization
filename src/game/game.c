@@ -81,6 +81,8 @@ char* get_name(char type){
     if (type == 'R') return "Muraille";
     if (type == 'c') return "Colon";
     if (type == 'g') return "Guerrier";
+    if (type == 'e') return "Eclaireur";
+    if (type == 'P') return "Phare";
     return NULL;
 }
 
@@ -93,14 +95,16 @@ int get_cost(char type){
     if (type == 'R') return 80;
     if (type == 'c') return 50;
     if (type == 'g') return 40;
+    if (type == 'e') return 40;
+    if (type == 'P') return 90;
     return -1;
 }
 
 int get_entretien_cost(char type) {
-    if (type == 'c') {
+    if (type == 'c' || type == 'P') {
         return 0;
     }
-    if (type == 'G' || type == 'M' || type == 'A' || type == 'B' || type == 'c') {
+    if (type == 'G' || type == 'M' || type == 'A' || type == 'B' || type == 'g' || type == 'e') {
         return 1;
     }
     if (type == 'C' || type == 'R') {
@@ -308,13 +312,13 @@ int get_new_science(Game* game) {
 }
 
 //Renvoie un booléen pour connaître s'il y a pauvreté ou non
-bool check_poor(Game* game) {
+bool check_poor(Game* game, bool can_delete) {
     if (game == NULL) return false;
     if (game->gold < 0) {
         int unit_number = get_unit_number(game);
         if (unit_number == 0) {
             game->poverty = true;
-        } else {
+        } else if (can_delete) {
             game->poverty = false;
             int random_destroy_number = (rand() % unit_number);
             kill_nth_unit(game, random_destroy_number);
@@ -330,8 +334,14 @@ int end_turn(Game* game) {
     if (game == NULL) return 0;
     // PHASE DE PRODUCTION
     give_all_bonuses(game);
-    game->gold -= get_all_entretien_costs(game);
-    check_poor(game);
+    // Equilibrage permettant d'aller chercher ses 1er or
+    if (game->gold > 0) {
+        game->gold -= get_all_entretien_costs(game);
+        check_poor(game, true);
+    } else {
+        game->gold -= get_all_entretien_costs(game);
+        check_poor(game, false);
+    }
     update_research(game);
     update_city_projects(game);
     update_food(game->cityList);
@@ -375,7 +385,7 @@ int end_game(Game* game) {
     /* A compléter : défaite si prod nulle pdt 5 tours de suite */
 
     if (game->turns_10_cities >= 5) return 1; //Victoire territoriale
-    if (game->tech_tree->num_unlocked == (game->tech_tree->num_technologies-1)) return 2; //Victoire technologique
+    if (game->tech_tree->num_unlocked == game->tech_tree->num_technologies) return 2; //Victoire technologique
 
     return 0; //Partie non terminée
 }
@@ -397,8 +407,8 @@ void give_bonus_building(Game* game, City* city, Building* building) {
 void give_bonus_tile(Game* game, City* city, Tile* tile) {
     if (game != NULL && city != NULL && tile != NULL) {
         switch(tile->biome) {
-            case 'P': city->new_ressources->ressource1 += 2;        //Food
-                city->new_ressources->ressource2 += 1; break;       //Prod
+            case 'P': city->new_ressources->ressource1 += 1;        //Food
+                city->new_ressources->ressource2 += 1; break;       //Prod   
 
             case 'E': city->new_ressources->ressource1 += 1;        //Food
                 game->new_ressources->ressource1 += 1; break;       //Gold
@@ -541,8 +551,8 @@ void give_all_bonuses(Game* game) {
             city->new_ressources->ressource2 = 0;
             to_check = to_check->next;
         }
-        game->gold += (int) ((1 + game->tech_tree->bonus_gold_percent/100) * get_new_gold(game)) / pow(2, game->poverty);
-        game->science += (int) ((1 + game->tech_tree->bonus_science_percent/100) * get_new_science(game)) / pow(2, game->poverty);
+        game->gold += (int) ((1.0 + (float)game->tech_tree->bonus_gold_percent/100.0) * get_new_gold(game)) / pow(2, game->poverty);
+        game->science += (int) ((1.0 + (float)game->tech_tree->bonus_science_percent/100.0) * get_new_science(game)) / pow(2, game->poverty);
 
         game->new_ressources->ressource1 = 0;
         game->new_ressources->ressource2 = 0;
