@@ -331,8 +331,8 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
     sprintf(science_txt, "Science disponible : %d", game->science);
     stringRGBA(renderer, x1 + 30, y1 + 50, science_txt, 255, 255, 100, 255);
 
-    // Positions fixes des technologies pour garder un vrai affichage en arbre
-    int tech_x[9] = {
+    // Positions fixes des technologies, indexees selon leur id
+    int tech_x[11] = {
         x1 + 70,   // Depart
         x1 + 270,  // Chasse
         x1 + 270,  // Agriculture
@@ -341,27 +341,43 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
         x1 + 270,  // Equitation
         x1 + 520,  // Irrigation
         x1 + 520,  // Maconnerie
-        x1 + 520   // Commerce
+        x1 + 520,  // Commerce
+        x1 + 270,  // Mirador
+        x1 + 520   // Expedition
     };
 
-    int tech_y[9] = {
-        y1 + 260,  // Depart
-        y1 + 120,  // Chasse
-        y1 + 200,  // Agriculture
-        y1 + 280,  // Artisanat
-        y1 + 360,  // Ecriture
-        y1 + 440,  // Equitation
-        y1 + 200,  // Irrigation
-        y1 + 280,  // Maconnerie
-        y1 + 360   // Commerce
+    int tech_y[11] = {
+        y1 + 300,  // Depart
+        y1 + 100,  // Chasse
+        y1 + 180,  // Agriculture
+        y1 + 260,  // Artisanat
+        y1 + 340,  // Ecriture
+        y1 + 420,  // Equitation
+        y1 + 180,  // Irrigation
+        y1 + 260,  // Maconnerie
+        y1 + 320,  // Commerce
+        y1 + 500,  // Mirador
+        y1 + 500   // Expedition
     };
+
+    // Sécurité si l'arbre contient plus de technologies que de positions dessinées
+    int nb_positions = sizeof(tech_x) / sizeof(tech_x[0]);
+    int nb_to_draw = tree->num_technologies;
+
+    if (nb_to_draw > nb_positions) {
+        nb_to_draw = nb_positions;
+    }
 
     // On trace les dépendances avant les blocs, pour que les technos restent bien visibles
-    for (int i = 0; i < tree->num_technologies; i++) {
+    for (int i = 0; i < nb_to_draw; i++) {
         Technology* tech = &tree->technologies[i];
 
         for (int j = 0; j < tech->num_prerequisites; j++) {
             int prereq = tech->prerequisites[j];
+
+            if (prereq < 0 || prereq >= nb_to_draw) {
+                continue;
+            }
 
             int start_x = tech_x[prereq] + w;
             int start_y = tech_y[prereq] + h / 2;
@@ -373,7 +389,7 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
     }
 
     // Affichage de chaque technologie avec une couleur selon son état
-    for (int i = 0; i < tree->num_technologies; i++) {
+    for (int i = 0; i < nb_to_draw; i++) {
         Technology* tech = &tree->technologies[i];
 
         Uint8 r = 80;
@@ -392,17 +408,30 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
         rectangleRGBA(renderer, tech_x[i], tech_y[i], tech_x[i] + w, tech_y[i] + h, 230, 230, 230, 255);
 
         char title[80];
-        sprintf(title, "%d - %s", tech->id, tech->name);
-        stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 10, title, 255, 255, 255, 255);
 
-        char cost[80];
-        if (game->active_research_id == tech->id && !tech->is_unlocked) {
-            sprintf(cost, "%d / %d science", game->science, tech->science_cost);
+        if (tech->id == 0) {
+            // La technologie de départ est affichée comme racine de l'arbre, sans coût ni numéro
+            sprintf(title, "%s", tech->name);
+
+            int title_x = tech_x[i] + (w - (int)strlen(title) * 8) / 2;
+            int title_y = tech_y[i] + 20;
+
+            stringRGBA(renderer, title_x, title_y, title, 255, 255, 255, 255);
+            stringRGBA(renderer, title_x + 1, title_y, title, 255, 255, 255, 255);
         } else {
-            sprintf(cost, "%d science", tech->science_cost);
-        }
+            int display_id = (tech->id == 10) ? 0 : tech->id;
+            sprintf(title, "%d - %s", display_id, tech->name);
+            stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 10, title, 255, 255, 255, 255);
 
-        stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 28, cost, 220, 220, 220, 255);
+            char cost[80];
+            if (game->active_research_id == tech->id && !tech->is_unlocked) {
+                sprintf(cost, "%d / %d science", game->science, tech->science_cost);
+            } else {
+                sprintf(cost, "%d science", tech->science_cost);
+            }
+
+            stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 28, cost, 220, 220, 220, 255);
+        }
 
         // Barre de progression affichee uniquement pour la technologie en cours
         if (game->active_research_id == tech->id && !tech->is_unlocked && tech->science_cost > 0) {
@@ -422,9 +451,9 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
         }
     }
 
-    // Légende des couleurs
-    int legend_x = x2 - 360;
-    int legend_y = y1 + 90;
+    // Légende des couleurs, placée dans l'espace libre à gauche de l'arbre
+    int legend_x = x1 + 70;
+    int legend_y = y1 + 105;
 
     stringRGBA(renderer, legend_x, legend_y, "LEGENDE", 255, 255, 255, 255);
 
@@ -440,34 +469,41 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
     boxRGBA(renderer, legend_x, legend_y + 115, legend_x + 18, legend_y + 133, 80, 80, 80, 230);
     stringRGBA(renderer, legend_x + 30, legend_y + 120, "Bloquee", 220, 220, 220, 255);
 
-    // Résumé rapide des effets pour aider le joueur à choisir sa recherche
-    int info_y = legend_y + 165;
+    // Résumé rapide des effets, remonté pour rester dans le panneau
+    int info_x = x2 - 420;
+    int info_y = y1 + 105;
 
-    stringRGBA(renderer, legend_x, info_y, "EFFETS DES TECHNOLOGIES", 255, 255, 255, 255);
+    stringRGBA(renderer, info_x, info_y, "EFFETS DES TECHNOLOGIES", 255, 255, 255, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 25,  "1 Chasse      : forets plus nourrissantes", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 40,  "                 (+1 nourriture sur foret)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 30,  "1 Chasse      : forets plus nourrissantes", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 45,  "                 (+1 nourriture sur foret)", 170, 170, 170, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 65,  "2 Agriculture : villes plus efficaces", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 80,  "                 (+10% nourriture globale)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 70,  "2 Agriculture : villes plus efficaces", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 85,  "                 (+10% nourriture globale)", 170, 170, 170, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 105, "3 Artisanat   : debloque les Guerriers", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 120, "                 et augmente la production", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 110, "3 Artisanat   : debloque les Guerriers", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 125, "                 et augmente la production", 170, 170, 170, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 145, "4 Ecriture    : debloque la Bibliotheque", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 160, "                 et accelere la science", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 150, "4 Ecriture    : debloque la Bibliotheque", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 165, "                 et accelere la science", 170, 170, 170, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 185, "5 Equitation  : unites plus mobiles", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 200, "                 (+1 point de mouvement)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 190, "5 Equitation  : unites plus mobiles", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 205, "                 (+1 point de mouvement)", 170, 170, 170, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 225, "6 Irrigation  : gros bonus alimentaire", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 240, "                 (+20% nourriture globale)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 230, "6 Irrigation  : gros bonus alimentaire", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 245, "                 (+20% nourriture globale)", 170, 170, 170, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 265, "7 Maconnerie  : debloque les Murailles", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 280, "                 villes plus resistantes", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 270, "7 Maconnerie  : debloque les Murailles", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 285, "                 villes plus resistantes", 170, 170, 170, 255);
 
-    stringRGBA(renderer, legend_x, info_y + 305, "8 Commerce    : debloque le Marche", 220, 220, 220, 255);
-    stringRGBA(renderer, legend_x, info_y + 320, "                 et augmente les revenus", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 310, "8 Commerce    : debloque le Marche", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 325, "                 et augmente les revenus", 170, 170, 170, 255);
+
+    stringRGBA(renderer, info_x, info_y + 350, "9 Mirador     : debloque le Mirador", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 365, "                 ameliore la surveillance", 170, 170, 170, 255);
+
+    stringRGBA(renderer, info_x, info_y + 390, "0 Expedition  : debloque l'Explorateur", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 405, "                augmente la portee de vision", 170, 170, 170, 255);
 
     // Indication de fermeture
     stringRGBA(renderer, x1 + 30, y2 - 45, "Appuyez sur [T] ou [ECHAP] pour fermer l'arbre technologique.", 180, 180, 180, 255);
