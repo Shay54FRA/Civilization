@@ -296,7 +296,7 @@ void run_game_cli(Game* game) {
                 snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
                 break;
 
-            case 'r':
+            case 'r':{
                 Tile* tile = get_tile(game->map, cursor);
                 if (!tile->city_on) {
                     snprintf(last_message, MSG_SIZE, "Tu n'es pas sur une ville !");
@@ -313,6 +313,7 @@ void run_game_cli(Game* game) {
                         break;
                     }
                 }
+            }
 
             case 'f':{
                 wprintw(win_info,"Passage au tour suivant...\n");
