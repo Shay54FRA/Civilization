@@ -83,7 +83,6 @@ void run_game_sdl(Game * game) {
     SDL_Texture* tex_colon = load_sprite(renderer, "src/sprites/colon.bmp");
     SDL_Texture* tex_barbare = load_sprite(renderer, "src/sprites/barbares.bmp");       
     SDL_Texture* tex_camp = load_sprite(renderer, "src/sprites/camp_barbares.bmp");
-    //SDL_Texture* tex_bat_const = load_sprite(renderer, "src/sprites/batiment_construction.bmp");
 
 
     while(running) {
@@ -475,7 +474,6 @@ void run_game_sdl(Game * game) {
     if(tex_colon) SDL_DestroyTexture(tex_colon);
     if(tex_barbare) SDL_DestroyTexture(tex_barbare); 
     if(tex_camp) SDL_DestroyTexture(tex_camp);
-    //if(tex_bat_const) SDL_DestroyTexture(tex_bat_const);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
