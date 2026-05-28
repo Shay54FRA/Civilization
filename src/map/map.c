@@ -156,7 +156,7 @@ void print_map_cli(WINDOW* win,Map* m, Position cursor) {
                 char symbol = ' ';
                 // symbol = tuile->biome; //J'ai enlevé la lettre du biome
                 if (tuile->city_on) symbol = 'V';
-                else if (tuile->unit) symbol = 'U';
+                else if (tuile->unit ) symbol = 'U';
                 else if (tuile->camp_on) symbol = 'C';
                 else if (tuile->barb_on) symbol = 'B';
 
