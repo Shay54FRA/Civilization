@@ -57,7 +57,17 @@ void destroy_buildlist(BuildList* lst) {
 
 void append_buildlist(BuildList* lst, Building* build) {
     if (build == NULL) return;
-    lst = create_buildlist(build, lst);
+    if (lst == NULL) {
+        lst = create_buildlist(build, NULL); 
+        return;
+    }
+    BuildList* to_check = lst;
+    BuildList* old_lst = NULL;
+    while(to_check != NULL) {
+        old_lst = to_check;
+        to_check = to_check->next;
+    }
+    old_lst->next = create_buildlist(build, NULL);
 }
 
 Building* get_buildlist_data(BuildList* lst){

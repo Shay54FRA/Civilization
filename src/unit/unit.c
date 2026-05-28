@@ -166,7 +166,10 @@ void resolve_combat(Game* game, Unit* attacker, Unit* target, Tile* target_tile)
 
 void kill_unit(Game* game, Unit* unit) {
     if (unit == NULL) return;
-    if (game == NULL) destroy_unit(unit); return;
+    if (game == NULL) {
+        destroy_unit(unit);
+        return;
+    }
     UnitList* to_check = game->unitList;
     UnitList* previous = NULL;
     while (to_check != NULL) {
@@ -183,7 +186,7 @@ void kill_unit(Game* game, Unit* unit) {
             }
             destroy_unit(unit);
             free(to_check);
-            break;
+            return;
         }
         previous = to_check;
         to_check = to_check->next;

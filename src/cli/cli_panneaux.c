@@ -134,28 +134,13 @@ void print_stats(WINDOW* win,Game* game) {
     if (!game) return;
 
     // Calcul de la population
-    int total_pop = 0;
-    int city_count = 0;
-    CityList* current_city = game->cityList;
-    while (current_city != NULL) {
-        if (current_city->city != NULL) {
-            total_pop += current_city->city->population;
-            city_count++;
-        }
-        current_city = current_city->next;
-    }
+    int total_pop = get_total_pop(game->cityList);
+    int city_count = get_city_number(game);
 
     // Calcul des unites
-    int unit_count = 0;
-    int maintenance = 0;
+    int unit_count = get_unit_number(game);
+    int maintenance = get_all_entretien_costs(game);
     UnitList* current_unit = game->unitList;
-    while (current_unit != NULL) {
-        if (current_unit->data != NULL) {
-            unit_count++;
-            maintenance += get_cost_per_turn(current_unit->data);
-        }
-        current_unit = current_unit->next;
-    }
 
     // Menu des stats
     wprintw(win,"\n=== TOUR %d | Or: %d | Science: %d ===\n", game->active_turn, game->gold, game->science);
@@ -166,7 +151,7 @@ void print_stats(WINDOW* win,Game* game) {
 
 void print_action_help(WINDOW* win) {
 
-    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [v] Fonder ville | [t] Technologies | [f] Fin de tour | [x] Quitter\n");
+    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | \n[v] Fonder ville | [t] Technologies | [r] Projets de ville | [f] Fin de tour | [x] Quitter\n");
     wprintw(win,"> ");
 
 }

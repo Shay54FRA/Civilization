@@ -106,6 +106,8 @@ void show_technology_menu(Game* game)
 
     while (1)
     {
+        clear();
+        refresh();
         printw("\n===== MENU TECHNOLOGIES =====\n");
 
         int active_id = game->active_research_id;
@@ -140,21 +142,21 @@ void print_progress_bar(int current, int total, int width)
 
     // Choix couleur selon progression
     if (ratio < 0.3f)
-        printf("\x1b[31m"); // rouge
+        printw("\x1b[31m"); // rouge
     else if (ratio < 0.7f)
-        printf("\x1b[33m"); // jaune
+        printw("\x1b[33m"); // jaune
     else
-        printf("\x1b[32m"); // vert
+        printw("\x1b[32m"); // vert
 
-    printf("[");
+    printw("[");
 
     for (int i = 0; i < width; i++)
     {
         if (i < filled)
-            printf("█");
+            printw("█");
         else
-            printf("-");
+            printw("-");
     }
 
-    printf("]\x1b[0m %d / %d", current, total);
+    printw("]\x1b[0m %d / %d", current, total);
 }

@@ -94,8 +94,8 @@ Position get_starting_city_pos(Map* map) {
 }
 
 // Le champ de vision de la carte
-#define VIEW_RADIUS_X 6
-#define VIEW_RADIUS_Y 4
+#define VIEW_RADIUS_X 4
+#define VIEW_RADIUS_Y 3
 
 void print_map_cli(WINDOW* win,Map* m, Position cursor) {
     if (m == NULL || m->map == NULL) return;
@@ -156,7 +156,7 @@ void print_map_cli(WINDOW* win,Map* m, Position cursor) {
                 char symbol = ' ';
                 // symbol = tuile->biome; //J'ai enlevé la lettre du biome
                 if (tuile->city_on) symbol = 'V';
-                else if (tuile->unit) symbol = 'U';
+                else if (tuile->unit ) symbol = 'U';
                 else if (tuile->camp_on) symbol = 'C';
                 else if (tuile->barb_on) symbol = 'B';
 
