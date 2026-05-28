@@ -118,11 +118,16 @@ void run_game_sdl(Game * game) {
                     else if (show_arbre_tech) {
                         int tech_id = -1;
 
-                        if (event.key.keysym.sym >= SDLK_1 && event.key.keysym.sym <= SDLK_8) {
+                        if (event.key.keysym.sym >= SDLK_1 && event.key.keysym.sym <= SDLK_9) {
                             tech_id = event.key.keysym.sym - SDLK_0;
-                        } else if (event.key.keysym.sym >= SDLK_KP_1 && event.key.keysym.sym <= SDLK_KP_8) {
+                        } else if (event.key.keysym.sym == SDLK_0) {
+                            tech_id = 10;
+                        } else if (event.key.keysym.sym >= SDLK_KP_1 && event.key.keysym.sym <= SDLK_KP_9) {
                             tech_id = event.key.keysym.sym - SDLK_KP_0;
+                        } else if (event.key.keysym.sym == SDLK_KP_0) {
+                            tech_id = 10;
                         }
+
                         if (tech_id != -1) {
                             if (set_active_research(game, tech_id) == 0) {
                                 snprintf(last_message, sizeof(last_message), "Recherche lancee : %s",
