@@ -74,6 +74,7 @@ void run_game_sdl(Game * game) {
     char last_message[100] = "Bienvenue dans Civ PP2ix !";
     int show_arbre_tech = 0; // arbre techno initialement pas affiché
     bool show_guide_actions = false ; //fermé initialement
+    int status_fin = 0; //ni victoire ni défaite initialement
 
     // Chargement de tous les sprites (SDL2_gfxPrimitives)
     SDL_Texture* tex_ville = load_sprite(renderer, "src/sprites/ville.bmp");
@@ -103,6 +104,11 @@ void run_game_sdl(Game * game) {
                         else running = 0;
                     }
 
+                    // Sécurité
+                    if (status_fin != 0) {
+                        break; 
+                    }
+
                     //arbre technologique (touche T)
                     if (event.key.keysym.sym == SDLK_t) {
                         show_arbre_tech = !show_arbre_tech;
@@ -120,25 +126,19 @@ void run_game_sdl(Game * game) {
                     }
 
                     // Passer le tour au clavier (touche F)
-                    if (event.key.keysym.sym == SDLK_f && !show_arbre_tech) {
+                    if (event.key.keysym.sym == SDLK_f && !show_arbre_tech && status_fin == 0) {
                         
                         // On applique le gros calcul du moteur (Production, Or, Bouffe, Projets ET Barbares)
                         int game_status = end_turn(game);
-                        
-                        // On passe officiellement au numéro de tour suivant
-                        game->active_turn++;          
 
-                        // Traitement des conditions de fin de partie
+                        // On regarde si on a une condition de victoire ou défaite qui a été remplie
                         if (game_status != 0) {
-                            if (game_status == 1) {
-                                snprintf(last_message, sizeof(last_message), "VICTOIRE TERRITORIALE ! (10+ villes)");
-                            } else if (game_status == 2) {
-                                snprintf(last_message, sizeof(last_message), "VICTOIRE TECHNOLOGIQUE ! (Arbre complet)");
-                            } else if (game_status == 3) {
-                                snprintf(last_message, sizeof(last_message), "DEFAITE ! Score final : %d", game_score(game));
-                            }
-                        } 
+                            status_fin = game_status; // Bloque le jeu et active l'écran de fin au prochain rendu
+                        }
+
                         else {
+                            // On passe officiellement au numéro de tour suivant
+                            game->active_turn++;    
                             snprintf(last_message, sizeof(last_message), "Tour %d : Revenus percus. Vos unites ont recupere leurs PM.", game->active_turn);
                         }
                     }
@@ -306,6 +306,25 @@ void run_game_sdl(Game * game) {
                     // On chope les coordonnées exactes du clic
                     int mx = event.button.x;
                     int my = event.button.y;
+
+                    // Si panneau victoir/défaite actif :
+                    if (status_fin != 0) {
+                        // On récupère la taille dynamique pour calculer la zone exacte du bouton rouge QUITTER LE JEU
+                        int current_w, current_h;
+
+                        SDL_GetRendererOutputSize(renderer, &current_w, &current_h);
+                        
+                        int bx1 = (current_w - 260) / 2;
+                        int by1 = ((current_h + 300) / 2) - 70; 
+                        int bx2 = bx1 + 260;
+                        int by2 = by1 + 40;
+
+                        // Si le joueur clique sur le bouton rouge "QUITTER JEU"
+                        if (mx >= bx1 && mx <= bx2 && my >= by1 && my <= by2) {
+                            running = 0; // Coupe la boucle principale et ferme le jeu
+                        }
+                        break; // Intercepte le clic pour ne pas toucher la carte
+                    }
                     
                     // gestion des clics sur les boutons des panneaux d'abord
 
@@ -329,27 +348,17 @@ void run_game_sdl(Game * game) {
                     //fin de tour
                     else if (mx >= 20 && mx <= 300 && my >= 115 && my <= 145 && !show_arbre_tech) {
 
-                        // On termine le tour actuel
-                        end_turn(game);
+                        // Fin du tour
+                        int game_status = end_turn(game);
 
-                        int game_status = end_game(game);
-
+                        // Verif si y'a victoire ou défaite
                         if (game_status != 0) {
-                                if (game_status == 1) {
-                                    snprintf(last_message, sizeof(last_message), "VICTOIRE TERRITORIALE ! (10+ villes)");
-                                } 
-                                
-                                else if (game_status == 2) {
-                                    snprintf(last_message, sizeof(last_message), "VICTOIRE TECHNOLOGIQUE ! (Arbre complet)");
-                                } 
+                            status_fin = game_status; // Déclenche le panneau
+                        } 
 
-                                else if (game_status == 3) {
-                                    snprintf(last_message, sizeof(last_message), "DEFAITE ! Score final : %d", game_score(game));
-                                }
-                            } 
                         else {
                             game->active_turn++;
-                            snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees et population mise a jour !", game->active_turn);
+                            snprintf(last_message, sizeof(last_message), "Tour %d : Productions calculees.", game->active_turn);
                         }
                         break;
                     }
@@ -427,12 +436,12 @@ void run_game_sdl(Game * game) {
         draw_panneau_arbre_tech(renderer, game, current_w, current_h);
     }
 
-    SDL_RenderPresent(renderer);
-
-    //Limiteur de vitesse : 1000ms / 16ms = 60 images par secondes
-    //permet de forcer le processeur à attendre -> diminution de la chauffe du CPU
-    //SDL_Delay(16);
+    // Si Victoire ou défaite, on affiche le panneau au dessus du reste
+    if (status_fin != 0) {
+        draw_panneau_fin_partie(renderer, game, status_fin, current_w, current_h);
     }
+
+    SDL_RenderPresent(renderer);
 
     //NETTOYAGE
 

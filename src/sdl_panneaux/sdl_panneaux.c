@@ -326,3 +326,74 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
     // Instruction de fermeture
     stringRGBA(renderer, 80, screenH - 90, "Appuyez sur [T] ou [ECHAP] pour masquer l'interface", 180, 180, 180, 255);
 }
+
+// dessin du panneau de fin de partie
+void draw_panneau_fin_partie(SDL_Renderer* renderer, Game* game, int game_status, int screenW, int screenH) {
+    // Fond noir semi-transparent couvrant tout l'écran 
+    boxRGBA(renderer, 0, 0, screenW, screenH, 10, 10, 15, 235);
+
+    // Boîte centrale pour le message
+    int w = 600;
+    int h = 300;
+    int x1 = (screenW - w) / 2;
+    int y1 = (screenH - h) / 2;
+    int x2 = x1 + w;
+    int y2 = y1 + h;
+
+    // Détermination de la couleur de la bordure et du titre selon le résultat
+    Uint8 r = 255, g = 255, b = 255;
+    char titre[100] = "";
+    char sous_titre[100] = "";
+
+    // Victoire Territoriale
+    if (game_status == 1) { 
+        r = 50; g = 205; b = 50; // Vert
+        strcpy(titre, "VICTOIRE TERRITORIALE !");
+        strcpy(sous_titre, "Votre empire s'est etendu sur plus de 10 cites !");
+    } 
+
+    // Victoire Technologique
+    else if (game_status == 2) { 
+        r = 30; g = 144; b = 255; // Bleu
+        strcpy(titre, "VICTOIRE TECHNOLOGIQUE !");
+        strcpy(sous_titre, "Vos savants ont complete l'arbre des sciences !");
+    } 
+
+    // Défaite
+    else if (game_status == 3) { 
+        r = 220; g = 20; b = 60; // Rouge
+        strcpy(titre, "DEFAITE DE VOTRE CIVILISATION !");
+        strcpy(sous_titre, "Le temps imparti est ecoule ou votre empire est mort.");
+    }
+
+    // Dessin du cadre central
+    boxRGBA(renderer, x1, y1, x2, y2, 20, 25, 35, 255);
+    rectangleRGBA(renderer, x1, y1, x2, y2, r, g, b, 255);
+
+    // Affichage centré des textes 
+    int len_titre = strlen(titre) * 8; //8 pixels par caractères
+    stringRGBA(renderer, (screenW - len_titre) / 2, y1 + 40, titre, r, g, b, 255);
+    
+    int len_sous = strlen(sous_titre) * 8;
+    stringRGBA(renderer, (screenW - len_sous) / 2, y1 + 80, sous_titre, 220, 220, 220, 255);
+
+    // Affichage du score final
+    char txt_score[50];
+    sprintf(txt_score, "SCORE FINAL : %d POINTS", game_score(game));
+    int len_score = strlen(txt_score) * 8;
+    stringRGBA(renderer, (screenW - len_score) / 2, y1 + 130, txt_score, 255, 215, 0, 255); // Écrit en Doré
+
+    // Dessin du bouton "QUITTER LE JEU" tout en bas du cadre
+    // Position du bouton centré
+    int bx1 = (screenW - 260) / 2;
+    int by1 = y2 - 70;
+    int bx2 = bx1 + 260;
+    int by2 = by1 + 40;
+
+    // Bouton rouge
+    boxRGBA(renderer, bx1, by1, bx2, by2, 180, 50, 50, 255); 
+    rectangleRGBA(renderer, bx1, by1, bx2, by2, 255, 255, 255, 200);
+    
+    // Texte centré à l'intérieur du bouton
+    stringRGBA(renderer, bx1 + 86, by1 + 16, "QUITTER JEU", 255, 255, 255, 255);
+}
