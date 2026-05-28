@@ -163,7 +163,10 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
                     if (b != NULL) {
                         Position city_center = selected_city->pos;
 
-                        if (get_distance(city_center, tuile->pos) <= 2) { 
+                        // on ajoute ça pour que exploitation_range du fichier city.h marche directement
+                        City* city = selected_city;
+
+                        if (get_distance(city_center, tuile->pos) <= EXPLOITATION_RANGE) { 
                             Sint16 vx_exploit[6] = {x, x + h, x + h, x, x - h, x - h};
                             Sint16 vy_exploit[6] = {y - R, y - R/2, y + R/2, y + R, y + R/2, y - R/2};
 
