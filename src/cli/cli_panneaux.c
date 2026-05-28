@@ -45,11 +45,26 @@ void print_tile_info(WINDOW* win,Game* game, Position cursor) {
     // Brouillard complet
     if (tile->fog_level == 0) {
         wprintw(win, "\nBrouillard : Aucune info sur la case !\n");
+        wprintw(win,"Position : (%d, %d)\n", cursor.x, cursor.y);
         return;
     }
 
     wprintw(win,"Position : (%d, %d)\n", cursor.x, cursor.y);
-    wprintw(win,"Terrain  : %s\n", biome_name(tile->biome));
+
+    int biome_color = COLOR_PLAINE; // Couleur par défaut
+    switch(tile->biome) {
+        case 'E': biome_color = COLOR_EAU; break;
+        case 'P': biome_color = COLOR_PLAINE; break;
+        case 'F': biome_color = COLOR_FORET; break;
+        case 'M': biome_color = COLOR_MONTAGNE; break;
+        case 'D': biome_color = COLOR_DESERT; break;
+        case 'T': biome_color = COLOR_TOUNDRA; break;
+    }
+    wprintw(win,"Terrain  : ");
+    wattron(win, COLOR_PAIR(biome_color));
+    wprintw(win,"%s\n", biome_name(tile->biome));
+    wattroff(win, COLOR_PAIR(biome_color));
+
 
     if (cost == -1)
         wprintw(win,"Cout PM  : Infranchissable\n");
@@ -152,16 +167,23 @@ void print_stats(WINDOW* win,Game* game) {
     int maintenance = get_all_entretien_costs(game);
     UnitList* current_unit = game->unitList;
 
+    
+    Position start_pos = get_starting_city_pos(game->map);
+    
+
     // Menu des stats
     wprintw(win,"\n=== TOUR %d | Or: %d | Science: %d ===\n", game->active_turn, game->gold, game->science);
     wprintw(win,"Empire : %d Villes (%d Pop) | Armee : %d Unites (Entretien: -%d Or/tour)\n", 
            city_count, total_pop, unit_count, maintenance);
+    wattron(win,COLOR_PAIR(COLOR_VILLE));
+    wprintw(win,"Ville de départ : (%d, %d)\n", start_pos.x, start_pos.y);
+    wattroff(win,COLOR_PAIR(COLOR_VILLE)); //On reset la couleur de fond
 }
 
 
 void print_action_help(WINDOW* win) {
 
-    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | \n[v] Fonder ville | [t] Technologies | [r] Projets de ville | [f] Fin de tour | [x] Quitter\n");
+    wprintw(win,"\nCommandes : [z/q/s/d] Déplacer caméra | [m] Sélectionner/Déplacer unité | [v] Fonder ville | [t] Technologies | [r] Projets de ville | [f] Fin de tour | [i] Historique | [x] Quitter\n");
     wprintw(win,"> ");
 
 }

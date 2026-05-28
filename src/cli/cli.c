@@ -33,7 +33,7 @@ void setup_windows(void) { //Je crée cette fonction pour refresh l'affichage de
 
     // 2. Récupérer les NOUVELLES dimensions du terminal
     int h = LINES, w = COLS;
-    int footer_height = 11; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
+    int footer_height = 13; //correspond à la hauteur du bas. Plus ce nb est grand, plus win_info est haute 
     int top_height = h - footer_height;
 
     // 3. Recréer les fenêtres aux bonnes dimensions
@@ -84,6 +84,25 @@ void init_ncurses_interface(void) {
 
 // Taille maximale du message affiché dans le HUD
 #define MSG_SIZE 256
+
+#define MAX_HISTORY 50 //
+
+void add_to_history(char history[MAX_HISTORY][MSG_SIZE], int* count, const char* msg) {
+    if (msg == NULL || msg[0] == '\0') return;
+
+    if (*count < MAX_HISTORY) {
+        strncpy(history[*count], msg, MSG_SIZE);
+        history[*count][MSG_SIZE - 1] = '\0';
+        (*count)++;
+    } else {
+        // Si le tableau est plein, on décale tout vers le haut (on perd le plus vieux)
+        for (int i = 0; i < MAX_HISTORY - 1; i++) {
+            strncpy(history[i], history[i+1], MSG_SIZE);
+        }
+        strncpy(history[MAX_HISTORY - 1], msg, MSG_SIZE);
+        history[MAX_HISTORY - 1][MSG_SIZE - 1] = '\0';
+    }
+}
 
 
 // Convertit le résultat d’un déplacement en message joueur
@@ -139,7 +158,7 @@ void end_game_cli(WINDOW* win,Game* game, int end_code) {
     getch();
 }
 
-void show_city_project_menu(Game* game, City* city) {
+void show_city_project_menu(Game* game, City* city,char* message) {
     if (city == NULL) return;
     if (city->project != NULL) return;
     char choix;
@@ -155,21 +174,21 @@ void show_city_project_menu(Game* game, City* city) {
                 printw("-> %s [e] - %d production - %d or/tour [ 10pv - 0atk - 2déf - 4pm - 4 vision range]\n", get_name('e'), get_cost('e'), get_entretien_cost('e'));
             }
         }
-        printw("\n---- BUILDING ----\n\n");
+        printw("\n---- BUILDING ----\n\n"); // MODIFICATION DE L'AFFICHAGE (On affiche 1, 2, 3, b, m, r mais on garde G, A, C... en interne)
         printw("-> %s [G] - %d production - %d or/tour : +3 food/tour et coût en nourriture de croissance/1.5\n", get_name('G'), get_cost('G'), get_entretien_cost('G'));
-        printw("-> %s [A] - %d production - %d or/tour : +3 prod/tour\n", get_name('A'), get_cost('A'), get_entretien_cost('A'));
+        printw("-> %s [a] - %d production - %d or/tour : +3 prod/tour\n", get_name('A'), get_cost('A'), get_entretien_cost('A'));
         printw("-> %s [C] - %d production - %d or/tour : Débloque la possibilité de fonder des unités\n", get_name('C'), get_cost('C'), get_entretien_cost('C'));
         if (is_building_unlocked(game->tech_tree, 'B')) {
-            printw("-> %s [B] - %d production - %d or/tour : +4 science/tour\n", get_name('B'), get_cost('B'), get_entretien_cost('B'));
+            printw("-> %s [b] - %d production - %d or/tour : +4 science/tour\n", get_name('B'), get_cost('B'), get_entretien_cost('B'));
         }
         if (is_building_unlocked(game->tech_tree, 'M')) {
-            printw("-> %s [M] - %d production - %d or/tour : +3 gold/tour\n", get_name('M'), get_cost('M'), get_entretien_cost('M'));
+            printw("-> %s [m] - %d production - %d or/tour : +3 gold/tour\n", get_name('M'), get_cost('M'), get_entretien_cost('M'));
         }
         if (is_building_unlocked(game->tech_tree, 'R')) {
-            printw("-> %s [R] - %d production - %d or/tour : pv x2 et force de la ville +10\n", get_name('R'), get_cost('R'), get_entretien_cost('R'));
+            printw("-> %s [r] - %d production - %d or/tour : pv x2 et force de la ville +10\n", get_name('R'), get_cost('R'), get_entretien_cost('R'));
         }
         if (is_building_unlocked(game->tech_tree, 'P')) {
-            printw("-> %s [P] - %d production - %d or/tour : +2 rayon de vision\n", get_name('P'), get_cost('P'), get_entretien_cost('P'));
+            printw("-> %s [p] - %d production - %d or/tour : +2 rayon de vision\n", get_name('P'), get_cost('P'), get_entretien_cost('P'));
         }
 
         printw("\n\n\n\n\nPour commencer un projet entrez n'importe lequel des boutons encadrés [..], et n'importe quel autre pour quitter : ");
@@ -185,13 +204,50 @@ void show_city_project_menu(Game* game, City* city) {
                 start_project(city, choix, city->pos);
             }
         }
-        if (choix == 'M' && is_building_unlocked(game->tech_tree, 'M')) start_project(city, choix, city->pos);
-        else if (choix == 'B' && is_building_unlocked(game->tech_tree, 'B')) start_project(city, choix, city->pos);
-        else if (choix == 'R' && is_building_unlocked(game->tech_tree, 'R')) start_project(city, choix, city->pos);
-        else if (choix == 'P' && is_building_unlocked(game->tech_tree, 'P')) start_project(city, choix, city->pos);
-        else if (choix == 'G' || choix == 'C' || choix == 'A') start_project(city, choix, city->pos);
+        if (choix == 'm' && is_building_unlocked(game->tech_tree, 'M')) start_project(city, choix, city->pos);
+        else if (choix == 'b' && is_building_unlocked(game->tech_tree, 'B')) start_project(city, choix, city->pos);
+        else if (choix == 'r' && is_building_unlocked(game->tech_tree, 'R')) start_project(city, choix, city->pos);
+        else if (choix == 'p' && is_building_unlocked(game->tech_tree, 'P')) start_project(city, choix, city->pos);
+        else if (choix == 'G') start_project(city, 'G', city->pos);
+        else if (choix == 'a') start_project(city, 'A', city->pos);
+        else if (choix == 'C') start_project(city, 'C', city->pos);
+
+        // Message de confirmation
+        if (city->project != NULL) {
+            snprintf(message, 256, "Vous avez lance la construction : %s", get_name(city->project->type));
+        } else {
+            snprintf(message, 256, "Menu ville quitte (Aucun projet lance).");
+        }
+
         return;
     }
+}
+
+void show_history_menu(char history[MAX_HISTORY][MSG_SIZE], int count) {
+    clear();
+    
+    printw("\n===== HISTORIQUE DES EVENEMENTS =====\n\n");
+    
+    if (count == 0) {
+        printw("Aucun evenement pour le moment.\n");
+    } else {
+        // On calcule le point de départ pour ne pas afficher plus de messages 
+        // qu'il n'y a de lignes dans le terminal (LINES - 5 pour la marge)
+        int start = 0;
+        if (count > LINES - 5) {
+            start = count - (LINES - 5); 
+        }
+        
+        // On affiche les messages du plus ancien au plus récent
+        for (int i = start; i < count; i++) {
+            printw(" > %s\n", history[i]);
+        }
+    }
+    
+    printw("\n\n[ Appuyez sur n'importe quelle touche pour fermer ]");
+    
+    refresh();
+    getch();
 }
 
 void run_game_cli(Game* game) {
@@ -207,6 +263,11 @@ void run_game_cli(Game* game) {
 
     // Message affiché dans le HUD
     char last_message[MSG_SIZE] = "Bienvenue dans Civ PP2ix.";
+
+    // Création d'une historique
+    char history[MAX_HISTORY][MSG_SIZE];
+    int history_count = 0;
+    add_to_history(history, &history_count, last_message); //On ajoute le 1er msg
 
     while (running) {
 
@@ -254,7 +315,9 @@ void run_game_cli(Game* game) {
                 clear();
                 refresh();
                 setup_windows();
-                snprintf(last_message,MSG_SIZE,"Fen^tre redimensionnée !");
+                snprintf(last_message,MSG_SIZE,"Fenetre redimensionnée !");
+                add_to_history(history, &history_count, last_message);
+                
                 break;
             case 'z': if (cursor.y > 0) cursor.y--; break;
             case 's': if (cursor.y < game->map->height - 1) cursor.y++; break;
@@ -269,13 +332,16 @@ void run_game_cli(Game* game) {
                     if (tile && tile->unit) {
                         selected_unit = tile->unit;
                         snprintf(last_message, MSG_SIZE, "Unite %s [%c] selectionnee.", get_name(selected_unit->type), selected_unit->type);
+                        add_to_history(history, &history_count, last_message);
                     } else {
                         snprintf(last_message, MSG_SIZE, "Aucune unite sur cette case.");
+                        add_to_history(history, &history_count, last_message);
                     }
                 }
                 else {
                     MoveResult result = move_unit_step(game, selected_unit, cursor);
                     move_result_to_message(result, last_message, MSG_SIZE);
+                    add_to_history(history, &history_count, last_message);
                     selected_unit = NULL;
                 }
                 break;
@@ -284,9 +350,11 @@ void run_game_cli(Game* game) {
             case 'v':
                 if (selected_unit == NULL) {
                     snprintf(last_message, MSG_SIZE, "Aucune unite selectionnee.");
+                    add_to_history(history, &history_count, last_message);
                 }
                 else if (selected_unit->type != 'c') {
                     snprintf(last_message, MSG_SIZE, "Seul un Colon peut fonder une ville.");
+                    add_to_history(history, &history_count, last_message);
                 }
                 else {
                     Position city_pos = selected_unit->pos;
@@ -294,6 +362,7 @@ void run_game_cli(Game* game) {
 
                     if (tile != NULL && tile->city_on) {
                         snprintf(last_message, MSG_SIZE, "Impossible : il y a deja une ville ici.");
+                        add_to_history(history, &history_count, last_message);
                     }
 
                     else {
@@ -301,6 +370,7 @@ void run_game_cli(Game* game) {
                         selected_unit = NULL;
 
                         snprintf(last_message, MSG_SIZE, "Ville fondee en (%d, %d).", city_pos.x, city_pos.y);
+                        add_to_history(history, &history_count, last_message);
                     }
                 }
                 break;
@@ -310,22 +380,26 @@ void run_game_cli(Game* game) {
                 clear(); //clear le terminal
                 show_technology_menu(game);
                 snprintf(last_message, MSG_SIZE, "Retour arbre technologique.");
+                add_to_history(history, &history_count, last_message);
                 break;
 
             case 'r':{
                 Tile* tile = get_tile(game->map, cursor);
                 if (!tile->city_on) {
                     snprintf(last_message, MSG_SIZE, "Tu n'es pas sur une ville !");
+                    add_to_history(history, &history_count, last_message);
                     break;
                 } else {
                     City* city = get_city_on_tile(game->cityList, tile);
                     if (city->project != NULL) {
                         snprintf(last_message, MSG_SIZE, "Un projet est déjà lancé !");
+                        add_to_history(history, &history_count, last_message);
                         break;
                     } else {
                         clear();
-                        show_city_project_menu(game, city);
+                        show_city_project_menu(game, city,last_message);
                         snprintf(last_message, MSG_SIZE, "Retour menu ville");
+                        add_to_history(history, &history_count, last_message);
                         break;
                     }
                 }
@@ -341,6 +415,7 @@ void run_game_cli(Game* game) {
                 }
                 game->active_turn++;
                 snprintf(last_message, MSG_SIZE, "Tour suivant.");
+                add_to_history(history, &history_count, last_message);
                 break;
             }
                 
@@ -349,6 +424,10 @@ void run_game_cli(Game* game) {
 
             default:
                 snprintf(last_message, MSG_SIZE, "Commande inconnue.");
+                break;
+
+            case 'i':
+                show_history_menu(history, history_count);
                 break;
         }
     }
