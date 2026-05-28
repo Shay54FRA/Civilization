@@ -184,7 +184,7 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
                 }
                 curr_b = curr_b->next;
             }
-            sprintf(txt3, "Quartiers : Gre:%d | Ate:%d | Bib:%d | Mar:%d", nb_grenier, nb_atelier, nb_biblio, nb_marche);
+            sprintf(txt3, "Quartiers : Gre:%d | Ate:%d | Bib:%d | Mar:%d | Cas:%d | Mur:%d", nb_grenier, nb_atelier, nb_biblio, nb_marche,nb_caserne,nb_muraille);
 
             if (get_project(city) != NULL) {
                 sprintf(txt4, "Projet : %s (Reste : %d pr)", get_project_name(city), get_production_left(city));
@@ -216,7 +216,7 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
     }
 
     // Moitié droite = Unités
-    int offset_x = w/2; // On décale la colonne de droite à X1 la moitié de la largeur du panneau
+    int offset_x = w/2+100; // On décale la colonne de droite à X1 la moitié de la largeur du panneau
 
     // Dessin d'une ligne verticale de séparation interne
     vlineRGBA(renderer, x1 + offset_x - 15, y1 + 10, y2 - 10, 80, 80, 80, 255);
@@ -224,7 +224,7 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
     // Sous-Cas 1 : Unité alliée sur la case (Cas 3 ou Cas 5)
     if (tuile->unit != NULL) {
         Unit* u = tuile->unit;
-        sprintf(txt1, "GARNISON ALLIÉE : %s", (u->type == 'c') ? "Colon" : "Guerrier");
+        sprintf(txt1, "GARNISON ALLIEE : %s", (u->type == 'c') ? "Colon" : "Guerrier");
         sprintf(txt2, "Sante : %d / %d PV", u->pv, u->max_pv);
         sprintf(txt3, "Mouvement : %d / %d PM", u->pm, u->max_pm);
         sprintf(txt4, "Combat : ATK %d | DEF %d", u->atk, u->def);
@@ -237,7 +237,7 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
     // Sous-Cas 2 : Barbare hostile sur la case (Cas 7)
     else if (tuile->barb_on != NULL) {
         Barbarian* b = tuile->barb_on;
-        sprintf(txt1, "MENACE DETECTÉE : Guerrier Barbare");
+        sprintf(txt1, "MENACE DETECTEE : Guerrier Barbare");
         sprintf(txt2, "Sante : %d / 15 PV", b->pv);
         sprintf(txt3, "Mouvement : %d / 3 PM", b->pm);
         sprintf(txt4, "Combat : ATK %d | DEF %d", b->atk, b->def);
