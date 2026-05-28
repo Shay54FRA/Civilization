@@ -306,48 +306,87 @@ void draw_panneau_guide_actions(SDL_Renderer* renderer, Game* game) {
     stringRGBA(renderer, x1 + 15, y1 + 445, "Pressez [H] ou cliquez sur AIDE pour fermer ce guide.", 130, 180, 255, 255);
 }
 
+
+// Dessine le fond amélioré du panneau de technologies
+static void draw_tech_glass_panel(SDL_Renderer* renderer, int x1, int y1, int x2, int y2,
+                                  Uint8 br, Uint8 bg, Uint8 bb) {
+    roundedBoxRGBA(renderer, x1 + 5, y1 + 5, x2 + 5, y2 + 5, 14, 0, 0, 0, 120);
+    roundedBoxRGBA(renderer, x1, y1, x2, y2, 14, 12, 18, 30, 235);
+    roundedRectangleRGBA(renderer, x1, y1, x2, y2, 14, br, bg, bb, 230);
+    roundedRectangleRGBA(renderer, x1 + 2, y1 + 2, x2 - 2, y2 - 2, 12, 255, 255, 255, 35);
+}
+
+
+// Dessine un séparateur discret pour structurer l'arbre technologique
+static void draw_tech_separator(SDL_Renderer* renderer, int x1, int y, int x2) {
+    hlineRGBA(renderer, x1, x2, y, 255, 255, 255, 35);
+    hlineRGBA(renderer, x1, x2, y + 1, 0, 0, 0, 90);
+}
+
+
+// Dessine la barre de progression de la recherche active
+static void draw_tech_progress_bar(SDL_Renderer* renderer, int x1, int y1, int w, int h,
+                                   int current, int max) {
+    int progress_w = 0;
+
+    if (max > 0) {
+        progress_w = (current * w) / max;
+    }
+
+    if (progress_w < 0) progress_w = 0;
+    if (progress_w > w) progress_w = w;
+
+    roundedBoxRGBA(renderer, x1, y1, x1 + w, y1 + h, 4, 20, 20, 25, 230);
+    roundedRectangleRGBA(renderer, x1, y1, x1 + w, y1 + h, 4, 160, 160, 160, 130);
+
+    if (progress_w > 0) {
+        roundedBoxRGBA(renderer, x1 + 1, y1 + 1, x1 + progress_w, y1 + h - 1, 3, 255, 220, 70, 245);
+    }
+}
+
+
 // Panneau de l'arbre technologique
 void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, int screenH) {
     if (renderer == NULL || game == NULL || game->tech_tree == NULL) return;
 
     TechTree* tree = game->tech_tree;
 
-    int x1 = 50;
-    int y1 = 50;
-    int x2 = screenW - 50;
-    int y2 = screenH - 50;
+    int x1 = 45;
+    int y1 = 45;
+    int x2 = screenW - 45;
+    int y2 = screenH - 45;
 
-    int w = 160;
-    int h = 50;
+    int w = 165;
+    int h = 58;
 
-    // Fond sombre du panneau techno
-    boxRGBA(renderer, x1, y1, x2, y2, 15, 20, 35, 245);
-    rectangleRGBA(renderer, x1, y1, x2, y2, 0, 200, 255, 255);
+    // Fond principal de l'arbre technologique
+    draw_tech_glass_panel(renderer, x1, y1, x2, y2, 0, 210, 255);
 
-    // Titre et infos globales
-    stringRGBA(renderer, x1 + 30, y1 + 25, "=== ARBRE TECHNOLOGIQUE ===", 0, 255, 255, 255);
+    stringRGBA(renderer, x1 + 28, y1 + 22, "ARBRE TECHNOLOGIQUE", 0, 235, 255, 255);
 
     char science_txt[80];
-    sprintf(science_txt, "Science disponible : %d", game->science);
-    stringRGBA(renderer, x1 + 30, y1 + 50, science_txt, 255, 255, 100, 255);
+    snprintf(science_txt, sizeof(science_txt), "Science disponible : %d", game->science);
+    stringRGBA(renderer, x1 + 28, y1 + 45, science_txt, 255, 230, 120, 255);
+
+    draw_tech_separator(renderer, x1 + 25, y1 + 67, x2 - 25);
 
     // Positions fixes des technologies, indexees selon leur id
     int tech_x[11] = {
         x1 + 70,   // Depart
-        x1 + 270,  // Chasse
-        x1 + 270,  // Agriculture
-        x1 + 270,  // Artisanat
-        x1 + 270,  // Ecriture
-        x1 + 270,  // Equitation
+        x1 + 280,  // Chasse
+        x1 + 280,  // Agriculture
+        x1 + 280,  // Artisanat
+        x1 + 280,  // Ecriture
+        x1 + 280,  // Equitation
         x1 + 520,  // Irrigation
         x1 + 520,  // Maconnerie
         x1 + 520,  // Commerce
-        x1 + 270,  // Mirador
+        x1 + 280,  // Mirador
         x1 + 520   // Expedition
     };
 
     int tech_y[11] = {
-        y1 + 300,  // Depart
+        y1 + 310,  // Depart
         y1 + 100,  // Chasse
         y1 + 180,  // Agriculture
         y1 + 260,  // Artisanat
@@ -355,7 +394,7 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
         y1 + 420,  // Equitation
         y1 + 180,  // Irrigation
         y1 + 260,  // Maconnerie
-        y1 + 320,  // Commerce
+        y1 + 340,  // Commerce
         y1 + 500,  // Mirador
         y1 + 500   // Expedition
     };
@@ -368,7 +407,7 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
         nb_to_draw = nb_positions;
     }
 
-    // On trace les dépendances avant les blocs, pour que les technos restent bien visibles
+    // Liens de dépendance entre technologies
     for (int i = 0; i < nb_to_draw; i++) {
         Technology* tech = &tree->technologies[i];
 
@@ -384,130 +423,194 @@ void draw_panneau_arbre_tech(SDL_Renderer* renderer, Game* game, int screenW, in
             int end_x = tech_x[i];
             int end_y = tech_y[i] + h / 2;
 
-            lineRGBA(renderer, start_x, start_y, end_x, end_y, 120, 120, 120, 255);
+            // Décalage vertical des lignes pour éviter que plusieurs dépendances se superposent
+            int offset = 0;
+
+            if (i == 8 && prereq == 3) {
+                offset = -3; // Artisanat -> Commerce
+            } else if (i == 8 && prereq == 4) {
+                offset = 10;  // Ecriture -> Commerce
+            } else if (i == 7) {
+                offset = -10;  // Artisanat -> Maconnerie
+            } else if (i == 10) {
+                offset = 6;   // Mirador -> Expedition
+            }
+
+            int mid_x = start_x + 35;
+
+            // Trait lumineux en arrière-plan pour mieux distinguer les branches
+            lineRGBA(renderer, start_x, start_y + offset - 1, mid_x, start_y + offset - 1, 0, 220, 255, 90);
+            lineRGBA(renderer, mid_x, start_y + offset - 1, mid_x, end_y + offset - 1, 0, 220, 255, 90);
+            lineRGBA(renderer, mid_x, end_y + offset - 1, end_x, end_y + offset - 1, 0, 220, 255, 90);
+
+            // Trait principal
+            lineRGBA(renderer, start_x, start_y + offset, mid_x, start_y + offset, 210, 210, 210, 210);
+            lineRGBA(renderer, mid_x, start_y + offset, mid_x, end_y + offset, 210, 210, 210, 210);
+            lineRGBA(renderer, mid_x, end_y + offset, end_x, end_y + offset, 210, 210, 210, 210);
+
+            // Petit point d'arrivée pour clarifier la technologie cible
+            filledCircleRGBA(renderer, end_x, end_y + offset, 3, 0, 220, 255, 190);
         }
     }
 
-    // Affichage de chaque technologie avec une couleur selon son état
+    // Affichage des cartes de technologies
     for (int i = 0; i < nb_to_draw; i++) {
         Technology* tech = &tree->technologies[i];
 
         Uint8 r = 80;
         Uint8 g = 80;
-        Uint8 b = 80;
+        Uint8 b = 85;
 
         if (tech->is_unlocked) {
-            r = 40; g = 150; b = 70;        // Techno déjà recherchée
+            r = 40; g = 150; b = 75;        // Techno déjà recherchée
         } else if (game->active_research_id == tech->id) {
-            r = 210; g = 160; b = 30;       // Recherche en cours
+            r = 220; g = 165; b = 35;       // Recherche en cours
         } else if (can_research_tech(game, tree, tech->id)) {
-            r = 40; g = 100; b = 170;       // Techno disponible
+            r = 40; g = 105; b = 180;       // Techno disponible
         }
 
-        boxRGBA(renderer, tech_x[i], tech_y[i], tech_x[i] + w, tech_y[i] + h, r, g, b, 230);
-        rectangleRGBA(renderer, tech_x[i], tech_y[i], tech_x[i] + w, tech_y[i] + h, 230, 230, 230, 255);
+        roundedBoxRGBA(renderer, tech_x[i] + 4, tech_y[i] + 5, tech_x[i] + w + 4, tech_y[i] + h + 5, 10, 0, 0, 0, 115);
+        roundedBoxRGBA(renderer, tech_x[i], tech_y[i], tech_x[i] + w, tech_y[i] + h, 10, r, g, b, 225);
+        roundedBoxRGBA(renderer, tech_x[i] + 2, tech_y[i] + 2, tech_x[i] + w - 2, tech_y[i] + 14, 8, 255, 255, 255, 35);
+        roundedRectangleRGBA(renderer, tech_x[i], tech_y[i], tech_x[i] + w, tech_y[i] + h, 10, 235, 235, 235, 200);
 
         char title[80];
 
         if (tech->id == 0) {
-            // La technologie de départ est affichée comme racine de l'arbre, sans coût ni numéro
-            sprintf(title, "%s", tech->name);
+            // La technologie de depart est la racine visuelle de l'arbre
+            snprintf(title, sizeof(title), "%s", tech->name);
 
             int title_x = tech_x[i] + (w - (int)strlen(title) * 8) / 2;
-            int title_y = tech_y[i] + 20;
+            int title_y = tech_y[i] + 24;
 
             stringRGBA(renderer, title_x, title_y, title, 255, 255, 255, 255);
             stringRGBA(renderer, title_x + 1, title_y, title, 255, 255, 255, 255);
         } else {
             int display_id = (tech->id == 10) ? 0 : tech->id;
-            sprintf(title, "%d - %s", display_id, tech->name);
-            stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 10, title, 255, 255, 255, 255);
+            snprintf(title, sizeof(title), "%d - %s", display_id, tech->name);
 
             char cost[80];
             if (game->active_research_id == tech->id && !tech->is_unlocked) {
-                sprintf(cost, "%d / %d science", game->science, tech->science_cost);
+                snprintf(cost, sizeof(cost), "%d / %d science", game->science, tech->science_cost);
             } else {
-                sprintf(cost, "%d science", tech->science_cost);
+                snprintf(cost, sizeof(cost), "%d science", tech->science_cost);
             }
 
-            stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 28, cost, 220, 220, 220, 255);
+            // Les technologies sans prérequis affiché sont centrées verticalement dans leur carte
+            if ((tech->id >= 1 && tech->id <= 5) || tech->id == 9) {
+                stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 14, title, 255, 255, 255, 255);
+                stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 31, cost, 225, 225, 225, 255);
+            } else {
+                stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 8, title, 255, 255, 255, 255);
+                stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 24, cost, 225, 225, 225, 255);
+            }
+
+            // Affiche les prérequis seulement pour les technologies avancées
+            if (!tech->is_unlocked &&
+            game->active_research_id != tech->id &&
+            tech->num_prerequisites > 0 &&
+            tech->id >= 6 &&
+            tech->id != 9) {
+                char prereq_txt[80] = "Req : ";
+
+                for (int k = 0; k < tech->num_prerequisites; k++) {
+                    char tmp[20];
+
+                    if (k > 0) {
+                        strcat(prereq_txt, "+");
+                    }
+
+                    if (tech->prerequisites[k] == 2) {
+                        snprintf(tmp, sizeof(tmp), "Agri");
+                    } else if (tech->prerequisites[k] == 3) {
+                        snprintf(tmp, sizeof(tmp), "Art");
+                    } else if (tech->prerequisites[k] == 4) {
+                        snprintf(tmp, sizeof(tmp), "Ecr");
+                    } else if (tech->prerequisites[k] == 9) {
+                        snprintf(tmp, sizeof(tmp), "Mir");
+                    } else {
+                        snprintf(tmp, sizeof(tmp), "%d", tech->prerequisites[k]);
+                    }
+
+                    strcat(prereq_txt, tmp);
+                }
+
+                stringRGBA(renderer, tech_x[i] + 10, tech_y[i] + 40, prereq_txt, 210, 210, 210, 255);
+            }
         }
 
-        // Barre de progression affichee uniquement pour la technologie en cours
+        // Barre de progression affichée uniquement pour la technologie en cours
         if (game->active_research_id == tech->id && !tech->is_unlocked && tech->science_cost > 0) {
-            int bar_x1 = tech_x[i] + 10;
-            int bar_y1 = tech_y[i] + 40;
-            int bar_w = w - 20;
-            int bar_h = 6;
-
-            int progress_w = (game->science * bar_w) / tech->science_cost;
-
-            if (progress_w > bar_w)
-                progress_w = bar_w;
-
-            boxRGBA(renderer, bar_x1, bar_y1, bar_x1 + bar_w, bar_y1 + bar_h, 30, 30, 30, 220);
-            rectangleRGBA(renderer, bar_x1, bar_y1, bar_x1 + bar_w, bar_y1 + bar_h, 180, 180, 180, 180);
-            boxRGBA(renderer, bar_x1, bar_y1, bar_x1 + progress_w, bar_y1 + bar_h, 255, 210, 60, 255);
+            draw_tech_progress_bar(renderer, tech_x[i] + 10, tech_y[i] + h - 10, w - 20, 5,
+                                   game->science, tech->science_cost);
         }
     }
 
-    // Légende des couleurs, placée dans l'espace libre à gauche de l'arbre
+    // Légende des couleurs
     int legend_x = x1 + 70;
     int legend_y = y1 + 105;
 
+    roundedBoxRGBA(renderer, legend_x - 15, legend_y - 15, legend_x + 160, legend_y + 150, 10, 5, 10, 20, 145);
+    roundedRectangleRGBA(renderer, legend_x - 15, legend_y - 15, legend_x + 160, legend_y + 150, 10, 255, 255, 255, 50);
+
     stringRGBA(renderer, legend_x, legend_y, "LEGENDE", 255, 255, 255, 255);
 
-    boxRGBA(renderer, legend_x, legend_y + 25, legend_x + 18, legend_y + 43, 40, 150, 70, 230);
+    roundedBoxRGBA(renderer, legend_x, legend_y + 25, legend_x + 18, legend_y + 43, 5, 40, 150, 70, 230);
     stringRGBA(renderer, legend_x + 30, legend_y + 30, "Debloquee", 220, 220, 220, 255);
 
-    boxRGBA(renderer, legend_x, legend_y + 55, legend_x + 18, legend_y + 73, 210, 160, 30, 230);
+    roundedBoxRGBA(renderer, legend_x, legend_y + 55, legend_x + 18, legend_y + 73, 5, 220, 165, 35, 230);
     stringRGBA(renderer, legend_x + 30, legend_y + 60, "En cours", 220, 220, 220, 255);
 
-    boxRGBA(renderer, legend_x, legend_y + 85, legend_x + 18, legend_y + 103, 40, 100, 170, 230);
+    roundedBoxRGBA(renderer, legend_x, legend_y + 85, legend_x + 18, legend_y + 103, 5, 40, 105, 180, 230);
     stringRGBA(renderer, legend_x + 30, legend_y + 90, "Disponible", 220, 220, 220, 255);
 
-    boxRGBA(renderer, legend_x, legend_y + 115, legend_x + 18, legend_y + 133, 80, 80, 80, 230);
+    roundedBoxRGBA(renderer, legend_x, legend_y + 115, legend_x + 18, legend_y + 133, 5, 80, 80, 85, 230);
     stringRGBA(renderer, legend_x + 30, legend_y + 120, "Bloquee", 220, 220, 220, 255);
 
     // Résumé rapide des effets pour aider le joueur à choisir sa recherche
     int info_x = x2 - 420;
     int info_y = y1 + 105;
 
+    roundedBoxRGBA(renderer, info_x - 18, info_y - 15, x2 - 22, info_y + 430, 10, 5, 10, 20, 145);
+    roundedRectangleRGBA(renderer, info_x - 18, info_y - 15, x2 - 22, info_y + 430, 10, 255, 255, 255, 50);
+
     stringRGBA(renderer, info_x, info_y, "EFFETS DES TECHNOLOGIES", 255, 255, 255, 255);
+    draw_tech_separator(renderer, info_x, info_y + 18, x2 - 45);
 
-    stringRGBA(renderer, info_x, info_y + 30,  "1 Chasse      : forets plus nourrissantes", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 45,  "                 (+1 nourriture sur foret)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 35,  "1 Chasse      : forets plus nourrissantes", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 50,  "                 +1 nourriture sur foret", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 70,  "2 Agriculture : villes plus efficaces", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 85,  "                 (+10% nourriture globale)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 75,  "2 Agriculture : villes plus efficaces", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 90,  "                 +10% nourriture globale", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 110, "3 Artisanat   : debloque les Guerriers", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 125, "                 et augmente la production", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 115, "3 Artisanat   : debloque les Guerriers", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 130, "                 +10% production globale", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 150, "4 Ecriture    : debloque la Bibliotheque", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 165, "                 et accelere la science", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 155, "4 Ecriture    : debloque la Bibliotheque", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 170, "                 +10% science globale", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 190, "5 Equitation  : unites plus mobiles", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 205, "                 (+1 point de mouvement)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 195, "5 Equitation  : unites plus mobiles", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 210, "                 +1 point de mouvement", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 230, "6 Irrigation  : gros bonus alimentaire", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 245, "                 (+20% nourriture globale)", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 235, "6 Irrigation  : gros bonus alimentaire", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 250, "                 +20% nourriture globale", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 270, "7 Maconnerie  : debloque les Murailles", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 285, "                 villes plus resistantes", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 275, "7 Maconnerie  : debloque les Murailles", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 290, "                 requis : Artisanat", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 310, "8 Commerce    : debloque le Marche", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 325, "                 et augmente les revenus", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 315, "8 Commerce    : debloque le Marche", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 330, "                 requis : Artisanat + Ecriture", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 350, "9 Mirador     : debloque le Mirador", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 365, "                 ameliore la surveillance", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 355, "9 Mirador     : debloque le Mirador", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 370, "                 ameliore la surveillance", 170, 170, 170, 255);
 
-    stringRGBA(renderer, info_x, info_y + 390, "0 Expedition  : debloque l'Explorateur", 220, 220, 220, 255);
-    stringRGBA(renderer, info_x, info_y + 405, "                augmente la portee de vision", 170, 170, 170, 255);
+    stringRGBA(renderer, info_x, info_y + 395, "0 Expedition  : debloque l'Explorateur", 220, 220, 220, 255);
+    stringRGBA(renderer, info_x, info_y + 410, "                 requis : Mirador", 170, 170, 170, 255);
 
     // Indication de fermeture
-    stringRGBA(renderer, x1 + 30, y2 - 45, "Appuyez sur [T] ou [ECHAP] pour fermer l'arbre technologique.", 180, 180, 180, 255);
+    stringRGBA(renderer, x1 + 28, y2 - 45, "Touches [1-9] et [0] pour choisir une technologie. [T] ou [ECHAP] pour fermer.", 180, 180, 180, 255);
 }
+
 
 // dessin du panneau de fin de partie
 void draw_panneau_fin_partie(SDL_Renderer* renderer, Game* game, int game_status, int screenW, int screenH) {
