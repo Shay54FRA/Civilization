@@ -115,6 +115,25 @@ void run_game_sdl(Game * game) {
                         snprintf(last_message, sizeof(last_message), "Menu arbre technologique");
                     }
 
+                    // Choisir une technologie quand l'arbre technologique est ouvert
+                    else if (show_arbre_tech) {
+                        int tech_id = -1;
+
+                        if (event.key.keysym.sym >= SDLK_1 && event.key.keysym.sym <= SDLK_8) {
+                            tech_id = event.key.keysym.sym - SDLK_0;
+                        } else if (event.key.keysym.sym >= SDLK_KP_1 && event.key.keysym.sym <= SDLK_KP_8) {
+                            tech_id = event.key.keysym.sym - SDLK_KP_0;
+                        }
+                        if (tech_id != -1) {
+                            if (set_active_research(game, tech_id) == 0) {
+                                snprintf(last_message, sizeof(last_message), "Recherche lancee : %s",
+                                    game->tech_tree->technologies[tech_id].name);
+                            } else {
+                                snprintf(last_message, sizeof(last_message), "Recherche impossible pour cette technologie.");
+                            }
+                        }
+                    }
+
                     // Activer / Masquer le guide d'actions (Touche H)
                     if (event.key.keysym.sym == SDLK_h) {
                         show_guide_actions = !show_guide_actions;
@@ -442,6 +461,7 @@ void run_game_sdl(Game * game) {
     }
 
     SDL_RenderPresent(renderer);
+    }
 
     //NETTOYAGE
 
