@@ -110,7 +110,7 @@ void draw_panneau_biome_flottant(SDL_Renderer* renderer, Game* game, Position se
     char l1[50], l2[50], l3[50], l4[50];
     sprintf(l1, "TERRAIN : %s (%d, %d)", get_biome_name(tuile->biome), tuile->pos.x, tuile->pos.y);
 
-    // Extraction des statistiques pures des biomes basées sur les règles fournies
+    // Statistiques des biomes
     switch (tuile->biome) {
         case 'P': // Plaine
             strcpy(l2, "Nourriture : +2"); strcpy(l3, "Production : +1"); strcpy(l4, "PM requis  : 1"); break;
