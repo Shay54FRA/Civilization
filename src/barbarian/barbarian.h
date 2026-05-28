@@ -27,7 +27,6 @@ Barbarian* create_barbarian(Position pos);
 void destroy_barbarian(Barbarian* barbarian);
 BarbarianList* create_barb_list(Barbarian* barb, BarbarianList* next);
 void destroy_barb_list(BarbarianList* barb_list);
-Barbarian* get_barbarian_at(Game* game, Position pos);
 
 int get_barb_pv(Barbarian* barb);
 int get_barb_pm(Barbarian* barb);
