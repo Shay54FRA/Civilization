@@ -182,12 +182,6 @@ static void remove_unit_from_game(Game* game, Unit* unit) {
     }
 }
 
-static int chebyshev_distance(Position a, Position b) {
-    int dx = abs(a.x - b.x);
-    int dy = abs(a.y - b.y);
-
-    return dx > dy ? dx : dy;
-}
 
 static bool can_found_city_here(Game* game, Position pos) {
     if (game == NULL) return false;
@@ -195,14 +189,13 @@ static bool can_found_city_here(Game* game, Position pos) {
     CityList* current = game->cityList;
 
     /*
-     * La distance entre 2 villes est au moins de 4 cases d'écart
-     * On utilise la distance de Tchebychev :
-     * deux positions sont trop proches si max(|dx|, |dy|) < 4.
+     * On utilise donc la fonction de distance get_distance
+     * du projet, déjà utilisée ailleurs pour les déplacements et les barbares.
      */
     while (current != NULL) {
         City* city = current->city;
 
-        if (city != NULL && chebyshev_distance(city->pos, pos) < 4) {
+        if (city != NULL && get_distance(city->pos, pos) < 4) {
             return false;
         }
 

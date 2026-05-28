@@ -227,12 +227,11 @@ MoveResult move_unit_step(Game* game, Unit* unit, Position dest)
         return MOVE_ALLY_OCCUPIED;
 
     /*
-     * Les unités du joueur sont stockées directement dans les tuiles,
-     * mais les barbares sont gérés dans une liste séparée.
-     * Avant de faire un déplacement classique, on vérifie donc si la case cible
-     * contient un barbare : dans ce cas, le déplacement devient une attaque.
+     * Les barbares sont directement référencés par la tuile.
+     * Si la case cible en contient un, le déplacement devient une attaque.
      */
-    Barbarian* barb = get_barbarian_at(game, dest);
+    
+    Barbarian* barb = dest_tile->barb_on;
 
     if (barb != NULL) {
         if (unit->atk <= 0)
