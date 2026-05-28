@@ -84,6 +84,7 @@ int get_cost(char type); //donner le coût en production de l'unité ou du batim
 int get_entretien_cost(char type); //coût d'entretien en or du batiment ou de l'unité
 int get_all_entretien_costs(Game* game); //somme de tous les coûts d'entretien de la partie
 int get_camp_list_number(Game* game); //nombre de camps de barbares pour calcule du bonus d'or
+void update_fog(Game* game);
 
 //######## GAMEPLAY ########//
 

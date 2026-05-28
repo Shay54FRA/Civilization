@@ -206,6 +206,50 @@ static bool can_found_city_here(Game* game, Position pos) {
 }
 
 
+void update_fog(Game* game) {
+    if (game == NULL) return;
+    if (game->map == NULL) return;
+
+    // Etape 1 : mettre les cases visibles à explorés (= Reset)
+    int height = game->map->height;
+    int width = game->map->length;
+    Position pos;
+    Tile* tile;
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            pos = (Position) {x, y};
+            tile = get_tile(game->map, pos);
+            if (tile != NULL) {
+                if (tile->fog_level == 2) {
+                    tile->fog_level = 1;
+                }
+            }
+        }
+    }
+
+    // Etape 2 : autour des villes
+    CityList* city_list = game->cityList;
+    City* city;
+    while (city_list != NULL) {
+        city = city_list->city;
+        if (city != NULL) {
+            mark_seen_tiles(game->map, city->pos, CITY_FOG_RANGE);
+        }
+        city_list = city_list->next;
+    }
+
+    // Etape 3 : Autour des Unit 
+    UnitList* unit_list = game->unitList;
+    while (unit_list != NULL) {
+        Unit* unit = unit_list->data;
+        if (unit != NULL) {
+            mark_seen_tiles(game->map, unit->pos, unit->fog_range);
+        }
+        unit_list = unit_list->next;
+    }
+
+}
+
 void colonize(Game* game, Unit* colon) {
     if (game == NULL || game->map == NULL || colon == NULL) return;
     if (colon->type != 'c') return;
@@ -232,6 +276,7 @@ void colonize(Game* game, Unit* colon) {
     tile->city_on = true;
     tile->unit = NULL;
 
+    update_fog(game);
     remove_unit_from_game(game, colon);
     destroy_unit(colon);
 }
@@ -303,6 +348,7 @@ int end_turn(Game* game) {
     reset_exploitation(game->map);
     reset_all_barbs_pm(game->barbarianList);
     reset_all_pm(game->unitList);
+    update_fog(game);
     if (get_city_number(game) >= 10) {
         game->turns_10_cities ++;
     } else {

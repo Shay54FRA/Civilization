@@ -15,6 +15,7 @@ Tile* create_tile(Position pos, char biome) {
     new_tile->barb_on = NULL;
     new_tile->unit = NULL;
     new_tile->biome = biome;
+    new_tile->fog_level = 0;
     return new_tile;
 }
 

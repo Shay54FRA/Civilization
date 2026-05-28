@@ -28,6 +28,7 @@ Unit* create_unit(char type, Position pos)
         u->def = 1;
         u->max_pm = 2;
         u->pm = 2;
+        u->fog_range = 2;
         u->cost_per_turn = 0;
     }
     else if (type == 'g') { // Guerrier
@@ -37,6 +38,7 @@ Unit* create_unit(char type, Position pos)
         u->def = 2;
         u->max_pm = 3;
         u->pm = 3;
+        u->fog_range = 2;
         u->cost_per_turn = 1;
     }
     else {
@@ -46,6 +48,7 @@ Unit* create_unit(char type, Position pos)
         u->def = 1;
         u->max_pm = 2;
         u->pm = 2;
+        u->fog_range = 2;
         u->cost_per_turn = 0;
     }
 
@@ -293,6 +296,7 @@ MoveResult move_unit_step(Game* game, Unit* unit, Position dest)
     dest_tile->unit = unit;
     unit->pos = dest;
     unit->pm -= cost;
+    update_fog(game);
 
     return MOVE_OK;
 }

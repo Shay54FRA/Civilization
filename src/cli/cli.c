@@ -73,6 +73,7 @@ void init_ncurses_interface(void) {
         init_pair(COLOR_DESERT, COLOR_BLACK, COLOR_YELLOW);
         init_pair(COLOR_TOUNDRA, COLOR_BLACK, COLOR_CYAN);
         init_pair(COLOR_VILLE, COLOR_WHITE, COLOR_MAGENTA);
+        init_pair(COLOR_BROUILLARD, COLOR_WHITE, 8);
         init_pair(COLOR_CURSEUR, COLOR_RED, -1); // -1 = transparent
     }
 }
@@ -200,6 +201,7 @@ void run_game_cli(Game* game) {
         box(win_map, 0, 0);
         mvwprintw(win_map, 0, 2, " CARTE ");
         wmove(in_map, 0, 0); //Réinitialise position curseur
+        update_fog(game);
         print_map_cli(in_map,game->map, cursor);
         touchwin(win_map); //Juste par sécurité
         wrefresh(win_map);

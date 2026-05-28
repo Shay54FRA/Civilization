@@ -11,6 +11,7 @@
 #define CROISSANCE_NEED ((int) ceil((20 + 10*city->population)/pow(1.5, city->basements_number)))
 #define CITY_STRENGTH (20 + 10*(city->walls_number > 0))
 #define MAX_HP ((int) (10*city->population*pow(2,city->walls_number)))
+#define CITY_FOG_RANGE 3 + 2*city->has_phare
 
 typedef struct _BuildList BuildList;
 
@@ -33,6 +34,7 @@ typedef struct _City {
     Position pos;
     TupleRessources* new_ressources;
     bool can_produce_unit;
+    bool has_phare;
     bool has_taken_damage;
     Project* project;
     BuildList* buildings;

@@ -25,6 +25,7 @@ City* create_city(Position pos) {
     city->new_ressources = create_tuple_ressources();
     city->buildings = create_buildlist(build, NULL);
     city->can_produce_unit = false;
+    city->has_phare = false;
     city->has_taken_damage = false;
     return city;
 }
