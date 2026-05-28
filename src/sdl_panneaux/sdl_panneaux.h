@@ -16,4 +16,7 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
 
 void get_move_message(MoveResult result, char* buffer, size_t size);
 
+//panneau fin de partie
+void draw_panneau_fin_partie(SDL_Renderer* renderer, Game* game, int game_status, int screenW, int screenH);
+
 #endif
