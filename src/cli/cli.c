@@ -313,6 +313,7 @@ void run_game_cli(Game* game) {
                         break;
                     }
                 }
+
             case 'f':{
                 wprintw(win_info,"Passage au tour suivant...\n");
                 int game_result = end_turn(game);

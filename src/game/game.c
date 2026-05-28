@@ -285,13 +285,13 @@ int end_turn(Game* game) {
     if (game == NULL) return 0;
     // PHASE DE PRODUCTION
     give_all_bonuses(game);
+    game->gold -= get_all_entretien_costs(game);
+    check_poor(game);
     update_research(game);
     update_city_projects(game);
-    game->gold -= get_all_entretien_costs(game);
     update_food(game->cityList);
 
     // PHASE DE CROISSANCE
-    check_poor(game);
     update_croissance(game);
 
     // PHASE DE BARBARES

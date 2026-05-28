@@ -226,6 +226,10 @@ void run_game_sdl(Game * game) {
 
                                         // Création d'un Colon (touche C)
                                         case SDLK_c:
+                                            if (!buildlist_contains(get_buildings_list(city), 'C')) {
+                                                snprintf(last_message, sizeof(last_message), "ERREUR : Caserne requise dans cette ville !");
+                                                break;
+                                            } 
                                             start_project(city, 'c', position_actuelle);
                                             snprintf(last_message, sizeof(last_message), "SUCCES : Projet Colon planifie ! (50 pr)");
                                             break;

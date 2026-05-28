@@ -217,37 +217,7 @@ int barbarian_attack(Game* game, Barbarian* barb, Position pos) {
     Tile* fighting_tile = get_tile(game->map, pos);
     if (fighting_tile == NULL) return -1;
 
-    //Cas 1 : On affronte une unité
-    Unit* unit = fighting_tile->unit;
-    if (unit != NULL) {
-        int dmg_to_target = barb->atk - unit->def;
-        if (dmg_to_target < 1) dmg_to_target = 1;
-
-        int dmg_to_attacker = unit->atk - barb->def;
-        if (dmg_to_attacker < 0) dmg_to_attacker = 0;
-
-        unit->pv -= dmg_to_target;
-        barb->pv -= dmg_to_attacker;
-
-        if (barb->pv <= 0 && unit->pv <= 0) { //Entretue
-            kill_barbarian(game, barb);
-            kill_unit(game, unit);
-            return 0;
-        }
-
-        if (barb->pv <= 0) { // Le barbare uniquement meurt
-            kill_barbarian(game, barb);
-            return -1;
-        }
-
-        if (unit->pv <= 0) { // L'unité uniquement meurt
-            kill_unit(game, unit);
-            return 1;
-        }
-        return 0;
-    }
-
-    // Cas 2 : On affronte une ville
+    // Cas 1 : On affronte une ville
     City* city = get_city_on_tile(game->cityList, fighting_tile);
     if (city != NULL) {
         int dmg_to_target = barb->atk - CITY_STRENGTH;
@@ -277,6 +247,37 @@ int barbarian_attack(Game* game, Barbarian* barb, Position pos) {
         }
         return 0;
     }
+
+    //Cas 2 : On affronte une unité
+    Unit* unit = fighting_tile->unit;
+    if (unit != NULL) {
+        int dmg_to_target = barb->atk - unit->def;
+        if (dmg_to_target < 1) dmg_to_target = 1;
+
+        int dmg_to_attacker = unit->atk - barb->def;
+        if (dmg_to_attacker < 0) dmg_to_attacker = 0;
+
+        unit->pv -= dmg_to_target;
+        barb->pv -= dmg_to_attacker;
+
+        if (barb->pv <= 0 && unit->pv <= 0) { //Entretue
+            kill_barbarian(game, barb);
+            kill_unit(game, unit);
+            return 0;
+        }
+
+        if (barb->pv <= 0) { // Le barbare uniquement meurt
+            kill_barbarian(game, barb);
+            return -1;
+        }
+
+        if (unit->pv <= 0) { // L'unité uniquement meurt
+            kill_unit(game, unit);
+            return 1;
+        }
+        return 0;
+    }
+
     // Cas erreur
     return -1;
 }
