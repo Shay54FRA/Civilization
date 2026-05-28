@@ -1,7 +1,7 @@
 #ifndef SDL
 #define SDL
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "../map/map.h"
 #include "../city/city.h"
 

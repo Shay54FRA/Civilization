@@ -313,8 +313,7 @@ void run_game_cli(Game* game) {
                         break;
                     }
                 }
-
-            case 'f':
+            case 'f':{
                 wprintw(win_info,"Passage au tour suivant...\n");
                 int game_result = end_turn(game);
                 if (game_result != 0) {
@@ -326,6 +325,7 @@ void run_game_cli(Game* game) {
                 game->active_turn++;
                 snprintf(last_message, MSG_SIZE, "Tour suivant.");
                 break;
+            }
                 
             case 'x':
                 running = 0; break;

@@ -36,7 +36,8 @@ void kill_barbarian(Game* game, Barbarian* barb) {
     while (to_check != NULL) {
         if (to_check->data == barb) { // On a trouvé le barbare en question
             Tile* tile = get_tile(game->map, *(barb->pos));
-            tile->barb_on = NULL;
+            if (tile != NULL)
+                tile->barb_on = NULL;
             if (previous == NULL) {
                 game->barbarianList = to_check->next;
             } else {
