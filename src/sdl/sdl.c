@@ -430,6 +430,8 @@ void run_game_sdl(Game * game) {
     }
 
     //RENDU
+    update_fog(game);
+
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
     SDL_RenderClear(renderer); 
 
