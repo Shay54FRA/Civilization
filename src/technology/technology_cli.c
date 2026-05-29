@@ -154,7 +154,7 @@ void print_progress_bar(int current, int total, int width)
     for (int i = 0; i < width; i++)
     {
         if (i < filled)
-            printw("█");
+            printw("#");
         else
             printw("-");
     }

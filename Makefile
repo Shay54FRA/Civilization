@@ -48,6 +48,12 @@ $(TEST_TARGET): $(TEST_BINS)
 		./$$test; \
 	done
 
+cli : $(TARGET)
+	./civ
+
+sdl : $(TARGET)
+	./civ --mode sdl
+
 %.o : %.c  #On ne s'embête pas avec les dépendances en .h qui pose peu problèmes
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
@@ -56,6 +62,8 @@ req:
 	sudo apt install libsdl2-dev
 	sudo apt install libsdl2-gfx-dev
 	sudo apt-get install libncurses5-dev libncursesw5-dev
+
+reset: clean #Pas de sauvegardes externes donc les 2 sont similaires
 
 clean:
 	rm -f $(COMMON_OBJS) $(TARGET) $(TEST_OBJS) $(TEST_BINS) $(MAIN_OBJ) $(TEST_TARGET)

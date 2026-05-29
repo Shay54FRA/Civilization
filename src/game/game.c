@@ -96,7 +96,7 @@ int get_cost(char type){
     if (type == 'c') return 50;
     if (type == 'g') return 40;
     if (type == 'e') return 40;
-    if (type == 'P') return 90;
+    if (type == 'P') return 100;
     return -1;
 }
 
@@ -400,7 +400,7 @@ void give_bonus_building(Game* game, City* city, Building* building) {
 
         case 'M': game->new_ressources->ressource1 += 3; break; //Gold
 
-        /* Les 2 autres batiments ne donnent que des bonus au lancement */
+        /* Les 3 autres batiments ne donnent que des bonus au lancement */
     }
 }
 
