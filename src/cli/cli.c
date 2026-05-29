@@ -79,6 +79,11 @@ void init_ncurses_interface(void) {
         init_pair(COLOR_ROUGE, COLOR_RED, -1);
         init_pair(COLOR_JAUNE, COLOR_YELLOW, -1);
         init_pair(COLOR_VERT, COLOR_GREEN, -1);
+        init_pair(TEXTE_VERT,COLOR_GREEN,-1);
+        init_pair(TEXTE_BLEU,COLOR_BLUE,-1);
+        init_pair(TEXTE_ORANGE,208,-1);
+        init_pair(TEXTE_ROSE,COLOR_MAGENTA,-1);
+
     }
 }
 

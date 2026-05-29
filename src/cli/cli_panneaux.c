@@ -5,6 +5,7 @@
 #include "../city/city.h"
 #include "../barbarian/barbarian.h"
 #include "../building/building.h"
+#include <string.h>
 
 void print_pos(WINDOW* win,Position pos) {
     wprintw(win,"Position : (%d, %d)", pos.x, pos.y);
@@ -66,6 +67,39 @@ void print_tile_info(WINDOW* win,Game* game, Position cursor) {
     wattroff(win, COLOR_PAIR(biome_color));
 
 
+    char l2[50], l3[50], l4[50];
+
+    // Statistiques des biomes
+    switch (tile->biome) {
+        case 'P': // Plaine
+            strcpy(l2, "Nourriture : +2"); strcpy(l3, "Production : +1"); strcpy(l4, "PM requis  : 1"); break;
+        case 'F': // Forêt
+            // sprintf(l2, "Nourriture : %+d", 1 + game->tech_tree->bonus_food_forest); 
+            strcpy(l3, "Production : +2"); strcpy(l4, "PM requis  : 2"); break;
+        case 'M': // Montagne
+            strcpy(l2, "Production : +3"); strcpy(l3, "Science    : +1"); strcpy(l4, "PM requis  : 3"); break;
+        case 'E': // Eau
+            strcpy(l2, "Nourriture : +1"); strcpy(l3, "Or         : +1"); strcpy(l4, "PM requis  : Bloque"); break;
+        case 'D': // Désert
+            strcpy(l2, "Nourriture : 0");  strcpy(l3, "Or         : +1"); strcpy(l4, "PM requis  : 1"); break;
+        case 'T': // Toundra
+            strcpy(l2, "Nourriture : +1"); strcpy(l3, "Production : +1"); strcpy(l4, "PM requis  : 1"); break;
+        default:
+            strcpy(l2, "Nourriture : 0");  strcpy(l3, "Production : 0");  strcpy(l4, "PM requis  : 1"); break;
+    }
+
+    wattron(win,COLOR_PAIR(TEXTE_VERT));
+    wprintw(win,"%s\n",l2); //affiche Production 
+    wattroff(win,COLOR_PAIR(TEXTE_VERT));
+    wattron(win,COLOR_PAIR(TEXTE_BLEU));
+    wprintw(win,"%s\n",l3); //affiche Nourriture
+    wattroff(win,COLOR_PAIR(TEXTE_VERT));
+    wattron(win,COLOR_PAIR(TEXTE_ORANGE));
+    wprintw(win,"%s\n",l4); //affiche PM requis
+    wattroff(win,COLOR_PAIR(TEXTE_ORANGE));
+
+
+
     if (cost == -1)
         wprintw(win,"Cout PM  : Infranchissable\n");
     else
@@ -124,7 +158,7 @@ void show_city_info_cli(WINDOW* win,Game* game, Position pos) {
         wprintw(win,"Aucune ville séléctionné !\n");
         return;
     }
-    wattron(win,COLOR_PAIR(COLOR_VILLE));
+    wattron(win,COLOR_PAIR(TEXTE_ROSE));
     wprintw(win,"\n==== VILLE ====\n\n");
     wprintw(win,"PV : %d / %d\n", get_city_pv(city), MAX_HP);
     wprintw(win,"Population : %d villageois\n", city->population);
@@ -150,7 +184,7 @@ void show_city_info_cli(WINDOW* win,Game* game, Position pos) {
         to_check = to_check->next;
     }
 
-    wattroff(win,COLOR_PAIR(COLOR_VILLE)); //On reset la couleur de fond
+    wattroff(win,COLOR_PAIR(TEXTE_ROSE)); //On reset la couleur de fond
     return;
 
 }
