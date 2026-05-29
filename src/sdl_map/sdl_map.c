@@ -60,8 +60,8 @@ void draw_hexagones(SDL_Renderer* renderer, int x, int y, int R, SDL_Color color
 
 
 void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position position_actuelle, int cameraX, int cameraY, 
-                SDL_Texture* tex_ville, SDL_Texture* tex_ville_mur, SDL_Texture* tex_guerrier, SDL_Texture* tex_colon, 
-                SDL_Texture* tex_camp, SDL_Texture* tex_barbare){
+                SDL_Texture* tex_ville, SDL_Texture* tex_ville_mur, SDL_Texture* tex_guerrier, SDL_Texture* tex_colon,
+                SDL_Texture* tex_eclaireur, SDL_Texture* tex_camp, SDL_Texture* tex_barbare){
 
     // On regarde si la case actuellement sélectionnée contient une ville
     City* selected_city = NULL;
@@ -173,8 +173,13 @@ void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position pos
                     if (type == 'g' || type == 'G') {
                         tex_unit = tex_guerrier;
                     }
+                    
                     else if (type == 'c' || type == 'C') {
                         tex_unit = tex_colon;
+                    }
+
+                    else if (type == 'e' || type == 'E') {
+                        tex_unit = tex_eclaireur;
                     }
                     
                     // si il y a une unité, alors on la dessine

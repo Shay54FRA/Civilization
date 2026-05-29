@@ -81,6 +81,7 @@ void run_game_sdl(Game * game) {
     SDL_Texture* tex_ville_mur = load_sprite(renderer, "src/sprites/ville_muraille.bmp"); 
     SDL_Texture* tex_guerrier = load_sprite(renderer, "src/sprites/guerrier.bmp");
     SDL_Texture* tex_colon = load_sprite(renderer, "src/sprites/colon.bmp");
+    SDL_Texture* tex_eclaireur = load_sprite(renderer, "src/sprites/eclaireur.bmp");
     SDL_Texture* tex_barbare = load_sprite(renderer, "src/sprites/barbares.bmp");       
     SDL_Texture* tex_camp = load_sprite(renderer, "src/sprites/camp_barbares.bmp");
 
@@ -196,13 +197,25 @@ void run_game_sdl(Game * game) {
                         if (event.key.keysym.sym == SDLK_v) {
 
                             if (tuile_suivante->unit && tuile_suivante->unit->type == 'c') {
+                                
                                 colonize(game, tuile_suivante->unit);
-                                snprintf(last_message, sizeof(last_message), "Ville fondee avec succes !");
-                                selected_unit = NULL; 
-                            } 
-                            
+
+                                // On vérifie si la tuile a bien vu le fait qu'une ville a été construite dessus
+                                if (tuile_suivante->city_on == true) {
+
+                                    // Succès : la ville a été créée, le colon est détruit par le moteur
+                                    snprintf(last_message, sizeof(last_message), "SUCCES : Une nouvelle cite a ete fondee !");
+                                    selected_unit = NULL; // On désélectionne l'unité puisqu'elle n'existe plus
+                                } 
+
+                                else {
+                                    // Échec : la fct can_found_city_here a bloqué la fonction à cause de la distance
+                                    snprintf(last_message, sizeof(last_message), "ERREUR : Impossible de fonder ici (Trop proche d'une autre cite) !");
+                                }
+                            }
+                             
                             else {
-                                snprintf(last_message, sizeof(last_message), "Seul un Colon peut fonder une ville");
+                                snprintf(last_message, sizeof(last_message), "Seul un Colon peut fonder une ville.");
                             }
                         }
 
@@ -215,9 +228,8 @@ void run_game_sdl(Game * game) {
                         if (city != NULL) {
                             
                             // Pour savoir si on veut produire quelque chose
-                            bool touche_prod = (event.key.keysym.sym == SDLK_c || event.key.keysym.sym == SDLK_g || 
-                                               (event.key.keysym.sym >= SDLK_1 && event.key.keysym.sym <= SDLK_6) ||
-                                               (event.key.keysym.sym >= SDLK_KP_1 && event.key.keysym.sym <= SDLK_KP_6));
+                            bool touche_prod = (event.key.keysym.sym == SDLK_c || event.key.keysym.sym == SDLK_g || event.key.keysym.sym == SDLK_e ||
+                                               (event.key.keysym.sym >= SDLK_1 && event.key.keysym.sym <= SDLK_7));
 
                             if (touche_prod) {
 
@@ -228,6 +240,8 @@ void run_game_sdl(Game * game) {
 
                                 else {
                                     switch (event.key.keysym.sym) {
+
+                                        // LES UNITES
 
                                         // Création d'un Colon (touche C)
                                         case SDLK_c:
@@ -256,6 +270,26 @@ void run_game_sdl(Game * game) {
                                             }
                                             break;
                                         
+                                        // Création d'un eclaireur (touche E)
+                                        case SDLK_e:
+                                            
+                                            if (!is_unit_unlocked(game->tech_tree, 'e')) {
+                                                snprintf(last_message, sizeof(last_message), "ERREUR : Technologie [Expedition] requise pour le Guerrier !");
+                                            }
+
+                                            else if (!buildlist_contains(get_buildings_list(city), 'C')) {
+                                                snprintf(last_message, sizeof(last_message), "ERREUR : Caserne requise dans cette ville !");
+                                            } 
+                                            
+                                            else {
+                                                start_project(city, 'e', position_actuelle);
+                                                snprintf(last_message, sizeof(last_message), "SUCCES : Projet Eclaireur planifie ! (40 pr)");
+                                            }
+                                            break;
+                                            
+
+                                        // LES BUILDINGS
+
                                         // Création d'un grenier (touche 1)
                                         case SDLK_1:
                                             start_project(city, 'G', position_actuelle);
@@ -311,6 +345,19 @@ void run_game_sdl(Game * game) {
                                                 snprintf(last_message, sizeof(last_message), "SUCCES : Construction de la Muraille planifiee ! (80 pr)");
                                             }
                                             break;
+                                        
+                                        // Création d'un Phare (touche 7)
+                                        case SDLK_7:
+                                            if (!is_building_unlocked(game->tech_tree, 'P')) {
+                                                snprintf(last_message, sizeof(last_message), "ERREUR : Technologie [Mirador] requise !");
+                                            } 
+                                            
+                                            else {
+                                                start_project(city, 'P', position_actuelle);
+                                                snprintf(last_message, sizeof(last_message), "SUCCES : Construction du Phare planifiee ! (100 pr)");
+                                            }
+                                            break;
+                                    
                                     }
                                 }
                             }
@@ -441,7 +488,7 @@ void run_game_sdl(Game * game) {
 
     //Dessin de la map avec la caméra
     draw_map_sdl(renderer, game, R, h, position_actuelle, cameraX, cameraY,
-                tex_ville, tex_ville_mur, tex_guerrier, tex_colon, tex_camp, tex_barbare);
+                tex_ville, tex_ville_mur, tex_guerrier, tex_colon, tex_eclaireur, tex_camp, tex_barbare);
 
     //Dessin du tableau d'affichage global
     draw_panneau_global(renderer, game);
@@ -479,6 +526,7 @@ void run_game_sdl(Game * game) {
     if(tex_ville_mur) SDL_DestroyTexture(tex_ville_mur);
     if(tex_guerrier) SDL_DestroyTexture(tex_guerrier);
     if(tex_colon) SDL_DestroyTexture(tex_colon);
+    if(tex_eclaireur) SDL_DestroyTexture(tex_eclaireur);
     if(tex_barbare) SDL_DestroyTexture(tex_barbare); 
     if(tex_camp) SDL_DestroyTexture(tex_camp);
 
