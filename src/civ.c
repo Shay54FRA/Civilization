@@ -39,23 +39,23 @@ int main(int argc, char *argv[]) {
 
     // PARSING
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--mode") == 0 && i + 1 < argc) { // si l'argument i est --mode  et qu'il y a bien quelque chose après l'option :
+        if ((strcmp(argv[i], "--mode") == 0 || strcmp(argv[i], "-m") == 0) && i + 1 < argc) { // si l'argument i est --mode  et qu'il y a bien quelque chose après l'option :
 
             if (strcmp(minuscule(argv[i+1]), "sdl") == 0) is_sdl = 1; // si l'argument d'après est SDL
         }
-        else if (strcmp(argv[i], "--width") == 0 && i + 1 < argc) {
+        else if ((strcmp(argv[i], "--width") == 0 || strcmp(argv[i], "-W") == 0) && i + 1 < argc) {
             w = atoi(argv[i+1]); // arguments arrivent sous forme de texte "40" -> atoi transforme ASCII (texte) en integer
         }
-        else if (strcmp(argv[i], "--height") == 0 && i + 1 < argc) {
+        else if ((strcmp(argv[i], "--height") == 0 || strcmp(argv[i], "-H") == 0) && i + 1 < argc) {
             h = atoi(argv[i+1]); 
         }
-        else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc) {
+        else if ((strcmp(argv[i], "--seed") == 0 || strcmp(argv[i], "-s") == 0) && i + 1 < argc) {
             s = (unsigned int)atoi(argv[i+1]); //nombre forcément positif
         }
-        else if (strcmp(argv[i], "--turns") == 0 && i + 1 < argc){
+        else if ((strcmp(argv[i], "--turns") == 0 || strcmp(argv[i], "-t") == 0) && i + 1 < argc){
             t = atoi(argv[i+1]);
         }
-        else if (strcmp(argv[i],"--barbarians") == 0 && i + 1 < argc){
+        else if ((strcmp(argv[i],"--barbarians") == 0 || strcmp(argv[i], "-b") == 0) && i + 1 < argc){
             b = atoi(argv[i+1]);
         }
     }
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     // CONFIGURATION
     Configuration* config = create_configuration(w, h, s,t,b, is_sdl);
 
-    printf("Civ lance - Graine: %u | Taille: %dx%d | Mode: %s\n | Nbr tours : %d | Nbr camps barbares : %d", 
+    printf("Civ lance - Graine: %u | Taille: %dx%d | Mode: %s\n | Nbr tours : %d | Nbr camps barbares : %d\n", 
             config->s, config->w, config->h, config->is_sdl ? "SDL" : "CLI",config->t,config->b);
 
     // GAME 
