@@ -10,7 +10,7 @@ int main(void) {
     
 
     Map* ma_carte = create_map(10, 10, 42, 5);
-    Position cursor = {0, 0}; // Position initiale de la caméra
+    // Position cursor = {0, 0}; // Position initiale de la caméra
 
     // // Démarrage de l'interface 
     // init_ncurses_interface(); (fonction définie dans cli.c)

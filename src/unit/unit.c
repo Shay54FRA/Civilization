@@ -148,7 +148,6 @@ void spawn_unit_from_project(Game* game, City* city)
 void kill_nth_unit(Game* game, int n) {
     if (game == NULL) return;
     if (get_unit_number(game) <= n) return;
-    int current_unit_id = 0;
     UnitList* to_check = game->unitList;
     for (int ind = 0; ind < n; ind++) {
         to_check = to_check->next;
