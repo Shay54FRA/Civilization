@@ -168,9 +168,19 @@ void show_city_project_menu(Game* game, City* city,char* message) {
     if (city->project != NULL) return;
     char choix;
     while (1) {
+        // Titre en Rose
+        attron(COLOR_PAIR(TEXTE_ROSE));
         printw("\n===== CHOIX DU PROJET =====\n");
+        attroff(COLOR_PAIR(TEXTE_ROSE));
+
         if (city->can_produce_unit)  {
+            // Catégorie Unité en Orange
+            attron(COLOR_PAIR(TEXTE_ORANGE));
             printw("\n---- UNIT ----\n\n");
+            attroff(COLOR_PAIR(TEXTE_ORANGE));
+
+            // Contenu Unité en Vert
+            attron(COLOR_PAIR(TEXTE_VERT));
             printw("-> %s [c] - %d production - %d or/tour [ 10pv - 0atk - 1déf - 2pm]\n", get_name('c'), get_cost('c'), get_entretien_cost('c'));
             if (is_unit_unlocked(game->tech_tree, 'g')) {
                 printw("-> %s [g] - %d production - %d or/tour [ 15pv - 3atk - 2déf - 3pm]\n", get_name('g'), get_cost('g'), get_entretien_cost('g'));
@@ -178,8 +188,16 @@ void show_city_project_menu(Game* game, City* city,char* message) {
             if (is_unit_unlocked(game->tech_tree, 'e')) {
                 printw("-> %s [e] - %d production - %d or/tour [ 10pv - 0atk - 2déf - 4pm - 4 vision range]\n", get_name('e'), get_cost('e'), get_entretien_cost('e'));
             }
+            attroff(COLOR_PAIR(TEXTE_VERT));
         }
-        printw("\n---- BUILDING ----\n\n"); // MODIFICATION DE L'AFFICHAGE (On affiche 1, 2, 3, b, m, r mais on garde G, A, C... en interne)
+
+        // Catégorie Bâtiments en Orange
+        attron(COLOR_PAIR(TEXTE_ORANGE));
+        printw("\n---- BUILDING ----\n\n");
+        attroff(COLOR_PAIR(TEXTE_ORANGE));
+
+        // Contenu Bâtiments en Bleu
+        attron(COLOR_PAIR(TEXTE_BLEU));
         printw("-> %s [G] - %d production - %d or/tour : +3 food/tour et coût en nourriture de croissance/1.5\n", get_name('G'), get_cost('G'), get_entretien_cost('G'));
         printw("-> %s [a] - %d production - %d or/tour : +3 prod/tour\n", get_name('A'), get_cost('A'), get_entretien_cost('A'));
         printw("-> %s [C] - %d production - %d or/tour : Débloque la possibilité de fonder des unités\n", get_name('C'), get_cost('C'), get_entretien_cost('C'));
@@ -195,9 +213,13 @@ void show_city_project_menu(Game* game, City* city,char* message) {
         if (is_building_unlocked(game->tech_tree, 'P')) {
             printw("-> %s [p] - %d production - %d or/tour : +2 rayon de vision\n", get_name('P'), get_cost('P'), get_entretien_cost('P'));
         }
+        attroff(COLOR_PAIR(TEXTE_BLEU));
 
         printw("\n\n\n\n\nPour commencer un projet entrez n'importe lequel des boutons encadrés [..], et n'importe quel autre pour quitter : ");
+        
         choix = getch();
+        
+        
         if (city->can_produce_unit) {
             if (choix == 'c') {
                 start_project(city, choix, city->pos);

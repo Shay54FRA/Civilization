@@ -16,7 +16,9 @@ void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game)
 {
     if (!tree || !game) return;
 
+    attron(COLOR_PAIR(TEXTE_BLEU));
     printw("\n========== ARBRE TECHNOLOGIQUE ==========\n");
+    attroff(COLOR_PAIR(TEXTE_BLEU));
 
     for (int i = 0; i < tree->num_technologies; i++)
     {
@@ -31,31 +33,37 @@ void print_tech_tree_cli(TechTree* tree, int active_research_id, Game* game)
         /* déjà débloquée */
         if (tech->is_unlocked)
         {
+            attron(COLOR_PAIR(TEXTE_VERT));
             printw("OK");
+            attroff(COLOR_PAIR(TEXTE_VERT));
         }
         /* recherche en cours */
         else if (tech->id == active_research_id)
         {
             int progress = game->science;
             int cost = tech->science_cost;
-
             printw(" ");
-
             print_progress_bar(progress, cost, 15);
         }
         /* prérequis non validés */
         else if (!can_research_tech(game, tree, tech->id))
         {
+            attron(COLOR_PAIR(COLOR_ROUGE));
             printw("BLOQUEE");
+            attroff(COLOR_PAIR(COLOR_ROUGE));
         }
         /* recherchable */
         else
         {
+            attron(COLOR_PAIR(TEXTE_ORANGE));
             printw("(%d science)", tech->science_cost);
+            attroff(COLOR_PAIR(TEXTE_ORANGE));
         }
     }
 
+    attron(COLOR_PAIR(TEXTE_BLEU));
     printw("\n\n=========================================\n");
+    attroff(COLOR_PAIR(TEXTE_BLEU));
 }
 
 
@@ -71,7 +79,9 @@ void print_available_techs_cli(Game* game)
 
     TechTree* tree = game->tech_tree;
 
+    attron(COLOR_PAIR(TEXTE_ROSE));
     printw("\nTechnologies recherchables :\n");
+    attroff(COLOR_PAIR(TEXTE_ROSE));
 
     for (int i = 0; i < tree->num_technologies; i++)
     {
@@ -83,10 +93,12 @@ void print_available_techs_cli(Game* game)
         if (!tech->is_unlocked &&
             can_research_tech(game, tree, tech->id))
         {
+            attron(COLOR_PAIR(TEXTE_ORANGE));
             printw(" -> [%d] %s (%d science)\n",
                    tech->id,
                    tech->name,
                    tech->science_cost);
+            attroff(COLOR_PAIR(TEXTE_ORANGE));
         }
     }
 }
@@ -109,12 +121,14 @@ void show_technology_menu(Game* game)
     {
         clear();
         refresh();
+        
+        attron(COLOR_PAIR(TEXTE_ROSE));
         printw("\n===== MENU TECHNOLOGIES =====\n");
+        attroff(COLOR_PAIR(TEXTE_ROSE));
 
         int active_id = game->active_research_id;
 
         print_tech_tree_cli(game->tech_tree, active_id, game);
-
         print_available_techs_cli(game);
 
         printw("\nChoisir une technologie (-1 pour quitter) : ");
