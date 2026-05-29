@@ -15,6 +15,28 @@ Le projet est organisé de manière modulaire afin de séparer clairement les di
 
 ---
 
+## Dépendances
+
+Le projet est écrit en langage C.
+
+Pour le mode SDL, il faut disposer des bibliothèques SDL utilisées par le projet, notamment SDL2 et SDL2_gfx selon l’environnement de compilation.
+
+Sur macOS avec Homebrew, elles peuvent généralement être installées avec :
+
+```bash
+brew install sdl2 sdl2_gfx
+```
+
+Sur Linux, l’installation dépend de la distribution utilisée.
+
+Par exemple, sur une distribution basée sur Debian ou Ubuntu :
+
+```bash
+sudo apt install libsdl2-dev libsdl2-gfx-dev
+```
+
+---
+
 ## Compilation du projet
 
 Le projet est fourni avec un `Makefile` qui gère automatiquement la compilation des différents fichiers source.
@@ -168,8 +190,8 @@ L’arborescence principale du projet est la suivante :
 - `main` : ancien exécutable ou exécutable généré selon la configuration du projet.
 - `README.md` : fichier général de présentation du projet.
 - `README_CIV.md` : documentation spécifique au jeu Civilization.
-- `README_CARCASSONNE.md` : documentation spécifique à l’autre partie du projet.
-- `GP/comptes-rendus/CR1.pdf` : compte-rendu de gestion de projet.
+- `README_CARCASSONNE.md` : documentation spécifique à l'autre jeu proposé.
+- `GP` : tout le contenu de la gestion de projet.
 
 ---
 
@@ -606,28 +628,6 @@ Par exemple :
 Ces fichiers permettent de tester séparément les différents modules du jeu.
 
 Selon les règles définies dans le `Makefile`, les tests peuvent être compilés et exécutés séparément afin de vérifier le bon fonctionnement des fonctions principales.
-
----
-
-## Dépendances
-
-Le projet est écrit en langage C.
-
-Pour le mode SDL, il faut disposer des bibliothèques SDL utilisées par le projet, notamment SDL2 et SDL2_gfx selon l’environnement de compilation.
-
-Sur macOS avec Homebrew, elles peuvent généralement être installées avec :
-
-```bash
-brew install sdl2 sdl2_gfx
-```
-
-Sur Linux, l’installation dépend de la distribution utilisée.
-
-Par exemple, sur une distribution basée sur Debian ou Ubuntu :
-
-```bash
-sudo apt install libsdl2-dev libsdl2-gfx-dev
-```
 
 ---
 
