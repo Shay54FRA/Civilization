@@ -98,6 +98,8 @@ void draw_panneau_biome_flottant(SDL_Renderer* renderer, Game* game, Position se
     Tile* tuile = game->map->map[selection.y][selection.x];
     SDL_Color biome_color = get_biome_color(tuile->biome);
 
+    int fog_lvl = tuile->fog_level;
+
     // Positionnement fixe en haut à droite de la fenêtre
     int w = 260;
     int h = 120;
@@ -107,32 +109,52 @@ void draw_panneau_biome_flottant(SDL_Renderer* renderer, Game* game, Position se
     boxRGBA(renderer, x1, y1, x1 + w, y1 + h, 10, 15, 25, 230);
     rectangleRGBA(renderer, x1, y1, x1 + w, y1 + h, biome_color.r, biome_color.g, biome_color.b, 255);
 
-    char l1[50], l2[50], l3[50], l4[50];
-    sprintf(l1, "TERRAIN : %s (%d, %d)", get_biome_name(tuile->biome), tuile->pos.x, tuile->pos.y);
+    if(fog_lvl == 0){
+        // Bordure fine grise neutre pour ne pas trahir le biome caché
+        rectangleRGBA(renderer, x1, y1, x1 + w, y1 + h, 130, 130, 130, 255);
 
-    // Statistiques des biomes
-    switch (tuile->biome) {
-        case 'P': // Plaine
-            strcpy(l2, "Nourriture : +2"); strcpy(l3, "Production : +1"); strcpy(l4, "PM requis  : 1"); break;
-        case 'F': // Forêt
-            sprintf(l2, "Nourriture : %+d", 1 + game->tech_tree->bonus_food_forest); 
-            strcpy(l3, "Production : +2"); strcpy(l4, "PM requis  : 2"); break;
-        case 'M': // Montagne
-            strcpy(l2, "Production : +3"); strcpy(l3, "Science    : +1"); strcpy(l4, "PM requis  : 3"); break;
-        case 'E': // Eau
-            strcpy(l2, "Nourriture : +1"); strcpy(l3, "Or         : +1"); strcpy(l4, "PM requis  : Bloque"); break;
-        case 'D': // Désert
-            strcpy(l2, "Nourriture : 0");  strcpy(l3, "Or         : +1"); strcpy(l4, "PM requis  : 1"); break;
-        case 'T': // Toundra
-            strcpy(l2, "Nourriture : +1"); strcpy(l3, "Production : +1"); strcpy(l4, "PM requis  : 1"); break;
-        default:
-            strcpy(l2, "Nourriture : 0");  strcpy(l3, "Production : 0");  strcpy(l4, "PM requis  : 1"); break;
+        char l1[50], l2[50], l3[50], l4[50];
+        sprintf(l1, "TERRAIN : ?? (%d, %d)", tuile->pos.x, tuile->pos.y);
+        strcpy(l2,  "Nourriture / Production : ??");
+        strcpy(l3,  "Science    / Or         : ??");
+        strcpy(l4,  "PM requis               : ??");
+
+        stringRGBA(renderer, x1 + 15, y1 + 15, l1, 255, 255, 255, 255); // Blanc
+        stringRGBA(renderer, x1 + 15, y1 + 40, l2, 150, 150, 150, 255); // Gris
+        stringRGBA(renderer, x1 + 15, y1 + 60, l3, 150, 150, 150, 255); // Gris
+        stringRGBA(renderer, x1 + 15, y1 + 85, l4, 150, 150, 150, 255); // Gris
     }
 
-    stringRGBA(renderer, x1 + 15, y1 + 15, l1, 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 15, y1 + 40, l2, 120, 255, 120, 255); // Vert clair
-    stringRGBA(renderer, x1 + 15, y1 + 60, l3, 120, 220, 255, 255); // Bleu clair
-    stringRGBA(renderer, x1 + 15, y1 + 85, l4, 255, 200, 100, 255); // Orange
+    else{
+
+        char l1[50], l2[50], l3[50], l4[50];
+        sprintf(l1, "TERRAIN : %s (%d, %d)", get_biome_name(tuile->biome), tuile->pos.x, tuile->pos.y);
+
+        // Statistiques des biomes
+        switch (tuile->biome) {
+            case 'P': // Plaine
+                strcpy(l2, "Nourriture : +2"); strcpy(l3, "Production : +1"); strcpy(l4, "PM requis  : 1"); break;
+            case 'F': // Forêt
+                sprintf(l2, "Nourriture : %+d", 1 + game->tech_tree->bonus_food_forest); 
+                strcpy(l3, "Production : +2"); strcpy(l4, "PM requis  : 2"); break;
+            case 'M': // Montagne
+                strcpy(l2, "Production : +3"); strcpy(l3, "Science    : +1"); strcpy(l4, "PM requis  : 3"); break;
+            case 'E': // Eau
+                strcpy(l2, "Nourriture : +1"); strcpy(l3, "Or         : +1"); strcpy(l4, "PM requis  : Bloque"); break;
+            case 'D': // Désert
+                strcpy(l2, "Nourriture : 0");  strcpy(l3, "Or         : +1"); strcpy(l4, "PM requis  : 1"); break;
+            case 'T': // Toundra
+                strcpy(l2, "Nourriture : +1"); strcpy(l3, "Production : +1"); strcpy(l4, "PM requis  : 1"); break;
+            default:
+                strcpy(l2, "Nourriture : 0");  strcpy(l3, "Production : 0");  strcpy(l4, "PM requis  : 1"); break;
+        }
+
+        stringRGBA(renderer, x1 + 15, y1 + 15, l1, 255, 255, 255, 255);
+        stringRGBA(renderer, x1 + 15, y1 + 40, l2, 120, 255, 120, 255); // Vert clair
+        stringRGBA(renderer, x1 + 15, y1 + 60, l3, 120, 220, 255, 255); // Bleu clair
+        stringRGBA(renderer, x1 + 15, y1 + 85, l4, 255, 200, 100, 255); // Orange
+    }
+    
 }
 
 
@@ -148,110 +170,136 @@ void draw_panneau_tuile_illuminee(SDL_Renderer* renderer, Game* game, Position s
     }
 
     // Taille du panneau
-    int w = 800;
+    int w = 950;
     int h = 120;
     int x1 = (screenW - w) / 2; 
     int y1 = screenH - h - 20;
     int x2 = x1 + w;
     int y2 = y1 + h;
 
-    boxRGBA(renderer, x1, y1, x2, y2, 0, 0, 0, 230);
-    rectangleRGBA(renderer, x1, y1, x2, y2, 200, 200, 200, 255);
+    int fog_lvl = tuile->fog_level;
 
-    char txt1[100], txt2[100], txt3[100], txt4[100];
+    //si tuile explorée alors on peut afficher les infos de la ville / camps barbare / unités
+    if(fog_lvl >= 2){
 
-    // Moitié gauche = propriétés de la ville ou du camp barbare
+        boxRGBA(renderer, x1, y1, x2, y2, 0, 0, 0, 230);
+        rectangleRGBA(renderer, x1, y1, x2, y2, 200, 200, 200, 255);
+
+        char txt1[100], txt2[100], txt3[100], txt4[100];
     
-    // Cas de la Ville (Cas 1 & Cas 3)
-    if (tuile->city_on) {
-        City* city = find_city_at_position(game, selection);
-        if (city != NULL) {
-            sprintf(txt1, "CITÉ : Population %d  |  Sante : %d PV", get_population(city), get_city_pv(city));
-            sprintf(txt2, "Stocks : Bouffe %d | Prod %d", get_food(city), get_production(city));
-            
-            int nb_grenier = 0, nb_atelier = 0, nb_biblio = 0, nb_marche = 0, nb_caserne = 0, nb_muraille = 0;
-            BuildList* curr_b = city->buildings;
-            while (curr_b != NULL) {
-                if (curr_b->data != NULL) {
-                    switch (curr_b->data->type) {
-                        case 'G': nb_grenier++; break;
-                        case 'A': nb_atelier++; break;
-                        case 'B': nb_biblio++; break;
-                        case 'M': nb_marche++; break;
-                        case 'C': nb_caserne++; break;
-                        case 'R': nb_muraille++; break;
+        // Moitié gauche = propriétés de la ville ou du camp barbare
+        
+        // Cas de la Ville (Cas 1 & Cas 3)
+        if (tuile->city_on) {
+            City* city = find_city_at_position(game, selection);
+            if (city != NULL) {
+                sprintf(txt1, "CITÉ : Population %d  |  Sante : %d PV", get_population(city), get_city_pv(city));
+                sprintf(txt2, "Stocks : Bouffe %d | Prod %d", get_food(city), get_production(city));
+                
+                int nb_grenier = 0, nb_atelier = 0, nb_biblio = 0, nb_marche = 0, nb_caserne = 0, nb_muraille = 0, nb_phare = 0;
+                BuildList* curr_b = city->buildings;
+
+                while (curr_b != NULL) {
+                    if (curr_b->data != NULL) {
+                        switch (curr_b->data->type) {
+                            case 'G': nb_grenier++; break;
+                            case 'A': nb_atelier++; break;
+                            case 'B': nb_biblio++; break;
+                            case 'M': nb_marche++; break;
+                            case 'C': nb_caserne++; break;
+                            case 'R': nb_muraille++; break;
+                            case 'P': nb_phare++; break;
+                        }
                     }
+                    curr_b = curr_b->next;
                 }
-                curr_b = curr_b->next;
-            }
-            sprintf(txt3, "Quartiers : Gre:%d | Ate:%d | Bib:%d | Mar:%d | Cas:%d | Mur:%d", nb_grenier, nb_atelier, nb_biblio, nb_marche,nb_caserne,nb_muraille);
+                sprintf(txt3, "Quartiers : Gre:%d | Ate:%d | Bib:%d | Mar:%d | Cas:%d | Mur:%d | Pha:%d", nb_grenier, nb_atelier, nb_biblio, nb_marche,nb_caserne,nb_muraille,nb_phare);
 
-            if (get_project(city) != NULL) {
-                sprintf(txt4, "Projet : %s (Reste : %d pr)", get_project_name(city), get_production_left(city));
+                if (get_project(city) != NULL) {
+                    sprintf(txt4, "Projet : %s (Reste : %d pr)", get_project_name(city), get_production_left(city));
+                } else {
+                    strcpy(txt4, "Projet : Aucun (Production perdue !)");
+                }
+
+                stringRGBA(renderer, x1 + 20, y1 + 15, txt1, 0, 255, 255, 255);  // Cyan
+                stringRGBA(renderer, x1 + 20, y1 + 40, txt2, 255, 255, 255, 255);
+                stringRGBA(renderer, x1 + 20, y1 + 65, txt3, 200, 255, 200, 255); // Vert
+                stringRGBA(renderer, x1 + 20, y1 + 90, txt4, 255, 255, 100, 255); // Jaune
+            }
+        }
+        // Cas du Camp Barbare (Cas 4)
+        else if (tuile->camp_on) {
+            stringRGBA(renderer, x1 + 20, y1 + 15, "CAMPEMENT ENNEMI : Camp Barbare", 255, 100, 100, 255); // Rouge
+            stringRGBA(renderer, x1 + 20, y1 + 45, "Statut : Actif (Genere des troupes)", 255, 255, 255, 255);
+            stringRGBA(renderer, x1 + 20, y1 + 75, "Ordre : Envoyez un Guerrier pour le raser", 255, 200, 100, 255);
+        }
+        // Cas de la Tuile Nue (Cas 2)
+        else {
+            stringRGBA(renderer, x1 + 20, y1 + 15, "STRUCTURE : Aucune infrastructure", 150, 150, 150, 255);
+            stringRGBA(renderer, x1 + 20, y1 + 45, "Case inoccupée, disponible pour fonder", 200, 200, 200, 255);
+            if (selected_unit) {
+                stringRGBA(renderer, x1 + 20, y1 + 85, "-> Touche [M] pour ordonner le mouvement", 255, 165, 0, 255);
             } else {
-                strcpy(txt4, "Projet : Aucun (Production perdue !)");
+                stringRGBA(renderer, x1 + 20, y1 + 85, "-> Cliquez sur une de vos troupes pour agir", 180, 180, 180, 255);
+            }
+        }
+
+        // Moitié droite = Unités
+        int offset_x = w/2+150; // On décale la colonne de droite à X1 la moitié de la largeur du panneau
+
+        // Dessin d'une ligne verticale de séparation interne
+        vlineRGBA(renderer, x1 + offset_x - 15, y1 + 10, y2 - 10, 80, 80, 80, 255);
+
+        // Sous-Cas 1 : Unité alliée sur la case (Cas 3 ou Cas 5)
+        if (tuile->unit != NULL) {
+            Unit* u = tuile->unit;
+            char nom_unite[30] = "";
+        
+            if (u->type == 'c'){
+                strcpy(nom_unite, "Colon");
+            }    
+
+            else if (u->type == 'g') {
+                strcpy(nom_unite, "Guerrier");
             }
 
-            stringRGBA(renderer, x1 + 20, y1 + 15, txt1, 0, 255, 255, 255);  // Cyan
-            stringRGBA(renderer, x1 + 20, y1 + 40, txt2, 255, 255, 255, 255);
-            stringRGBA(renderer, x1 + 20, y1 + 65, txt3, 200, 255, 200, 255); // Vert
-            stringRGBA(renderer, x1 + 20, y1 + 90, txt4, 255, 255, 100, 255); // Jaune
+            else if (u->type == 'e'){
+                strcpy(nom_unite, "Eclaireur");
+            }
+
+            else{
+                strcpy(nom_unite, "Inconnue");
+            }
+
+            sprintf(txt1, "GARNISON ALLIÉE : %s", nom_unite);
+            sprintf(txt2, "Sante : %d / %d PV", u->pv, u->max_pv);
+            sprintf(txt3, "Mouvement : %d / %d PM", u->pm, u->max_pm);
+            sprintf(txt4, "Combat : ATK %d | DEF %d", u->atk, u->def);
+
+            stringRGBA(renderer, x1 + offset_x, y1 + 15, txt1, 100, 255, 100, 255); // Vert
+            stringRGBA(renderer, x1 + offset_x, y1 + 40, txt2, 255, 255, 255, 255);
+            stringRGBA(renderer, x1 + offset_x, y1 + 65, txt3, 255, 255, 255, 255);
+            stringRGBA(renderer, x1 + offset_x, y1 + 90, txt4, 255, 215, 0, 255); // Or
         }
-    }
-    // Cas du Camp Barbare (Cas 4)
-    else if (tuile->camp_on) {
-        stringRGBA(renderer, x1 + 20, y1 + 15, "CAMPEMENT ENNEMI : Camp Barbare", 255, 100, 100, 255); // Rouge
-        stringRGBA(renderer, x1 + 20, y1 + 45, "Statut : Actif (Genere des troupes)", 255, 255, 255, 255);
-        stringRGBA(renderer, x1 + 20, y1 + 75, "Ordre : Envoyez un Guerrier pour le raser", 255, 200, 100, 255);
-    }
-    // Cas de la Tuile Nue (Cas 2)
-    else {
-        stringRGBA(renderer, x1 + 20, y1 + 15, "STRUCTURE : Aucune infrastructure", 150, 150, 150, 255);
-        stringRGBA(renderer, x1 + 20, y1 + 45, "Case inoccupée, disponible pour fonder", 200, 200, 200, 255);
-        if (selected_unit) {
-            stringRGBA(renderer, x1 + 20, y1 + 85, "-> Touche [M] pour ordonner le mouvement", 255, 165, 0, 255);
-        } else {
-            stringRGBA(renderer, x1 + 20, y1 + 85, "-> Cliquez sur une de vos troupes pour agir", 180, 180, 180, 255);
+        // Sous-Cas 2 : Barbare hostile sur la case (Cas 7)
+        else if (tuile->barb_on != NULL) {
+            Barbarian* b = tuile->barb_on;
+            sprintf(txt1, "MENACE DETECTEE : Guerrier Barbare");
+            sprintf(txt2, "Sante : %d / 15 PV", b->pv);
+            sprintf(txt3, "Mouvement : %d / 3 PM", b->pm);
+            sprintf(txt4, "Combat : ATK %d | DEF %d", b->atk, b->def);
+
+            stringRGBA(renderer, x1 + offset_x, y1 + 15, txt1, 255, 50, 50, 255); // Rouge vif
+            stringRGBA(renderer, x1 + offset_x, y1 + 40, txt2, 255, 255, 255, 255);
+            stringRGBA(renderer, x1 + offset_x, y1 + 65, txt3, 255, 255, 255, 255);
+            stringRGBA(renderer, x1 + offset_x, y1 + 90, txt4, 255, 100, 100, 255);
         }
-    }
-
-    // Moitié droite = Unités
-    int offset_x = w/2+100; // On décale la colonne de droite à X1 la moitié de la largeur du panneau
-
-    // Dessin d'une ligne verticale de séparation interne
-    vlineRGBA(renderer, x1 + offset_x - 15, y1 + 10, y2 - 10, 80, 80, 80, 255);
-
-    // Sous-Cas 1 : Unité alliée sur la case (Cas 3 ou Cas 5)
-    if (tuile->unit != NULL) {
-        Unit* u = tuile->unit;
-        sprintf(txt1, "GARNISON ALLIEE : %s", (u->type == 'c') ? "Colon" : "Guerrier");
-        sprintf(txt2, "Sante : %d / %d PV", u->pv, u->max_pv);
-        sprintf(txt3, "Mouvement : %d / %d PM", u->pm, u->max_pm);
-        sprintf(txt4, "Combat : ATK %d | DEF %d", u->atk, u->def);
-
-        stringRGBA(renderer, x1 + offset_x, y1 + 15, txt1, 100, 255, 100, 255); // Vert
-        stringRGBA(renderer, x1 + offset_x, y1 + 40, txt2, 255, 255, 255, 255);
-        stringRGBA(renderer, x1 + offset_x, y1 + 65, txt3, 255, 255, 255, 255);
-        stringRGBA(renderer, x1 + offset_x, y1 + 90, txt4, 255, 215, 0, 255); // Or
-    }
-    // Sous-Cas 2 : Barbare hostile sur la case (Cas 7)
-    else if (tuile->barb_on != NULL) {
-        Barbarian* b = tuile->barb_on;
-        sprintf(txt1, "MENACE DETECTEE : Guerrier Barbare");
-        sprintf(txt2, "Sante : %d / 15 PV", b->pv);
-        sprintf(txt3, "Mouvement : %d / 3 PM", b->pm);
-        sprintf(txt4, "Combat : ATK %d | DEF %d", b->atk, b->def);
-
-        stringRGBA(renderer, x1 + offset_x, y1 + 15, txt1, 255, 50, 50, 255); // Rouge vif
-        stringRGBA(renderer, x1 + offset_x, y1 + 40, txt2, 255, 255, 255, 255);
-        stringRGBA(renderer, x1 + offset_x, y1 + 65, txt3, 255, 255, 255, 255);
-        stringRGBA(renderer, x1 + offset_x, y1 + 90, txt4, 255, 100, 100, 255);
-    }
-    // Sous-Cas 3 : Case libre d'occupants
-    else {
-        stringRGBA(renderer, x1 + offset_x, y1 + 15, "OCCUPANT : Aucun", 150, 150, 150, 255);
-        stringRGBA(renderer, x1 + offset_x, y1 + 45, "Pas d'unite militaire", 180, 180, 180, 255);
-        stringRGBA(renderer, x1 + offset_x, y1 + 75, "ou civile en poste.", 180, 180, 180, 255);
+        // Sous-Cas 3 : Case libre d'occupants
+        else {
+            stringRGBA(renderer, x1 + offset_x, y1 + 15, "OCCUPANT : Aucun", 150, 150, 150, 255);
+            stringRGBA(renderer, x1 + offset_x, y1 + 45, "Pas d'unite militaire", 180, 180, 180, 255);
+            stringRGBA(renderer, x1 + offset_x, y1 + 75, "ou civile en poste.", 180, 180, 180, 255);
+        }
     }
 }
 
@@ -261,7 +309,7 @@ void draw_panneau_guide_actions(SDL_Renderer* renderer, Game* game) {
     int x1 = 10;
     int y1 = 160; // Positionné sous le tableau global
     int w = 560;
-    int h = 465; 
+    int h = 535; 
 
     // Boîte de fond bleu et bordure fine grise
     boxRGBA(renderer, x1, y1, x1 + w, y1 + h, 15, 20, 30, 230);
@@ -271,43 +319,47 @@ void draw_panneau_guide_actions(SDL_Renderer* renderer, Game* game) {
     stringRGBA(renderer, x1 + 15, y1 + 15, "=== ENCYCLOPEDIE DES ACTIONS ===", 0, 255, 255, 255);
 
     // CATEGORIE 1 : EXPANSION
-    stringRGBA(renderer, x1 + 15, y1 + 45, "[1] UNITES & EXPANSION (Sur Centre-Ville) :", 100, 255, 100, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 65, "- Touche [C] : Planifier un Colon    (50 pr)", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 80, "- Touche [G] : Planifier un Guerrier (40 pr) [Req: Caserne]", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 95, "- Touche [V] : Action Fonder Ville (Sur Colon selectionne)", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 15, y1 + 45,  "[1] UNITES & EXPANSION (Sur Centre-Ville) :", 100, 255, 100, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 65,  "- Touche [C] : Planifier un Colon     (50 pr)", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 80,  "- Touche [G] : Planifier un Guerrier  (40 pr) [Req: Caserne]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 95,  "- Touche [E] : Planifier un Eclaireur (40 pr) [Req: Expedition]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 110, "- Touche [V] : Action Fonder Ville (Sur Colon selectionne)", 255, 255, 255, 255);
 
     // CATEGORIE 2 : BATIMENTS
-    stringRGBA(renderer, x1 + 15, y1 + 125, "[2] BATIMENTS URBAINS (Touches [1] a [6]) :", 255, 215, 0, 255);
+    stringRGBA(renderer, x1 + 15, y1 + 140, "[2] BATIMENTS URBAINS (Touches [1] a [6]) :", 255, 215, 0, 255);
     
-    // En-têtes du mini-tableau pour guider l'œil
-    stringRGBA(renderer, x1 + 25,  y1 + 145, "  ID   Nom &  Cout     Effets / Bonus         Entretien & Req", 135, 206, 250, 255);
+    // En-têtes du mini-tableau
+    stringRGBA(renderer, x1 + 25,  y1 + 160, "  ID   Nom &  Cout     Effets / Bonus         Entretien & Req", 135, 206, 250, 255);
     
-    stringRGBA(renderer, x1 + 25,  y1 + 165, "- [1] Grenier (30) : +3 Bouffe, Seuil/1.5    | 1 OR/t", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25,  y1 + 180, "- [2] Atelier (40) : +3 Production           | 1 OR/t", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25,  y1 + 195, "- [3] Biblio  (50) : +4 Science              | 1 OR/t [Ecriture]", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25,  y1 + 210, "- [4] Marche  (40) : +3 Or                   | 1 OR/t [Commerce]", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25,  y1 + 225, "- [5] Caserne (60) : Autorise les Guerriers  | 2 OR/t", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25,  y1 + 240, "- [6] Muraille(80) : Sante Ville x2          | 2 OR/t [Maconnerie]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 180, "- [1] Grenier (30) : +3 Bouffe, Seuil/1.5    | 1 OR/t", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 195, "- [2] Atelier (40) : +3 Production           | 1 OR/t", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 210, "- [3] Biblio  (50) : +4 Science              | 1 OR/t [Ecriture]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 225, "- [4] Marche  (40) : +3 Or                   | 1 OR/t [Commerce]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 240, "- [5] Caserne (60) : Autorise les Guerriers  | 2 OR/t", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 255, "- [6] Muraille(80) : Sante Ville x2          | 2 OR/t [Maconnerie]", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25,  y1 + 270, "- [7] Phare   (50) : +1 Champ de vision      | 1 OR/t [Mirador]", 255, 255, 255, 255);
 
     // CATEGORIE 3 : MILITAIRE
-    stringRGBA(renderer, x1 + 15, y1 + 270, "[3] MANEUVRE & SÉCURITÉ MILITAIRE :", 255, 165, 0, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 290, "- Clic sur l'unite + [M]  : Activer la selection", 200, 200, 200, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 305, "- Clic sur la cible + [M] : Valider le deplacement", 200, 200, 200, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 320, "- Combat : Automatique en tentant d'entrer sur une case ennemie", 255, 150, 150, 255);
+    stringRGBA(renderer, x1 + 15, y1 + 310, "[3] MANEUVRE & SÉCURITÉ MILITAIRE :", 255, 165, 0, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 330, "- Clic sur l'unite + [M]  : Activer la selection", 200, 200, 200, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 345, "- Clic sur la cible + [M] : Valider le deplacement", 200, 200, 200, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 360, "- Combat : Automatique en tentant d'entrer sur une case ennemie", 255, 150, 150, 255);
     
-    // Phrase des barbares sur 2 lignes pour éviter de dépasser du cadre
-    stringRGBA(renderer, x1 + 25, y1 + 335, "- Menace : Rasez les camps barbares pour gagner un bonus", 255, 150, 150, 255);
-    stringRGBA(renderer, x1 + 36, y1 + 350, "  d'Or egal a 5x le nombre de camps detruits jusque-la.", 255, 150, 150, 255);
+    // phrases sur barbares sur 2 lignes pour pas dépasser du cadre
+    stringRGBA(renderer, x1 + 25, y1 + 375, "- Menace : Rasez les camps barbares pour gagner un bonus", 255, 150, 150, 255);
+    stringRGBA(renderer, x1 + 36, y1 + 390, "  d'Or egal a 5x le nombre de camps detruits jusque-la.", 255, 150, 150, 255);
 
     // CATEGORIE 4 : RACCOURCIS PANNEAUX
-    stringRGBA(renderer, x1 + 15, y1 + 380, "[4] ENCHAINEMENT DES TOURS & HUD :", 0, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 400, "- Touche [F] ou Bouton Rouge : Terminer le tour en cours", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 25, y1 + 415, "- Touche [T] ou Bouton Bleu  : Consulter l'arbre technologique", 255, 255, 255, 255);
-    stringRGBA(renderer, x1 + 15, y1 + 445, "Pressez [H] ou cliquez sur AIDE pour fermer ce guide.", 130, 180, 255, 255);
+    stringRGBA(renderer, x1 + 15, y1 + 430, "[4] ENCHAINEMENT DES TOURS & HUD :", 0, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 450, "- Touche [F] ou Bouton Rouge : Terminer le tour en cours", 255, 255, 255, 255);
+    stringRGBA(renderer, x1 + 25, y1 + 465, "- Touche [T] ou Bouton Bleu  : Consulter l'arbre technologique", 255, 255, 255, 255);
+
+    // FERMETURE DU PANNEAU
+    stringRGBA(renderer, x1 + 15, y1 + 505, "Pressez [H] ou cliquez sur AIDE pour fermer ce guide.", 130, 180, 255, 255);
 }
 
 
-// Dessine le fond amélioré du panneau de technologies
+// Dessine le fond du panneau de technologies
 static void draw_tech_glass_panel(SDL_Renderer* renderer, int x1, int y1, int x2, int y2,
                                   Uint8 br, Uint8 bg, Uint8 bb) {
     roundedBoxRGBA(renderer, x1 + 5, y1 + 5, x2 + 5, y2 + 5, 14, 0, 0, 0, 120);

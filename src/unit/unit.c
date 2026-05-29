@@ -110,14 +110,17 @@ void spawn_unit_from_project(Game* game, City* city)
 
     char p_type = city->project->type;
 
-    if (p_type != 'c' && p_type != 'g')
+    if (p_type != 'c' && p_type != 'g' && p_type != 'e')
         return;
 
-    if (p_type == 'g' && !is_unit_unlocked(game->tech_tree, 'g'))
+    if (p_type == 'g' && !is_unit_unlocked(game->tech_tree, 'g')) //verif technologie pour avoir guerrier
         return;
 
-    if (p_type == 'g' && !buildlist_contains(city->buildings, 'C'))
+    if ((p_type == 'g' || p_type == 'e' || p_type == 'c') && !buildlist_contains(city->buildings, 'C')) // verif de la caserne
         return;
+
+    if (p_type == 'e' && !is_unit_unlocked(game->tech_tree, 'e')) //verif technologie pour avoir eclaireur
+    return;
 
     Tile* tile = get_tile(game->map, city->project->pos);
     if (!tile || tile->unit != NULL)

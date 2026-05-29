@@ -15,7 +15,7 @@ void draw_hexagones(SDL_Renderer* renderer, int x, int y, int R, SDL_Color color
 
 void draw_map_sdl(SDL_Renderer* renderer, Game* game, int R, int h, Position position_actuelle, int cameraX, int cameraY, 
                   SDL_Texture* tex_ville, SDL_Texture* tex_ville_mur, SDL_Texture* tex_guerrier, SDL_Texture* tex_colon, 
-                  SDL_Texture* tex_camp, SDL_Texture* tex_barbare);
+                  SDL_Texture* tex_eclaireur, SDL_Texture* tex_camp, SDL_Texture* tex_barbare);
 
 Position position_hexagone(int mx, int my, int R, int h, int cameraX, int cameraY, Game* game);
 
