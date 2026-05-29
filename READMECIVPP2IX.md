@@ -6,7 +6,7 @@ Ce projet est une adaptation simplifiée du jeu **Civilization**, développée e
 
 Le jeu propose deux modes d’utilisation :
 
-- un **mode CLI** jouable dans le terminal ;
+- un **mode CLI** jouable directement dans le terminal ;
 - un **mode SDL** avec interface graphique.
 
 L’objectif est de développer une civilisation en gérant des unités, des villes, des bâtiments, des technologies et des ressources, tout en explorant la carte et en interagissant avec des barbares.
@@ -15,61 +15,105 @@ Le projet est organisé de manière modulaire afin de séparer clairement les di
 
 ---
 
-## Lancement du jeu
+## Compilation du projet
 
 Le projet est fourni avec un `Makefile` qui gère automatiquement la compilation des différents fichiers source.
 
-Il n’est donc pas nécessaire de compiler les fichiers un par un à la main.
+Il n’est donc pas nécessaire de compiler les fichiers un par un à la main : le `Makefile` s’occupe de compiler les modules, de générer les fichiers objets `.o` et de créer l’exécutable principal.
 
-### Compiler le projet
-
-Depuis la racine du projet, utiliser simplement :
+Depuis la racine du projet, il suffit d’utiliser :
 
 ```bash
 make
 ```
 
-Cette commande compile l’ensemble du projet et génère les exécutables nécessaires.
-
----
-
-## Lancer le jeu en mode CLI
-
-Le mode CLI permet de jouer directement dans le terminal.
-
-Après compilation avec :
-
-```bash
-make
-```
-
-on peut lancer le jeu en mode terminal avec :
-
-```bash
-./main
-```
-
-Ce mode permet d’interagir avec le jeu à l’aide de commandes textuelles. Il est utile pour tester rapidement les mécaniques principales du jeu sans interface graphique.
-
----
-
-## Lancer le jeu en mode SDL
-
-Le mode SDL permet de lancer le jeu avec une interface graphique.
-
-Après compilation avec :
-
-```bash
-make
-```
-
-on peut lancer la version graphique avec :
+Cette commande compile l’ensemble du projet et génère l’exécutable principal :
 
 ```bash
 ./civ
 ```
 
-Ce mode affiche la carte, les unités, les villes, les barbares et les différents panneaux d’information grâce à la bibliothèque SDL.
+---
+
+## Lancement du jeu
+
+Le jeu se lance avec l’exécutable :
+
+```bash
+./civ
+```
+
+On peut ensuite choisir le mode de jeu et certains paramètres directement grâce aux options de lancement.
+
+---
+
+## Lancer le jeu en mode SDL
+
+Le mode SDL correspond à la version graphique du jeu.
+
+Exemple de lancement :
+
+```bash
+./civ --mode sdl --width 40 --height 25 --seed 12345
+```
+
+Cette commande lance le jeu :
+
+- en mode graphique SDL ;
+- avec une carte de largeur `40` ;
+- avec une carte de hauteur `25` ;
+- avec la graine de génération `12345`.
+
+La graine, ou `seed`, permet de générer une carte reproductible. Cela signifie que si l’on relance le jeu avec la même seed, on obtient la même génération de carte.
+
+Si les options courtes sont utilisées, la commande équivalente peut être écrite sous la forme :
+
+```bash
+./civ -m sdl -w 40 -h 25 -s 12345
+```
+
+Le mode SDL affiche la carte, les unités, les villes, les barbares et les différents panneaux d’information grâce à la bibliothèque SDL.
+
+---
+
+## Lancer le jeu en mode CLI
+
+Le mode CLI correspond à la version textuelle du jeu, jouable directement dans le terminal.
+
+Exemple de lancement :
+
+```bash
+./civ -m cli -t 150 -b 5
+```
+
+Cette commande lance le jeu :
+
+- en mode terminal ;
+- avec une limite de `150` tours ;
+- avec `5` camps barbares, si l’option `-b` correspond bien au nombre de camps barbares dans l’implémentation.
+
+Le mode CLI est utile pour tester rapidement les mécaniques principales du jeu, comme les déplacements, les productions, les technologies et les actions de tour.
+
+On peut aussi utiliser une forme longue si elle est prévue par le programme :
+
+```bash
+./civ --mode cli --turns 150 --barbarians 5
+```
+
+---
+
+## Options de lancement
+
+Le programme accepte plusieurs options permettant de configurer la partie au lancement.
+
+| Option longue | Option courte | Description | Exemple |
+|---|---|---|---|
+| `--mode` | `-m` | Choisit le mode de jeu : `cli` ou `sdl` | `--mode sdl` |
+| `--width` | `-w` | Définit la largeur de la carte | `--width 40` |
+| `--height` | `-h` | Définit la hauteur de la carte | `--height 25` |
+| `--seed` | `-s` | Définit la graine de génération de la carte | `--seed 12345` |
+| `--turns` | `-t` | Définit le nombre maximal de tours | `-t 150` |
+| `--barbarians` | `-b` | Définit le nombre de camps barbares ou d’éléments barbares selon l’implémentation | `-b 5` |
 
 ---
 
@@ -84,6 +128,19 @@ make clean
 ```
 
 Cette commande supprime les fichiers temporaires comme les fichiers `.o` et permet de repartir d’une compilation propre.
+
+---
+
+## Résumé des commandes utiles
+
+| Commande | Description |
+|---|---|
+| `make` | Compile le projet |
+| `./civ --mode sdl --width 40 --height 25 --seed 12345` | Lance le jeu en mode SDL avec une carte 40x25 et une seed précise |
+| `./civ -m sdl -w 40 -h 25 -s 12345` | Lance le jeu en mode SDL avec les options courtes |
+| `./civ -m cli -t 150 -b 5` | Lance le jeu en mode CLI avec 150 tours et 5 barbares |
+| `./civ --mode cli --turns 150 --barbarians 5` | Lance le jeu en mode CLI avec les options longues |
+| `make clean` | Supprime les fichiers générés par la compilation |
 
 ---
 
@@ -107,8 +164,8 @@ L’arborescence principale du projet est la suivante :
 ### Fichiers principaux à la racine
 
 - `Makefile` : gère la compilation du projet.
-- `main` : exécutable du mode CLI.
-- `civ` : exécutable du mode SDL.
+- `civ` : exécutable principal du jeu.
+- `main` : ancien exécutable ou exécutable généré selon la configuration du projet.
 - `README.md` : fichier général de présentation du projet.
 - `README_CIV.md` : documentation spécifique au jeu Civilization.
 - `README_CARCASSONNE.md` : documentation spécifique à l’autre partie du projet.
@@ -539,6 +596,12 @@ Par exemple :
 - `unit_test.c`
 - `city_test.c`
 - `technology_test.c`
+- `barbarian_test.c`
+- `building_test.c`
+- `configuration_test.c`
+- `sdl_test.c`
+- `sdl_map_test.c`
+- `sdl_panneaux_test.c`
 
 Ces fichiers permettent de tester séparément les différents modules du jeu.
 
@@ -577,7 +640,7 @@ Le `Makefile` est prévu pour gérer automatiquement :
 - les fichiers sources ;
 - les dépendances entre modules ;
 - la génération des fichiers objets `.o` ;
-- la création des exécutables ;
+- la création de l’exécutable ;
 - le nettoyage du projet.
 
 Il est donc conseillé d’utiliser uniquement :
@@ -586,30 +649,17 @@ Il est donc conseillé d’utiliser uniquement :
 make
 ```
 
-puis :
+puis de lancer le jeu avec les options voulues, par exemple :
 
 ```bash
-./main
+./civ --mode sdl --width 40 --height 25 --seed 12345
 ```
 
 ou :
 
 ```bash
-./civ
+./civ -m cli -t 150 -b 5
 ```
-
-selon le mode voulu.
-
----
-
-## Résumé des commandes utiles
-
-| Commande | Description |
-|---|---|
-| `make` | Compile le projet |
-| `./main` | Lance le jeu en mode CLI |
-| `./civ` | Lance le jeu en mode SDL |
-| `make clean` | Supprime les fichiers générés par la compilation |
 
 ---
 
@@ -641,5 +691,11 @@ src/*/*_test
 ---
 
 ## Auteurs
-
-Projet réalisé dans le cadre du projet de programmation.
+```
+CHAUMONT Camille
+DURIN Grégoire
+LEFEBVRE Nathan
+MURIS Eliott
+```
+---
+Projet réalisé dans le cadre du projet de semestre 6.
