@@ -69,7 +69,7 @@ void init_ncurses_interface(void) {
 
         init_pair(COLOR_EAU, COLOR_BLACK, COLOR_BLUE); //Les couleurs de bg et fg sont forcément définies par pairs avec ncurses
         init_pair(COLOR_PLAINE, COLOR_BLACK, COLOR_GREEN);
-        init_pair(COLOR_FORET, COLOR_WHITE, COLOR_GREEN);
+        init_pair(COLOR_FORET, COLOR_WHITE, 22);
         init_pair(COLOR_MONTAGNE, COLOR_BLACK, COLOR_WHITE);
         init_pair(COLOR_DESERT, COLOR_BLACK, COLOR_YELLOW);
         init_pair(COLOR_TOUNDRA, COLOR_BLACK, COLOR_CYAN);
@@ -256,7 +256,7 @@ void run_game_cli(Game* game) {
 
     int running = 1;
     int command; //Je remplace le char par un int car getch() renvoie un entier pour les touches spéciales comme KEY_RESIZE
-    Position cursor = {0, 0}; // Position initiale de la caméra
+    Position cursor = get_starting_city_pos(game->map); // Position initiale de la caméra
 
     // Unité actuellement sélectionnée
     Unit* selected_unit = NULL;
@@ -302,6 +302,7 @@ void run_game_cli(Game* game) {
         Tile* tile_sous_curseur = get_tile(game->map, cursor);
         if (tile_sous_curseur != NULL && tile_sous_curseur->city_on) {
             show_city_info_cli(in_hud,game,cursor); //Affichage automatique des infos de la ville
+            wrefresh(win_hud);
         }
         touchwin(win_hud); //Juste par sécurité
         wrefresh(win_hud);
