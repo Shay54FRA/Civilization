@@ -1,174 +1,703 @@
-# Modalités communes — Projets PPII
+# Projet Civilization - Jeu de stratégie en C
 
-Ce document présente les règles générales communes aux deux sujets du projet PPII. Il doit être lu avec le sujet choisi par votre groupe.
+## Présentation du projet
 
-## Accès aux sujets
+Ce projet est une adaptation simplifiée du jeu **Civilization**, développée en langage C dans le cadre du projet de programmation.
 
-- Sujet 1 — Civilization : [README_CIV.md](README_CIV.md)
-- Sujet 2 — Carcassonne : [README_CARCASSONNE.md](README_CARCASSONNE.md)
+Le jeu propose deux modes d’utilisation :
 
-## Questions 
+- un **mode CLI** jouable directement dans le terminal ;
+- un **mode SDL** avec interface graphique.
 
-- Un salon Discord a été créé pour y poser vos questions sur le/les sujets : [https://discord.gg/YpqZ3ESC]
-- Ces sujets sont suceptibles d'être remis à jour, en particulier sur les livrables de gestion de projets. Voici [le lien du dépôt sujet](https://gibson.telecomnancy.univ-lorraine.fr/projets/2526/PPII/ppii-s6/template/sujet). Une notification Discord sera envoyée à chaque modification.
+L’objectif est de développer une civilisation en gérant des unités, des villes, des bâtiments, des technologies et des ressources, tout en explorant la carte et en interagissant avec des barbares.
 
----
-
-## Cadre du module
-
-Le projet s’inscrit dans l’UE **Projet Pluridisciplinaire d’Informatique Intégrative 2**.
-
-- Travail en équipe de **3 à 4 étudiants**.
-- Charge de travail indicative : **100 h projet** par équipe.
-- Développement attendu par **itérations** : socle jouable, stabilisation, enrichissements, finalisation.
-
-Le sujet évalue autant la qualité du logiciel produit que la démarche d’ingénierie adoptée pendant le semestre.
+Le projet est organisé de manière modulaire afin de séparer clairement les différentes parties du jeu : carte, unités, villes, technologies, interface CLI, interface SDL, etc.
 
 ---
 
-## Objectifs communs
+## Dépendances
 
-Les deux projets visent à développer une application de jeu en langage C avec :
+Le projet est écrit en langage C.
 
-- une architecture modulaire et maintenable ;
-- une logique de jeu correctement implémentée ;
-- un mode d’exécution en ligne de commande entièrement dans le terminal (TUI - Text-based user interface) ;
-- un mode d’exécution graphique utilisant la bibliothèque [libSDL](https://www.libsdl.org/) ;
-- des tests unitaires couvrant a minima le cœur du programme ;
-- une documentation technique claire.
+Pour le mode CLI, on utilise la bibliothèque ncurses.
 
----
+Pour le mode SDL, il faut disposer des bibliothèques SDL utilisées par le projet, notamment SDL2 et SDL2_gfx selon l’environnement de compilation.
 
-## Exigences techniques communes
+Sur macOS avec Homebrew, elles peuvent généralement être installées avec :
 
-- Langage principal : **C**.
-- Build : **Makefile** avec compilation séparée.
-- Contrôle de version : **Git/GitLab**.
-- Qualité de code : gestion des erreurs, lisibilité, séparation des responsabilités.
-- Architecture : la logique métier du jeu doit être **indépendante** des interfaces CLI et SDL.
-- Robustesse : les entrées invalides doivent être gérées proprement ; les scénarios normaux d’utilisation ne doivent pas conduire à des plantages répétés ou à des fuites mémoire manifestes.
+```bash
+brew install sdl2 sdl2_gfx
+```
 
-### Cibles Make minimales attendues
+Sur Linux, l’installation fonctionne en installant les dépendances depuis `make req`.
 
-- `make` : compiler le projet
-- `make cli` : lancer la version terminal
-- `make sdl` : lancer la version graphique
-- `make test` : exécuter les tests
-- `make clean` : nettoyer les artefacts de compilation
-- `make req` : installer les dépendances du projet
+Par exemple, sur une distribution basée sur Debian ou Ubuntu :
 
-> Selon le sujet, d’autres cibles peuvent être demandées (`make reset`, etc.).
-
-Les cibles `make cli` et `make sdl` doivent lancer une partie avec des paramètres par défaut raisonnables. Les exécutables doivent aussi pouvoir être lancés directement avec des arguments personnalisés.
+```bash
+make req
+```
 
 ---
 
-## Livrables communs
+## Compilation du projet
 
-Le dépôt GitLab doit contenir a minima :
+Le projet est fourni avec un `Makefile` qui gère automatiquement la compilation des différents fichiers source.
 
-- un fichier `README.md` décrivant le projet rendu ;
-- le code source complet ;
-- un Makefile fonctionnel ;
-- des instructions d’installation et d’exécution ;
-- les tests unitaires ;
-- une documentation technique ;
-- les éléments de gestion de projet (planning, comptes-rendus, répartition des tâches, bilan).
+Il n’est donc pas nécessaire de compiler les fichiers un par un à la main : le `Makefile` s’occupe de compiler les modules, de générer les fichiers objets `.o` et de créer l’exécutable principal.
 
-Le `README.md` du dépôt de rendu doit préciser au minimum :
+Depuis la racine du projet, il suffit d’utiliser :
 
-- les prénoms et noms des membres du groupe ;
-- le sujet choisi et, le cas échéant, les extensions implémentées ;
-- les dépendances logicielles ;
-- les commandes de compilation, de lancement et de test ;
-- les paramètres de lancement pris en charge ;
-- les limites connues ou fonctionnalités non terminées.
+```bash
+make
+```
+
+Cette commande compile l’ensemble du projet et génère l’exécutable principal :
+
+```bash
+./civ
+```
 
 ---
 
-## Évaluation (principes communs)
+## Lancement du jeu
 
-L’évaluation porte notamment sur :
+Le jeu se lance avec l’exécutable :
 
-- la qualité de la modélisation ;
-- la conformité aux règles du sujet choisi ;
-- la robustesse de l’application ;
-- la qualité des interfaces (CLI + SDL) ;
-- la qualité des tests et de la documentation ;
-- les pratiques de développement collaboratif.
+```bash
+./civ
+```
 
-Une fonctionnalité partiellement implémentée mais documentée honnêtement sera mieux évaluée qu’une fonctionnalité annoncée comme terminée alors qu’elle est instable ou non démontrable.
+On peut ensuite choisir le mode de jeu et certains paramètres directement grâce aux options de lancement.
 
 ---
 
-## Méthode de travail recommandée
+## Lancer le jeu en mode SDL
 
-- développer par incréments (socle jouable → stabilisation → enrichissements) ;
-- valider régulièrement avec des tests ;
-- garder la logique de jeu indépendante du rendu (CLI/SDL) ;
-- documenter les choix techniques au fil de l’avancement ;
-- tracer et conserver les décisions importantes : structures de données, arbitrages fonctionnels, limites connues ;
-- s’appuyer sur des outils de diagnostic adaptés (`gdb`, sanitizers, `valgrind`, etc.).
+Le mode SDL correspond à la version graphique du jeu.
 
----
+Exemple de lancement :
 
-## Choix du sujet
+```bash
+./civ --mode sdl --width 40 --height 25 --seed 12345
+```
 
-Chaque groupe choisit un sujet principal à réaliser. Une justification du choix n'est pas forcément attendue, mais peut constituer un plus.
+Cette commande lance le jeu :
 
-- Civilization : [README_CIV.md](README_CIV.md)
-- Carcassonne : [README_CARCASSONNE.md](README_CARCASSONNE.md)
+- en mode graphique SDL ;
+- avec une carte de largeur `40` ;
+- avec une carte de hauteur `25` ;
+- avec la graine de génération `12345`.
 
-Dans votre dépôt de rendu, ce document pourra être remplacé ou renommé afin de laisser la place à votre propre `README.md` décrivant le projet effectivement réalisé.
+La graine, ou `seed`, permet de générer une carte reproductible. Cela signifie que si l’on relance le jeu avec la même seed, on obtient la même génération de carte.
 
----
+Si les options courtes sont utilisées, la commande équivalente peut être écrite sous la forme :
 
-## Clarifications utiles
+```bash
+./civ -m sdl -w 40 -h 25 -s 12345
+```
 
-- sauf mention contraire dans le sujet choisi, une règle simplifiée est acceptable si elle est **cohérente, stable et documentée** ;
-- si vous modifiez des constantes de jeu ou simplifiez une mécanique, vous devez l’indiquer explicitement dans la documentation technique ;
-- quand le sujet propose une graine (`seed`) ou des paramètres de lancement, ils doivent être réellement exploités par le programme afin de rendre les parties reproductibles ;
-- les interfaces CLI et SDL peuvent différer visuellement, mais elles doivent piloter le **même moteur de jeu** et les **mêmes règles**.
+Le mode SDL affiche la carte, les unités, les villes, les barbares et les différents panneaux d’information grâce à la bibliothèque SDL.
 
 ---
 
-## Date de rendu et soutenance
+## Lancer le jeu en mode CLI
 
-Le projet est à rendre pour le **29 mai 2026 à 22 heures au plus tard**.
+Le mode CLI correspond à la version textuelle du jeu, jouable directement dans le terminal.
 
-Des soutenances de groupes de projet seront organisées dans la foulée, début juin 2026.
+Exemple de lancement :
 
-Votre projet fera l'objet d'une démonstration devant un jury composé d'au moins 2 membres de l’équipe pédagogique. Durant cette soutenance, vous serez jugés sur la démonstration de l'application et sur votre capacité à expliquer votre projet, son architecture et les choix effectués.
+```bash
+./civ -m cli -t 150 -b 5
+```
 
-Chaque membre du groupe devra être présent lors de la soutenance et participer activement. *Toute personne ne se présentant pas à la soutenance sera considérée comme démissionnaire de l'UE et, en conséquence, ne pourra pas la valider pour l’année universitaire 2025-2026.*
+Cette commande lance le jeu :
 
-Il est attendu que chaque membre du groupe ait contribué à plusieurs parties fonctionnelles du code. Il ne s'agit pas d'avoir uniquement corrigé quelques lignes de manière marginale.
+- en mode terminal ;
+- avec une limite de `150` tours ;
+- avec `5` camps barbares, si l’option `-b` correspond bien au nombre de camps barbares dans l’implémentation.
+
+Le mode CLI est utile pour tester rapidement les mécaniques principales du jeu, comme les déplacements, les productions, les technologies et les actions de tour.
+
+On peut aussi utiliser une forme longue si elle est prévue par le programme :
+
+```bash
+./civ --mode cli --turns 150 --barbarians 5
+```
 
 ---
 
-## Fraude, tricherie et plagiat
+## Options de lancement
 
-Ne trichez pas. Ne copiez pas. Ne plagiez pas. Si vous le faites, vous serez lourdement sanctionnés. Nous ne ferons pas de distinction entre copieur et copié. Vous ne devez pas utiliser de solution clé en main trouvée sur internet.
+Le programme accepte plusieurs options permettant de configurer la partie au lancement.
 
-Par tricher, nous entendons notamment :
+| Option longue | Option courte | Description | Exemple |
+|---|---|---|---|
+| `--mode` | `-m` | Choisit le mode de jeu : `cli` ou `sdl` | `--mode sdl` |
+| `--width` | `-w` | Définit la largeur de la carte | `--width 40` |
+| `--height` | `-h` | Définit la hauteur de la carte | `--height 25` |
+| `--seed` | `-s` | Définit la graine de génération de la carte | `--seed 12345` |
+| `--turns` | `-t` | Définit le nombre maximal de tours | `-t 150` |
+| `--barbarians` | `-b` | Définit le nombre de camps barbares ou d’éléments barbares selon l’implémentation | `-b 5` |
 
-- rendre le travail d’un collègue en y apposant votre nom ;
-- obtenir un code ou une solution par un moteur de recherche ou une IA, puis le rendre sous votre nom ;
-- récupérer du code et ne changer que les noms de variables et fonctions ou leur ordre avant de le présenter sous votre nom ;
-- autoriser consciemment ou inconsciemment un collègue à s'approprier votre travail personnel. Assurez-vous notamment que votre projet et ses différentes copies locales ne soient lisibles que par vous et les membres de votre groupe.
+---
 
-Nous encourageons les séances de *brainstorming* et de discussion entre les élèves sur le projet. C’est une démarche naturelle et saine, comme vous la rencontrerez dans votre vie professionnelle. Si les réflexions communes sont fortement recommandées, vous ne pouvez rendre que du code et des documents écrits par vous-même. Vous indiquerez en particulier, dans votre rapport, toutes vos sources (comme les sites internet consultés), en précisant brièvement ce que vous en avez retenu.
+## Nettoyer les fichiers compilés
 
-Il est quasi certain que nous détecterons les tricheries. En effet, les rapports et les codes sont systématiquement soumis à des outils de détection de plagiat et de copie. Il existe notamment des outils de détection de manipulation de code mis à disposition par l’Université de Stanford, tels que `MOSS` (https://theory.stanford.edu/~aiken/moss/) ou `compare50` (https://cs50.readthedocs.io/projects/compare50/). De plus, chacun a son propre style de programmation et personne ne développe exactement la même chose de la même manière.
+Le `Makefile` permet aussi de supprimer les fichiers objets et exécutables générés pendant la compilation.
 
-Puisqu'il s'agit d'un projet réalisé dans le cadre de cours avancés de programmation, nous nous attendons à ce que vous soyez capables d'apprendre à déboguer des programmes par vous-mêmes. Par exemple, demander à un autre élève de regarder directement votre code et de donner des suggestions d'amélioration commence à devenir délicat au niveau éthique.
+Pour nettoyer le projet :
 
-Dans le cadre du présent projet, l’utilisation d’outils d’intelligence artificielle générative, dont les modèles de langage de type LLM, assistants de programmation, générateurs de code, de tests, de documentation ou de rapports, est strictement encadrée.
+```bash
+make clean
+```
 
-Sont notamment interdits : la génération automatique, totale ou partielle, de code source, d’architectures, de jeux de tests, de rapports, de livrables ou de présentations destinés à être évalués ; la reformulation substantielle de travaux rédigés par les étudiants ; l’utilisation d’IA pour résoudre directement des problèmes techniques ou algorithmiques constitutifs des objectifs pédagogiques ; ainsi que toute utilisation visant à contourner l’évaluation des compétences individuelles.
+Cette commande supprime les fichiers temporaires comme les fichiers `.o` et permet de repartir d’une compilation propre.
 
-En revanche, l’usage d’outils d’IA est autorisé à des fins d’apprentissage et de documentation, par exemple pour obtenir des explications conceptuelles, clarifier des notions, explorer des pistes de compréhension ou identifier des ressources pertinentes, dès lors que le travail remis est intégralement produit, compris et maîtrisé par les étudiants. Les outils d’IA peuvent également être utilisés, sauf indication contraire explicite de l’équipe pédagogique, à des fins accessoires telles que la correction orthographique mineure ou la clarification linguistique, sans modification du contenu technique.
+---
 
-Toute utilisation autorisée doit être explicitement déclarée et documentée. Le non-respect de ces règles constitue un manquement à l’intégrité académique et pourra donner lieu à des sanctions.
+## Résumé des commandes utiles
 
-**Si vous rencontrez des difficultés pour terminer une tâche, veuillez contacter l'un de vos enseignants afin que nous puissions vous aider. Nous préférons de loin passer du temps à vous aider plutôt que de traiter des cas de fraude.**
+| Commande | Description |
+|---|---|
+| `make` | Compile le projet |
+| `./civ --mode sdl --width 40 --height 25 --seed 12345` | Lance le jeu en mode SDL avec une carte 40x25 et une seed précise |
+| `./civ -m sdl -w 40 -h 25 -s 12345` | Lance le jeu en mode SDL avec les options courtes |
+| `./civ -m cli -t 150 -b 5` | Lance le jeu en mode CLI avec 150 tours et 5 barbares |
+| `./civ --mode cli --turns 150 --barbarians 5` | Lance le jeu en mode CLI avec les options longues |
+| `make clean` | Supprime les fichiers générés par la compilation |
+
+---
+
+## Organisation générale du projet
+
+L’arborescence principale du projet est la suivante :
+
+```txt
+├── civ
+├── GP
+│   └── comptes-rendus
+│       └── CR1.pdf
+├── main
+├── Makefile
+├── README_CARCASSONNE.md
+├── README_CIV.md
+├── README.md
+└── src
+```
+
+### Fichiers principaux à la racine
+
+- `Makefile` : gère la compilation du projet.
+- `civ` : exécutable principal du jeu.
+- `main` : ancien exécutable ou exécutable généré selon la configuration du projet.
+- `README.md` : fichier général de présentation du projet.
+- `README_CIV.md` : documentation spécifique au jeu Civilization.
+- `README_CARCASSONNE.md` : documentation spécifique à l'autre jeu proposé.
+- `GP` : tout le contenu de la gestion de projet.
+
+---
+
+## Organisation du dossier `src`
+
+Le dossier `src` contient tout le code source du jeu. Chaque sous-dossier correspond à un module précis.
+
+```txt
+src
+├── barbarian
+├── building
+├── city
+├── cli
+├── configuration
+├── game
+├── map
+├── sdl
+├── sdl_map
+├── sdl_panneaux
+├── sprites
+├── technology
+├── tile
+└── unit
+```
+
+---
+
+## Description des modules
+
+### `src/game`
+
+Ce module contient la logique principale du jeu.
+
+Il gère notamment :
+
+- l’état global de la partie ;
+- les tours de jeu ;
+- les joueurs ;
+- les actions principales ;
+- la coordination entre les unités, la carte, les villes et les technologies.
+
+Fichiers principaux :
+
+- `game.c`
+- `game.h`
+- `game_test.c`
+
+---
+
+### `src/map`
+
+Ce module gère la carte du jeu.
+
+Il permet notamment :
+
+- de créer la carte ;
+- d’accéder aux cases ;
+- de gérer les dimensions de la carte ;
+- de placer les différents éléments du jeu.
+
+Fichiers principaux :
+
+- `map.c`
+- `map.h`
+- `map_test.c`
+
+---
+
+### `src/tile`
+
+Ce module représente les cases individuelles de la carte.
+
+Chaque case peut contenir différentes informations :
+
+- un type de terrain ;
+- une unité ;
+- une ville ;
+- un bâtiment ;
+- une ressource ;
+- un camp barbare ou un autre élément particulier.
+
+Fichiers principaux :
+
+- `tile.c`
+- `tile.h`
+- `tile_test.c`
+
+---
+
+### `src/unit`
+
+Ce module gère les unités du jeu.
+
+Les unités peuvent par exemple :
+
+- se déplacer ;
+- interagir avec la carte ;
+- fonder une ville ;
+- attaquer ;
+- être limitées par des points de mouvement.
+
+Le dossier contient aussi des fonctions spécifiques au mode CLI.
+
+Fichiers principaux :
+
+- `unit.c`
+- `unit.h`
+- `unit_cli.c`
+- `unit_cli.h`
+- `unit_test.c`
+
+---
+
+### `src/city`
+
+Ce module gère les villes.
+
+Les villes permettent au joueur de développer sa civilisation. Elles peuvent produire des ressources, construire des bâtiments ou participer à la progression globale du joueur.
+
+Fichiers principaux :
+
+- `city.c`
+- `city.h`
+- `city_test.c`
+
+---
+
+### `src/building`
+
+Ce module gère les bâtiments.
+
+Les bâtiments permettent d’améliorer les villes et d’apporter différents bonus au joueur.
+
+Fichiers principaux :
+
+- `building.c`
+- `building.h`
+- `building_test.c`
+
+---
+
+### `src/technology`
+
+Ce module gère l’arbre des technologies.
+
+Les technologies permettent de débloquer progressivement de nouvelles possibilités de jeu, comme :
+
+- de nouvelles unités ;
+- de nouveaux bâtiments ;
+- de nouvelles actions ;
+- des améliorations pour la civilisation.
+
+Le dossier contient aussi une partie dédiée à l’affichage ou à l’utilisation des technologies en mode CLI.
+
+Fichiers principaux :
+
+- `technology.c`
+- `technology.h`
+- `technology_cli.c`
+- `technology_cli.h`
+- `technology_test.c`
+
+---
+
+### `src/barbarian`
+
+Ce module gère les barbares.
+
+Les barbares sont des entités adverses présentes sur la carte. Ils peuvent gêner le développement du joueur et ajouter un aspect stratégique au jeu.
+
+Fichiers principaux :
+
+- `barbarian.c`
+- `barbarian.h`
+- `barbarian_test.c`
+
+---
+
+### `src/configuration`
+
+Ce module contient les paramètres de configuration du jeu.
+
+Il permet de centraliser certaines valeurs utiles, par exemple :
+
+- la taille de la carte ;
+- les constantes du jeu ;
+- les paramètres de départ ;
+- les réglages généraux.
+
+Fichiers principaux :
+
+- `configuration.c`
+- `configuration.h`
+- `configuration_test.c`
+
+---
+
+### `src/cli`
+
+Ce module contient l’interface en ligne de commande.
+
+Il permet de jouer au jeu directement dans le terminal. Il gère l’affichage textuel, les menus, les panneaux d’information et les interactions utilisateur en mode CLI.
+
+Fichiers principaux :
+
+- `cli.c`
+- `cli.h`
+- `cli_panneaux.c`
+- `cli_panneaux.h`
+
+---
+
+### `src/sdl`
+
+Ce module contient la logique principale de l’interface graphique SDL.
+
+Il gère notamment :
+
+- l’ouverture de la fenêtre ;
+- la boucle d’événements ;
+- les clics utilisateur ;
+- l’affichage général ;
+- la coordination entre la carte et les panneaux graphiques.
+
+Fichiers principaux :
+
+- `sdl.c`
+- `sdl.h`
+- `sdl_test.c`
+
+---
+
+### `src/sdl_map`
+
+Ce module gère l’affichage graphique de la carte en SDL.
+
+Il s’occupe notamment :
+
+- du rendu des cases ;
+- de l’affichage des unités ;
+- de l’affichage des villes ;
+- de l’affichage des barbares ;
+- de la gestion visuelle de la carte.
+
+Fichiers principaux :
+
+- `sdl_map.c`
+- `sdl_map.h`
+- `sdl_map_test.c`
+
+---
+
+### `src/sdl_panneaux`
+
+Ce module gère les panneaux de l’interface SDL.
+
+Il permet d’afficher :
+
+- les informations du joueur ;
+- les ressources ;
+- les technologies ;
+- les messages d’action ;
+- les détails liés aux unités ou aux villes.
+
+Fichiers principaux :
+
+- `sdl_panneaux.c`
+- `sdl_panneaux.h`
+- `sdl_panneaux_test.c`
+
+---
+
+### `src/sprites`
+
+Ce dossier contient les images utilisées par l’interface SDL.
+
+```txt
+barbares.bmp
+batiment_construction.bmp
+camp_barbares.bmp
+colon.bmp
+guerrier.bmp
+ville_muraille.bmp
+ville.bmp
+```
+
+Ces fichiers servent à représenter graphiquement les unités, les villes, les bâtiments et les barbares dans le mode SDL.
+
+---
+
+## Fonctionnement général du jeu
+
+Le jeu se déroule au tour par tour.
+
+À chaque tour, le joueur peut effectuer différentes actions selon l’état de sa civilisation.
+
+Les actions principales sont :
+
+- déplacer des unités ;
+- explorer la carte ;
+- fonder ou développer des villes ;
+- produire des ressources ;
+- construire des bâtiments ;
+- rechercher des technologies ;
+- combattre ou éviter les barbares ;
+- faire progresser sa civilisation au fil des tours.
+
+---
+
+## Les unités
+
+Les unités sont les éléments mobiles du jeu.
+
+Elles peuvent se déplacer sur la carte en fonction de leurs points de mouvement.
+
+Certaines unités peuvent avoir des rôles particuliers, par exemple :
+
+- le colon peut fonder une ville ;
+- le guerrier peut combattre ;
+- certaines unités ou actions peuvent être débloquées grâce aux technologies.
+
+Le déplacement d’une unité dépend de plusieurs conditions :
+
+- une unité doit être sélectionnée ;
+- elle doit disposer de points de mouvement ;
+- la case d’arrivée doit être valide ;
+- certaines cases peuvent être occupées ou bloquées.
+
+---
+
+## Les villes
+
+Les villes représentent le cœur du développement de la civilisation.
+
+Elles permettent de produire des ressources et d’améliorer la puissance du joueur.
+
+Une ville peut notamment servir à :
+
+- produire de la nourriture ;
+- produire de l’or ;
+- produire de la science ;
+- construire des bâtiments ;
+- renforcer la civilisation.
+
+Les villes sont donc essentielles pour progresser dans la partie.
+
+---
+
+## Les bâtiments
+
+Les bâtiments sont construits dans les villes.
+
+Ils apportent des bonus et permettent d’améliorer les capacités de la civilisation. Selon le bâtiment construit, le joueur peut obtenir des avantages sur la production, la défense ou le développement scientifique.
+
+---
+
+## Les technologies
+
+Le jeu contient un système de technologies.
+
+Le joueur accumule de la science au fil des tours. Cette science permet de progresser dans l’arbre technologique.
+
+Les technologies débloquent de nouvelles possibilités de jeu, par exemple :
+
+- de nouveaux bâtiments ;
+- de nouvelles unités ;
+- de nouvelles mécaniques ;
+- des améliorations stratégiques.
+
+Dans l’interface SDL, la progression technologique peut être affichée à l’aide d’une barre de progression.
+
+---
+
+## Les barbares
+
+Les barbares sont des ennemis présents sur la carte.
+
+Ils peuvent être liés à des camps barbares et représentent une menace pour le joueur. Ils ajoutent un aspect stratégique : le joueur doit décider s’il veut les attaquer, les éviter ou renforcer sa civilisation avant de les affronter.
+
+---
+
+## Mode CLI
+
+Le mode CLI est une version textuelle du jeu.
+
+Il permet de tester et de jouer sans interface graphique.
+
+Il est particulièrement utile pour :
+
+- vérifier rapidement les mécaniques du jeu ;
+- tester les déplacements ;
+- tester les productions ;
+- tester les technologies ;
+- déboguer plus facilement certaines fonctions.
+
+L’affichage se fait directement dans le terminal avec des commandes et des messages textuels.
+
+---
+
+## Mode SDL
+
+Le mode SDL est la version graphique du jeu.
+
+Il permet une utilisation plus intuitive grâce à :
+
+- une carte affichée graphiquement ;
+- des sprites pour les unités, les villes et les barbares ;
+- des panneaux d’informations ;
+- une gestion des clics ;
+- une meilleure lisibilité de l’état de la partie.
+
+Ce mode utilise les fichiers du dossier `src/sprites`.
+
+---
+
+## Tests
+
+Plusieurs modules possèdent des fichiers de test.
+
+Par exemple :
+
+- `game_test.c`
+- `map_test.c`
+- `unit_test.c`
+- `city_test.c`
+- `technology_test.c`
+- `barbarian_test.c`
+- `building_test.c`
+- `configuration_test.c`
+- `sdl_test.c`
+- `sdl_map_test.c`
+- `sdl_panneaux_test.c`
+
+Ces fichiers permettent de tester séparément les différents modules du jeu.
+
+Selon les règles définies dans le `Makefile`, les tests peuvent être compilés et exécutés séparément afin de vérifier le bon fonctionnement des fonctions principales.
+
+---
+
+## Compilation manuelle
+
+La compilation manuelle n’est normalement pas nécessaire.
+
+Le `Makefile` est prévu pour gérer automatiquement :
+
+- les fichiers sources ;
+- les dépendances entre modules ;
+- la génération des fichiers objets `.o` ;
+- la création de l’exécutable ;
+- le nettoyage du projet.
+
+Il est donc conseillé d’utiliser uniquement :
+
+```bash
+make
+```
+
+puis de lancer le jeu avec les options voulues, par exemple :
+
+```bash
+./civ --mode sdl --width 40 --height 25 --seed 12345
+```
+
+ou :
+
+```bash
+./civ -m cli -t 150 -b 5
+```
+
+---
+
+## Remarque sur les fichiers générés
+
+Certains fichiers visibles dans l’arborescence peuvent être générés automatiquement par la compilation, par exemple :
+
+```txt
+*.o
+main
+civ
+*_test
+```
+
+Ces fichiers ne sont pas forcément à écrire ou modifier directement. Ils sont produits par le `Makefile` à partir des fichiers sources `.c` et `.h`.
+
+Dans un dépôt Git propre, on peut choisir de ne pas versionner ces fichiers générés et de les ignorer avec un fichier `.gitignore`.
+
+Exemple :
+
+```gitignore
+*.o
+main
+civ
+src/*/*_test
+.DS_Store
+```
+
+---
+
+## Auteurs
+```
+CHAUMONT Camille
+DURIN Grégoire
+LEFEBVRE Nathan
+MURIS Eliott
+```
+---
+Projet réalisé dans le cadre du projet de semestre 6.
