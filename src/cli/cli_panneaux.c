@@ -149,6 +149,8 @@ void print_selected_unit_info(WINDOW* win,Unit* selected_unit) {
     wprintw(win,"Pos  : (%d, %d)\n", selected_unit->pos.x, selected_unit->pos.y);
 }
 
+
+
 void show_city_info_cli(WINDOW* win,Game* game, Position pos) {
     if (game == NULL) return;
     Tile* tile = get_tile(game->map, pos);

@@ -10,7 +10,7 @@
 #include "../src/tile/tile.h"
 
 //test traduction des biomes
-void test_biomes_logic() {
+void test_biomes_logic(void) {
 
     // Vérification des noms textuels
     assert(strcmp(get_biome_name('E'), "Eau") == 0);
@@ -53,7 +53,7 @@ void test_biomes_logic() {
 }
 
 // Test de la détection du clic
-void test_position_hexagone_math() {
+void test_position_hexagone_math(void) {
     // On alloue une structure Game et Map juste pour le test
     Game* game = malloc(sizeof(Game));
     game->map = malloc(sizeof(Map));
@@ -89,7 +89,7 @@ void test_position_hexagone_math() {
     free(game);
 }
 
-int main() {
+int main(void) {
     printf("Demarrage des tests unitaires logiques pour sdl_map...\n");
     
     test_biomes_logic();

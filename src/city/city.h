@@ -81,7 +81,6 @@ City* get_city_on_tile(CityList* liste_city, Tile* tile);
 
 bool end_project(Game* game, City* city);
 //Si PV <= 0 ou population <= 0 : la sortir de la CityList et la destroy
-void end_city(CityList* citylist, City* city);
 
 bool croissance_check(City* city);
 

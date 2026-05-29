@@ -6,7 +6,7 @@
 #include "../src/sdl_panneaux/sdl_panneaux.h"
 #include "../src/game/game.h" // Pour récupérer la définition de MoveResult
 
-void test_get_move_message_all_cases() {
+void test_get_move_message_all_cases(void) {
     char buf[100]; // buffer vide = feuille blanche
 
     //Test d'un déplacement normal
@@ -42,7 +42,7 @@ void test_get_move_message_all_cases() {
     assert(strcmp(buf, "Case occupee par une unite alliee") == 0);
 }
 
-int main() {
+int main(void) {
     printf("Démarrage des tests liés à l'affichage des déplacements des unités dans sdl_panneaux...\n");
     test_get_move_message_all_cases();
     printf("=> TOUS LES CAS DE MOUVEMENT ONT REUSSI ! (8/8 assertions OK)\n");
