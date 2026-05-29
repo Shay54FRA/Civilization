@@ -165,7 +165,7 @@ void print_stats(WINDOW* win,Game* game) {
     // Calcul des unites
     int unit_count = get_unit_number(game);
     int maintenance = get_all_entretien_costs(game);
-    UnitList* current_unit = game->unitList;
+    // UnitList* current_unit = game->unitList;
 
     
     Position start_pos = get_starting_city_pos(game->map);
