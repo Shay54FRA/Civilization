@@ -173,17 +173,33 @@ void show_city_info_cli(WINDOW* win,Game* game, Position pos) {
         wprintw(win,"Aucun projet en cours ! Les points de productions sont perdus à chaque tour.\n");
     } else {
         wprintw(win,"Type : %s\n", get_name(city->project->type));
-        wprintw(win,"Production nécéssaire restante : %d\n", city->project->production_cost);
+        wprintw(win,"PRODUCTION nécéssaire restante : %d\n", city->project->production_cost);
     }
 
     wprintw(win,"\n--- Batîments ---\n\n");
+    // Tableau pour compter le nombre d'exemplaires de chaque type de bâtiment
+    int counts[256] = {0};
     BuildList* to_check = city->buildings;
+    
     while(to_check != NULL) {
         Building* build = to_check->data;
         if (build != NULL) {
-            wprintw(win,"%s\n", get_name(build->type));
+            // On utilise la valeur ASCII du caractère ('G', 'A', etc.) comme index
+            counts[(unsigned char)build->type]++;
         }
         to_check = to_check->next;
+    }
+
+    // Tableau contenant tous les types de bâtiments définis dans ton jeu
+    char types[] = {'G', 'A', 'B', 'M', 'C', 'R', 'P'};
+    int nb_types = sizeof(types) / sizeof(types[0]);
+
+    // Affichage unique pour chaque bâtiment possédé au moins une fois
+    for (int i = 0; i < nb_types; i++) {
+        char t = types[i];
+        if (counts[(unsigned char)t] > 0) {
+            wprintw(win, "%s x%d\n", get_name(t), counts[(unsigned char)t]);
+        }
     }
 
     wattroff(win,COLOR_PAIR(TEXTE_ROSE)); //On reset la couleur de fond
