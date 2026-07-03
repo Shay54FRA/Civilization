@@ -407,8 +407,10 @@ void give_bonus_building(Game* game, City* city, Building* building) {
 void give_bonus_tile(Game* game, City* city, Tile* tile) {
     if (game != NULL && city != NULL && tile != NULL) {
         switch(tile->biome) {
-            case 'P': city->new_ressources->ressource1 += 2;        //Food
-                city->new_ressources->ressource2 += 1; break;       //Prod       
+            case 'P': city->new_ressources->ressource1 += 10;        //Food
+                city->new_ressources->ressource2 += 1;               //Prod
+                game->new_ressources->ressource1 += 1;       
+
 
             case 'E': city->new_ressources->ressource1 += 1;        //Food
                 game->new_ressources->ressource1 += 1; break;       //Gold
