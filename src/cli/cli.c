@@ -231,10 +231,10 @@ void show_city_project_menu(Game* game, City* city,char* message) {
                 start_project(city, choix, city->pos);
             }
         }
-        if (choix == 'm' && is_building_unlocked(game->tech_tree, 'M')) start_project(city, choix, city->pos);
-        else if (choix == 'b' && is_building_unlocked(game->tech_tree, 'B')) start_project(city, choix, city->pos);
-        else if (choix == 'r' && is_building_unlocked(game->tech_tree, 'R')) start_project(city, choix, city->pos);
-        else if (choix == 'p' && is_building_unlocked(game->tech_tree, 'P')) start_project(city, choix, city->pos);
+        if (choix == 'm' && is_building_unlocked(game->tech_tree, 'M')) start_project(city, 'M', city->pos);
+        else if (choix == 'b' && is_building_unlocked(game->tech_tree, 'B')) start_project(city, 'B', city->pos);
+        else if (choix == 'r' && is_building_unlocked(game->tech_tree, 'R')) start_project(city, 'R', city->pos);
+        else if (choix == 'p' && is_building_unlocked(game->tech_tree, 'P')) start_project(city, 'P', city->pos);
         else if (choix == 'G') start_project(city, 'G', city->pos);
         else if (choix == 'a') start_project(city, 'A', city->pos);
         else if (choix == 'C') start_project(city, 'C', city->pos);
